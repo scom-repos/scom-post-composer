@@ -50,11 +50,6 @@ declare module "@scom/scom-post-composer/global/index.ts" {
     export const fetchEmojis: (params: any) => Promise<any>;
     export const searchEmojis: (q: string, mapper: Map<string, any>) => any;
 }
-/// <amd-module name="@scom/scom-post-composer/store/index.ts" />
-declare module "@scom/scom-post-composer/store/index.ts" {
-    import { IAuthor } from "@scom/scom-post";
-    export const getCurrentUser: () => IAuthor;
-}
 /// <amd-module name="@scom/scom-post-composer/assets.ts" />
 declare module "@scom/scom-post-composer/assets.ts" {
     function fullPath(path: string): string;
@@ -62,6 +57,11 @@ declare module "@scom/scom-post-composer/assets.ts" {
         fullPath: typeof fullPath;
     };
     export default _default;
+}
+/// <amd-module name="@scom/scom-post-composer/store/index.ts" />
+declare module "@scom/scom-post-composer/store/index.ts" {
+    import { IAuthor } from "@scom/scom-post";
+    export const getCurrentUser: () => IAuthor;
 }
 /// <amd-module name="@scom/scom-post-composer" />
 declare module "@scom/scom-post-composer" {

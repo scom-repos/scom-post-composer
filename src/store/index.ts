@@ -1,4 +1,5 @@
 import { IAuthor } from "@scom/scom-post";
+import assets from "../assets";
 
 export const getCurrentUser = () => {
   const user: IAuthor = {
@@ -8,7 +9,7 @@ export const getCurrentUser = () => {
     pubKey: "",
     displayName: "",
     description: "",
-    avatar: undefined
+    avatar: assets.fullPath('img/default_avatar.png')
   }
   return user;
 }

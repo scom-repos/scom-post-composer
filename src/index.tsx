@@ -199,7 +199,7 @@ export class ScomPostComposer extends Module {
     this.clear();
     this._data = value;
     this.lbReplyTo.caption = `${this.replyTo?.author?.internetIdentifier || ''}`;
-    this.imgReplier.url = getCurrentUser()?.avatar || ''
+    this.imgReplier.url = getCurrentUser()?.avatar;
     if (this.placeholder) this.replyEditor.placeholder = this.placeholder;
     if (this.buttonCaption) this.btnReply.caption = this.buttonCaption;
     this.updateGrid();
@@ -208,7 +208,7 @@ export class ScomPostComposer extends Module {
   clear() {
     this.pnlReplyTo.visible = false;
     this.lbReplyTo.caption = '';
-    this.imgReplier.url = '';
+    this.imgReplier.url = undefined;
     this.replyEditor.value = '';
     this.pnlBorder.border = {
       top: {
@@ -230,8 +230,8 @@ export class ScomPostComposer extends Module {
   }
 
   private updateGrid() {
+    this.gridReply.templateColumns = ['2.75rem', 'minmax(auto, calc(100% - 3.5rem))'];
     if (this.isQuote) {
-      this.gridReply.templateColumns = ['2.75rem', 'auto'];
       this.gridReply.templateAreas = [
         ['avatar', 'editor'],
         ['avatar', 'quoted'],
@@ -242,9 +242,8 @@ export class ScomPostComposer extends Module {
     } else {
       if (this.isReplyToShown && !this.pnlReplyTo.visible) {
         this.gridReply.templateAreas = [['avatar', 'editor', 'reply']];
-        this.gridReply.templateColumns = ['2.75rem', 'auto', '5.5rem'];
+        this.gridReply.templateColumns = ['2.75rem', 'minmax(auto, 1fr)', '5.5rem'];
       } else {
-        this.gridReply.templateColumns = ['2.75rem', 'auto'];
         this.gridReply.templateAreas = [
           ['avatar', 'editor'],
           ['avatar', 'reply'],
@@ -255,6 +254,7 @@ export class ScomPostComposer extends Module {
   }
 
   private onEditorChanged() {
+    if (!this.pnlIcons.visible) this.pnlIcons.visible = true;
     this.btnReply.enabled = !!this.replyEditor.getMarkdownValue();
     if (this.onChanged) this.onChanged(this.replyEditor);
   }
@@ -318,18 +318,15 @@ export class ScomPostComposer extends Module {
     this.onCloseModal('mdGif');
     this.btnReply.enabled = true;
     let index = this.newReply.length;
-    const mediaWrap = <i-panel background={{color: Theme.action.hover}}>
-      <i-panel
-        width={'100%'} height={'100%'}
-        position='absolute' zIndex={5}
-        background={{color: Theme.action.hoverOpacity}}
-      ></i-panel>
+    const mediaWrap = <i-panel margin={{bottom: '0.5rem'}} overflow={'hidden'} opacity={0.7}>
+      <i-image width={'100%'} height={'auto'} display="block" url={gif.images.original_still.url}></i-image>
       <i-icon
-        name="times" width={16} height={16} fill={Theme.text.primary}
+        name="times" width={'1.25rem'} height={'1.25rem'} fill={Theme.text.primary}
         border={{radius: '50%'}}
         padding={{top: 5, bottom: 5, left: 5, right: 5}}
         background={{color: 'rgba(15, 20, 25, 0.75)'}}
-        position='absolute' right="10px" top="10px" zIndex={9}
+        position='absolute' right="10px" top="10px" zIndex={2}
+        cursor="pointer"
         onClick={() => {
           mediaWrap.remove();
           this.newReply.splice(index, 1);
@@ -743,7 +740,7 @@ export class ScomPostComposer extends Module {
         <i-grid-layout
           id="gridReply"
           gap={{ column: '0.75rem' }}
-          templateColumns={['2.75rem', 'auto']}
+          templateColumns={['2.75rem', 'minmax(auto, calc(100% - 3.5rem))']}
           templateRows={['auto']}
           templateAreas={[
             ['avatar', 'editor'],
@@ -783,7 +780,7 @@ export class ScomPostComposer extends Module {
               cursor='text'
               border={{style: 'none'}}
             ></i-markdown-editor>
-            <i-vstack id="pnlMedias" margin={{bottom: '1rem'}} />
+            <i-vstack id="pnlMedias" />
           </i-panel>
           
           {/* comment */}
@@ -828,6 +825,7 @@ export class ScomPostComposer extends Module {
                   border={{radius: '1rem'}}
                   boxShadow='rgba(101, 119, 134, 0.2) 0px 0px 15px, rgba(101, 119, 134, 0.15) 0px 0px 3px 1px'
                   padding={{top: 0, left: 0, right: 0, bottom: 0}}
+                  closeOnScrollChildFixed={true}
                   onOpen={this.onEmojiMdOpen}
                 >
                   <i-vstack position='relative' padding={{left: '0.25rem', right: '0.25rem'}}>
@@ -918,6 +916,7 @@ export class ScomPostComposer extends Module {
           border={{radius: '1rem'}}
           maxWidth={'600px'}
           maxHeight={'90vh'}
+          overflow={{y: 'auto'}}
           padding={{top: 0, right: 0, left: 0, bottom: 0}}
           mediaQueries={[
             {
@@ -1037,6 +1036,7 @@ export class ScomPostComposer extends Module {
           border={{radius: '1rem'}}
           maxWidth={'600px'}
           maxHeight={'90vh'}
+          overflow={{y: 'auto'}}
           padding={{top: 0, right: 0, left: 0, bottom: 0}}
           mediaQueries={[
             {

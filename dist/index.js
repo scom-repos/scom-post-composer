@@ -150,24 +150,6 @@ define("@scom/scom-post-composer/global/index.ts", ["require", "exports"], funct
     };
     exports.searchEmojis = searchEmojis;
 });
-define("@scom/scom-post-composer/store/index.ts", ["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.getCurrentUser = void 0;
-    const getCurrentUser = () => {
-        const user = {
-            id: "",
-            username: "",
-            internetIdentifier: "",
-            pubKey: "",
-            displayName: "",
-            description: "",
-            avatar: undefined
-        };
-        return user;
-    };
-    exports.getCurrentUser = getCurrentUser;
-});
 define("@scom/scom-post-composer/assets.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -180,7 +162,25 @@ define("@scom/scom-post-composer/assets.ts", ["require", "exports", "@ijstech/co
         fullPath
     };
 });
-define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components", "@scom/scom-post-composer/global/index.ts", "@scom/scom-post-composer/store/index.ts", "@scom/scom-post-composer/assets.ts"], function (require, exports, components_2, index_1, index_2, assets_1) {
+define("@scom/scom-post-composer/store/index.ts", ["require", "exports", "@scom/scom-post-composer/assets.ts"], function (require, exports, assets_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.getCurrentUser = void 0;
+    const getCurrentUser = () => {
+        const user = {
+            id: "",
+            username: "",
+            internetIdentifier: "",
+            pubKey: "",
+            displayName: "",
+            description: "",
+            avatar: assets_1.default.fullPath('img/default_avatar.png')
+        };
+        return user;
+    };
+    exports.getCurrentUser = getCurrentUser;
+});
+define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components", "@scom/scom-post-composer/global/index.ts", "@scom/scom-post-composer/store/index.ts", "@scom/scom-post-composer/assets.ts"], function (require, exports, components_2, index_1, index_2, assets_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomPostComposer = void 0;
@@ -271,7 +271,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.clear();
             this._data = value;
             this.lbReplyTo.caption = `${this.replyTo?.author?.internetIdentifier || ''}`;
-            this.imgReplier.url = (0, index_2.getCurrentUser)()?.avatar || '';
+            this.imgReplier.url = (0, index_2.getCurrentUser)()?.avatar;
             if (this.placeholder)
                 this.replyEditor.placeholder = this.placeholder;
             if (this.buttonCaption)
@@ -281,7 +281,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         clear() {
             this.pnlReplyTo.visible = false;
             this.lbReplyTo.caption = '';
-            this.imgReplier.url = '';
+            this.imgReplier.url = undefined;
             this.replyEditor.value = '';
             this.pnlBorder.border = {
                 top: {
@@ -301,8 +301,8 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.renderedMap = {};
         }
         updateGrid() {
+            this.gridReply.templateColumns = ['2.75rem', 'minmax(auto, calc(100% - 3.5rem))'];
             if (this.isQuote) {
-                this.gridReply.templateColumns = ['2.75rem', 'auto'];
                 this.gridReply.templateAreas = [
                     ['avatar', 'editor'],
                     ['avatar', 'quoted'],
@@ -314,10 +314,9 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             else {
                 if (this.isReplyToShown && !this.pnlReplyTo.visible) {
                     this.gridReply.templateAreas = [['avatar', 'editor', 'reply']];
-                    this.gridReply.templateColumns = ['2.75rem', 'auto', '5.5rem'];
+                    this.gridReply.templateColumns = ['2.75rem', 'minmax(auto, 1fr)', '5.5rem'];
                 }
                 else {
-                    this.gridReply.templateColumns = ['2.75rem', 'auto'];
                     this.gridReply.templateAreas = [
                         ['avatar', 'editor'],
                         ['avatar', 'reply'],
@@ -327,6 +326,8 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.pnlReplyTo.visible = this.isReplyToShown;
         }
         onEditorChanged() {
+            if (!this.pnlIcons.visible)
+                this.pnlIcons.visible = true;
             this.btnReply.enabled = !!this.replyEditor.getMarkdownValue();
             if (this.onChanged)
                 this.onChanged(this.replyEditor);
@@ -369,9 +370,9 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.onCloseModal('mdGif');
             this.btnReply.enabled = true;
             let index = this.newReply.length;
-            const mediaWrap = this.$render("i-panel", { background: { color: Theme.action.hover } },
-                this.$render("i-panel", { width: '100%', height: '100%', position: 'absolute', zIndex: 5, background: { color: Theme.action.hoverOpacity } }),
-                this.$render("i-icon", { name: "times", width: 16, height: 16, fill: Theme.text.primary, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, background: { color: 'rgba(15, 20, 25, 0.75)' }, position: 'absolute', right: "10px", top: "10px", zIndex: 9, onClick: () => {
+            const mediaWrap = this.$render("i-panel", { margin: { bottom: '0.5rem' }, overflow: 'hidden', opacity: 0.7 },
+                this.$render("i-image", { width: '100%', height: 'auto', display: "block", url: gif.images.original_still.url }),
+                this.$render("i-icon", { name: "times", width: '1.25rem', height: '1.25rem', fill: Theme.text.primary, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, background: { color: 'rgba(15, 20, 25, 0.75)' }, position: 'absolute', right: "10px", top: "10px", zIndex: 2, cursor: "pointer", onClick: () => {
                         mediaWrap.remove();
                         this.newReply.splice(index, 1);
                     } }));
@@ -661,21 +662,21 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 this.$render("i-hstack", { id: "pnlReplyTo", visible: false, gap: "0.5rem", verticalAlignment: "center", padding: { top: '0.25rem', bottom: '0.75rem', left: '3.25rem' } },
                     this.$render("i-label", { caption: "Replying to", font: { size: '1rem', color: Theme.text.secondary } }),
                     this.$render("i-label", { id: "lbReplyTo", link: { href: '' }, font: { size: '1rem', color: Theme.colors.primary.main } })),
-                this.$render("i-grid-layout", { id: "gridReply", gap: { column: '0.75rem' }, templateColumns: ['2.75rem', 'auto'], templateRows: ['auto'], templateAreas: [
+                this.$render("i-grid-layout", { id: "gridReply", gap: { column: '0.75rem' }, templateColumns: ['2.75rem', 'minmax(auto, calc(100% - 3.5rem))'], templateRows: ['auto'], templateAreas: [
                         ['avatar', 'editor'],
                         ['avatar', 'reply']
                     ] },
-                    this.$render("i-image", { id: "imgReplier", grid: { area: 'avatar' }, width: '2.75rem', height: '2.75rem', display: "block", background: { color: Theme.background.main }, border: { radius: '50%' }, overflow: 'hidden', margin: { top: '0.75rem' }, objectFit: 'cover', fallbackUrl: assets_1.default.fullPath('img/default_avatar.png') }),
+                    this.$render("i-image", { id: "imgReplier", grid: { area: 'avatar' }, width: '2.75rem', height: '2.75rem', display: "block", background: { color: Theme.background.main }, border: { radius: '50%' }, overflow: 'hidden', margin: { top: '0.75rem' }, objectFit: 'cover', fallbackUrl: assets_2.default.fullPath('img/default_avatar.png') }),
                     this.$render("i-panel", { grid: { area: 'editor' } },
                         this.$render("i-markdown-editor", { id: "replyEditor", width: "100%", viewer: false, hideModeSwitch: true, mode: "wysiwyg", toolbarItems: [], font: { size: '1.25rem', color: Theme.text.primary }, lineHeight: 1.5, padding: { top: 12, bottom: 12, left: 0, right: 0 }, background: { color: 'transparent' }, height: "auto", minHeight: 0, overflow: 'hidden', overflowWrap: "break-word", onChanged: this.onEditorChanged, cursor: 'text', border: { style: 'none' } }),
-                        this.$render("i-vstack", { id: "pnlMedias", margin: { bottom: '1rem' } })),
+                        this.$render("i-vstack", { id: "pnlMedias" })),
                     this.$render("i-hstack", { id: "pnlBorder", horizontalAlignment: "space-between", grid: { area: 'reply' } },
                         this.$render("i-hstack", { id: "pnlIcons", gap: "4px", verticalAlignment: "center", visible: false },
                             this.$render("i-icon", { name: "image", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Media', placement: 'bottom' }, onClick: this.onUpload }),
                             this.$render("i-icon", { name: "images", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'GIF', placement: 'bottom' }, onClick: () => this.onShowModal('mdGif') }),
                             this.$render("i-panel", null,
                                 this.$render("i-icon", { name: "smile", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Emoji', placement: 'bottom' }, onClick: () => this.onShowModal('mdEmoji') }),
-                                this.$render("i-modal", { id: "mdEmoji", maxWidth: '100%', minWidth: 320, popupPlacement: 'bottomRight', showBackdrop: false, border: { radius: '1rem' }, boxShadow: 'rgba(101, 119, 134, 0.2) 0px 0px 15px, rgba(101, 119, 134, 0.15) 0px 0px 3px 1px', padding: { top: 0, left: 0, right: 0, bottom: 0 }, onOpen: this.onEmojiMdOpen },
+                                this.$render("i-modal", { id: "mdEmoji", maxWidth: '100%', minWidth: 320, popupPlacement: 'bottomRight', showBackdrop: false, border: { radius: '1rem' }, boxShadow: 'rgba(101, 119, 134, 0.2) 0px 0px 15px, rgba(101, 119, 134, 0.15) 0px 0px 3px 1px', padding: { top: 0, left: 0, right: 0, bottom: 0 }, closeOnScrollChildFixed: true, onOpen: this.onEmojiMdOpen },
                                     this.$render("i-vstack", { position: 'relative', padding: { left: '0.25rem', right: '0.25rem' } },
                                         this.$render("i-hstack", { verticalAlignment: "center", border: { radius: '9999px', width: '1px', style: 'solid', color: Theme.divider }, minHeight: 40, width: '100%', background: { color: Theme.input.background }, padding: { left: '0.75rem', right: '0.75rem' }, margin: { top: '0.25rem', bottom: '0.25rem' }, gap: "4px" },
                                             this.$render("i-icon", { width: '1rem', height: '1rem', name: 'search', fill: Theme.text.secondary }),
@@ -688,7 +689,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                                             this.$render("i-hstack", { id: "pnlColors", verticalAlignment: "center", gap: '0.25rem', overflow: 'hidden', cursor: "pointer", padding: { top: '0.25rem', left: '0.25rem', right: '0.25rem', bottom: '0.25rem' } }))))),
                             this.$render("i-icon", { name: "map-marker-alt", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'SCOM widgets', placement: 'bottom' }, onClick: () => this.onShowModal('mdWidgets') })),
                         this.$render("i-button", { id: "btnReply", height: 36, padding: { left: '1rem', right: '1rem' }, background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText, bold: true }, border: { radius: '30px' }, enabled: false, margin: { left: 'auto' }, caption: "Post", onClick: this.onReply }))),
-                this.$render("i-modal", { id: "mdGif", border: { radius: '1rem' }, maxWidth: '600px', maxHeight: '90vh', padding: { top: 0, right: 0, left: 0, bottom: 0 }, mediaQueries: [
+                this.$render("i-modal", { id: "mdGif", border: { radius: '1rem' }, maxWidth: '600px', maxHeight: '90vh', overflow: { y: 'auto' }, padding: { top: 0, right: 0, left: 0, bottom: 0 }, mediaQueries: [
                         {
                             maxWidth: '767px',
                             properties: {
@@ -721,7 +722,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                                 this.$render("i-vstack", { id: "gifLoading", padding: { top: '0.5rem', bottom: '0.5rem' }, visible: false, height: "100%", width: "100%", class: "i-loading-overlay", background: { color: Theme.background.modal } },
                                     this.$render("i-vstack", { class: "i-loading-spinner", horizontalAlignment: "center", verticalAlignment: "center" },
                                         this.$render("i-icon", { class: "i-loading-spinner_icon", name: "spinner", width: 24, height: 24, fill: Theme.colors.primary.main }))))))),
-                this.$render("i-modal", { id: "mdWidgets", border: { radius: '1rem' }, maxWidth: '600px', maxHeight: '90vh', padding: { top: 0, right: 0, left: 0, bottom: 0 }, mediaQueries: [
+                this.$render("i-modal", { id: "mdWidgets", border: { radius: '1rem' }, maxWidth: '600px', maxHeight: '90vh', overflow: { y: 'auto' }, padding: { top: 0, right: 0, left: 0, bottom: 0 }, mediaQueries: [
                         {
                             maxWidth: '767px',
                             properties: {
