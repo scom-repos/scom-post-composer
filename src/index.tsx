@@ -317,7 +317,7 @@ export class ScomPostComposer extends Module {
   }
 
   private onSetImage(url: string) {
-    const imgMd = `\\n![](${url})\\n`;
+    const imgMd = `\n![](${url})\n`;
     this.value = this.updatedValue + imgMd;
     if (!this.btnReply.enabled) this.btnReply.enabled = true;
     this.uploadForm.closeModal();
@@ -369,7 +369,7 @@ export class ScomPostComposer extends Module {
 
   private onGifSelected(gif: any) {
     this.onCloseModal('mdGif');
-    const imgMd = `\\n![${gif.images.original.url}](${gif.images.original_still.url})\\n`;
+    const imgMd = `\n![${gif.images.original.url}](${gif.images.original_still.url})\n`;
     this.value = this.updatedValue + imgMd;
     if (!this.btnReply.enabled) this.btnReply.enabled = true;
 
@@ -833,7 +833,11 @@ export class ScomPostComposer extends Module {
             objectFit='cover'
             fallbackUrl={assets.fullPath('img/default_avatar.png')}
           ></i-image>
-          <i-panel grid={{ area: 'editor' }}>
+          <i-panel
+            grid={{ area: 'editor' }}
+            maxHeight={'45rem'}
+            overflow={{x: 'hidden', y: 'auto'}}
+          >
             <i-markdown-editor
               id="mdEditor"
               width="100%"
@@ -870,6 +874,7 @@ export class ScomPostComposer extends Module {
             id="pnlBorder"
             horizontalAlignment="space-between"
             grid={{ area: 'reply' }}
+            padding={{top: '0.625rem'}}
           >
             <i-hstack
               id="pnlIcons"

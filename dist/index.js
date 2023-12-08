@@ -440,7 +440,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             });
         }
         onSetImage(url) {
-            const imgMd = `\\n![](${url})\\n`;
+            const imgMd = `\n![](${url})\n`;
             this.value = this.updatedValue + imgMd;
             if (!this.btnReply.enabled)
                 this.btnReply.enabled = true;
@@ -472,7 +472,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         }
         onGifSelected(gif) {
             this.onCloseModal('mdGif');
-            const imgMd = `\\n![${gif.images.original.url}](${gif.images.original_still.url})\\n`;
+            const imgMd = `\n![${gif.images.original.url}](${gif.images.original_still.url})\n`;
             this.value = this.updatedValue + imgMd;
             if (!this.btnReply.enabled)
                 this.btnReply.enabled = true;
