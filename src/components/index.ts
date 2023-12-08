@@ -1,0 +1,1 @@
+export { ScomPostComposerUpload } from './form';
