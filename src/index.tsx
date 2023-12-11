@@ -11,7 +11,6 @@ import {
   customElements,
   ControlElement,
   Container,
-  application,
   Modal,
   CardLayout,
   Input,
@@ -33,12 +32,14 @@ import {
 } from './global/index';
 import { getCurrentUser } from './store/index';
 import assets from './assets';
+import { ScomEditor } from '@scom/scom-editor';
+import { ScomPostComposerUpload } from './components/index';
 
 const Theme = Styles.Theme.ThemeVars;
 
 type IReplyType = 'reply' | 'post' | 'quoted';
-type onChangedCallback = (target: MarkdownEditor) => void;
-type onSubmitCallback = (target: MarkdownEditor, medias: IPostData[]) => void;
+type onChangedCallback = (content: string) => void;
+type onSubmitCallback = (content: string, medias: IPostData[]) => void;
 
 interface IReplyInput {
   replyTo?: IPost;
@@ -46,6 +47,7 @@ interface IReplyInput {
   type?: IReplyType;
   placeholder?: string;
   buttonCaption?: string;
+  value?: string;
 }
 
 interface ScomPostComposerElement extends ControlElement {
@@ -70,9 +72,7 @@ declare global {
 export class ScomPostComposer extends Module {
   private mdEmoji: Modal;
   private mdGif: Modal;
-  private mdWidgets: Modal;
   private lbReplyTo: Label;
-  private replyEditor: MarkdownEditor;
   private btnReply: Button;
   private pnlReplyTo: Panel;
   private gridReply: GridLayout;
@@ -93,12 +93,16 @@ export class ScomPostComposer extends Module {
   private inputEmoji: Input;
   private gifLoading: VStack;
   private autoPlaySwitch: Switch;
-  private pnlMedias: VStack;
+  // private pnlMedias: VStack;
   private selectedColor: Panel;
   private recent: Panel;
+  private postEditor: ScomEditor;
+  private mdEditor: MarkdownEditor;
+  private typeSwitch: Switch;
+  private uploadForm: ScomPostComposerUpload;
 
   private _data: IReplyInput;
-  private extensions: string[] = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'tiff', 'tif', 'mp4', 'webm', 'ogg', 'avi', 'mkv', 'mov', 'm3u8'];
+  // private extensions: string[] = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'tiff', 'tif', 'mp4', 'webm', 'ogg', 'avi', 'mkv', 'mov', 'm3u8'];
   private currentGifPage: number = 0;
   private totalGifPage: number = 1;
   private renderedMap: {[key: number]: boolean} = {};
@@ -107,7 +111,7 @@ export class ScomPostComposer extends Module {
       if (!entry.isIntersecting) return;
       if (this.currentGifPage < this.totalGifPage) {
         ++this.currentGifPage;
-        this.renderGifs(this.inputGif.value || '');
+        this.renderGifs(this.inputGif.value || '', this.autoPlaySwitch.checked);
       }
       // else {
       //   this.clearObservers();
@@ -132,6 +136,8 @@ export class ScomPostComposer extends Module {
     super(parent, options);
     this.onRecentClear = this.onRecentClear.bind(this);
     this.onEmojiColorSelected = this.onEmojiColorSelected.bind(this);
+    this.onUpload = this.onUpload.bind(this);
+    this.onGifPlayChanged = this.onGifPlayChanged.bind(this);
   }
 
   static async create(options?: ScomPostComposerElement, parent?: Container) {
@@ -191,6 +197,19 @@ export class ScomPostComposer extends Module {
     return this.selectedColor?.background?.color || this.emojiColors[0];
   }
 
+  get value() {
+    return this._data.value;
+  }
+  set value(content: string) {
+    this._data.value = content;
+    this.mdEditor.value = content;
+    this.postEditor.setValue(content);
+  }
+
+  get updatedValue() {
+    return this.typeSwitch.checked ? this.postEditor.value : this.mdEditor.getMarkdownValue();
+  }
+
   private isRecent(category: IEmojiCategory) {
     return category.value === 'recent';
   }
@@ -200,16 +219,17 @@ export class ScomPostComposer extends Module {
     this._data = value;
     this.lbReplyTo.caption = `${this.replyTo?.author?.internetIdentifier || ''}`;
     this.imgReplier.url = getCurrentUser()?.avatar;
-    if (this.placeholder) this.replyEditor.placeholder = this.placeholder;
+    if (this.placeholder) this.mdEditor.placeholder = this.placeholder;
     if (this.buttonCaption) this.btnReply.caption = this.buttonCaption;
     this.updateGrid();
   }
 
   clear() {
+    this.typeSwitch.checked = false;
+    this.resetEditor();
     this.pnlReplyTo.visible = false;
     this.lbReplyTo.caption = '';
     this.imgReplier.url = undefined;
-    this.replyEditor.value = '';
     this.pnlBorder.border = {
       top: {
         width: '1px',
@@ -219,8 +239,22 @@ export class ScomPostComposer extends Module {
     };
     this.currentGifPage = 1;
     this.totalGifPage = 1
-    this.pnlMedias.clearInnerHTML();
+    // this.pnlMedias.clearInnerHTML();
     this.emojiGroupsData = new Map();
+  }
+
+  private resetEditor() {
+    if (this.postEditor) {
+      this.postEditor.value = '';
+      this.postEditor.visible = this.typeSwitch.checked;
+      if (!this.postEditor.visible) {
+        this.postEditor.onHide();
+      }
+    }
+    if (this.mdEditor) {
+      this.mdEditor.value = '';
+      this.mdEditor.visible = !this.typeSwitch.checked;
+    }
   }
 
   private clearObservers() {
@@ -255,19 +289,38 @@ export class ScomPostComposer extends Module {
 
   private onEditorChanged() {
     if (!this.pnlIcons.visible) this.pnlIcons.visible = true;
-    this.btnReply.enabled = !!this.replyEditor.getMarkdownValue();
-    if (this.onChanged) this.onChanged(this.replyEditor);
+    this._data.value = this.updatedValue;
+    this.btnReply.enabled = !!this._data.value;
+    if (this.onChanged) this.onChanged(this._data.value);
   }
 
   private onReply() {
-    if (this.onSubmit) this.onSubmit(this.replyEditor, [...this.newReply]);
-    this.replyEditor.value = '';
-    this.pnlMedias.clearInnerHTML();
+    if (this.onSubmit) {
+      this._data.value = this.updatedValue;
+      this.onSubmit(this._data.value, [...this.newReply]);
+    }
+    this.resetEditor();
+    // this.pnlMedias.clearInnerHTML();
   }
 
   private async onUpload() {
-    const result = application.uploadFile(this.extensions);
-    console.log('onUpload', result);
+    // const result = application.uploadFile(this.extensions);
+    if (!this.uploadForm) {
+      this.uploadForm = await ScomPostComposerUpload.create({
+        onConfirm: this.onSetImage.bind(this)
+      });
+    }
+    this.uploadForm.openModal({
+      title: 'Upload',
+      width: 400,
+    })
+  }
+
+  private onSetImage(url: string) {
+    const imgMd = `\n![](${url})\n`;
+    this.value = this.updatedValue + imgMd;
+    if (!this.btnReply.enabled) this.btnReply.enabled = true;
+    this.uploadForm.closeModal();
   }
 
   private onCloseModal(name: string) {
@@ -316,50 +369,53 @@ export class ScomPostComposer extends Module {
 
   private onGifSelected(gif: any) {
     this.onCloseModal('mdGif');
-    this.btnReply.enabled = true;
-    let index = this.newReply.length;
-    const mediaWrap = <i-panel margin={{bottom: '0.5rem'}} overflow={'hidden'} opacity={0.7}>
-      <i-image width={'100%'} height={'auto'} display="block" url={gif.images.original_still.url}></i-image>
-      <i-icon
-        name="times" width={'1.25rem'} height={'1.25rem'} fill={Theme.text.primary}
-        border={{radius: '50%'}}
-        padding={{top: 5, bottom: 5, left: 5, right: 5}}
-        background={{color: 'rgba(15, 20, 25, 0.75)'}}
-        position='absolute' right="10px" top="10px" zIndex={2}
-        cursor="pointer"
-        onClick={() => {
-          mediaWrap.remove();
-          this.newReply.splice(index, 1);
-        }}
-      ></i-icon>
-    </i-panel>;
-    mediaWrap.parent = this.pnlMedias;
-    this.pnlMedias.appendChild(mediaWrap);
-    const getPostData = (render: boolean) => {
-      return {
-        module: '@scom/scom-image',
-        data: {
-          "properties": {
-            url: render ? gif.images.original_still.url : gif.images.original.url
-          },
-          "tag": {
-            "width": "100%",
-            "height": "auto",
-            "pt": 0,
-            "pb": 0,
-            "pl": 0,
-            "pr": 0
-          }
-        }
-      }
-    }
-    this.newReply.push(getPostData(false));
+    const imgMd = `\n![${gif.images.original.url}](${gif.images.original_still.url})\n`;
+    this.value = this.updatedValue + imgMd;
+    if (!this.btnReply.enabled) this.btnReply.enabled = true;
+
+    // let index = this.newReply.length;
+    // const mediaWrap = <i-panel margin={{bottom: '0.5rem'}} overflow={'hidden'} opacity={0.7}>
+    //   <i-image width={'100%'} height={'auto'} display="block" url={gif.images.original_still.url}></i-image>
+    //   <i-icon
+    //     name="times" width={'1.25rem'} height={'1.25rem'} fill={Theme.text.primary}
+    //     border={{radius: '50%'}}
+    //     padding={{top: 5, bottom: 5, left: 5, right: 5}}
+    //     background={{color: 'rgba(15, 20, 25, 0.75)'}}
+    //     position='absolute' right="10px" top="10px" zIndex={2}
+    //     cursor="pointer"
+    //     onClick={() => {
+    //       mediaWrap.remove();
+    //       this.newReply.splice(index, 1);
+    //     }}
+    //   ></i-icon>
+    // </i-panel>;
+    // mediaWrap.parent = this.pnlMedias;
+    // this.pnlMedias.appendChild(mediaWrap);
+    // const getPostData = (render: boolean) => {
+    //   return {
+    //     module: '@scom/scom-image',
+    //     data: {
+    //       "properties": {
+    //         url: render ? gif.images.original_still.url : gif.images.original.url
+    //       },
+    //       "tag": {
+    //         "width": "100%",
+    //         "height": "auto",
+    //         "pt": 0,
+    //         "pb": 0,
+    //         "pl": 0,
+    //         "pr": 0
+    //       }
+    //     }
+    //   }
+    // }
+    // this.newReply.push(getPostData(false));
   }
 
   private onGifSearch(q: string) {
     this.onToggleMainGif(false);
     this.inputGif.value = q;
-    this.renderGifs(q);
+    this.renderGifs(q, this.autoPlaySwitch.checked);
   }
 
   private onToggleMainGif(value: boolean) {
@@ -379,7 +435,7 @@ export class ScomPostComposer extends Module {
     this.mdGif.refresh();
   }
 
-  private async renderGifs(q: string) {
+  private async renderGifs(q: string, autoplay: boolean) {
     if (this.renderedMap[this.currentGifPage]) return;
     this.gifLoading.visible = true;
     this.renderedMap[this.currentGifPage] = true;
@@ -387,7 +443,6 @@ export class ScomPostComposer extends Module {
     const { data = [], pagination: { total_count, count } } = await fetchGifs(params);
     this.totalGifPage = Math.ceil(total_count / count);
     this.bottomElm.visible = this.totalGifPage > 1;
-    const autoPlay = this.autoPlaySwitch.checked;
     for (let gif of data) {
       this.gridGif.appendChild(
         <i-panel
@@ -396,7 +451,7 @@ export class ScomPostComposer extends Module {
           overflow={'hidden'}
         >
           <i-image
-            url={autoPlay ? gif.images.fixed_height.url : gif.images.fixed_height_still.url}
+            url={autoplay ? gif.images.fixed_height.url : gif.images.fixed_height_still.url}
             width={'100%'} height='100%' objectFit='cover' display='block'
           ></i-image>
         </i-panel>
@@ -407,7 +462,7 @@ export class ScomPostComposer extends Module {
   }
 
   private onGifPlayChanged(target: Switch) {
-    this.renderGifs(this.inputGif.value);
+    this.renderGifs(this.inputGif.value, target.checked);
   }
 
   private onIconGifClicked(icon: Icon) {
@@ -576,7 +631,9 @@ export class ScomPostComposer extends Module {
       this.recent.clearInnerHTML();
       this.recent = null;
     }
-    this.onEmojiCateSelected(this.gridEmojiCate.children[1] as Control, emojiCategories[1]);
+    if (this.gridEmojiCate?.children[1]) {
+      this.onEmojiCateSelected(this.gridEmojiCate.children[1] as Control, emojiCategories[1]);
+    }
   }
 
   private renderEmojiColors() {
@@ -627,6 +684,7 @@ export class ScomPostComposer extends Module {
   }
 
   private onEmojiCateSelected(target: Control, category: IEmojiCategory) {
+    if (!target) return;
     const preventSelected = this.isEmojiSearching || (this.isRecent(category) && !this.recent?.children[1]?.innerHTML);
     if (preventSelected) return;
     const cates = this.querySelectorAll('.emoji-cate');
@@ -646,11 +704,14 @@ export class ScomPostComposer extends Module {
     }
   }
 
-  private onEmojiSelected(event: MouseEvent, emoji: IEmoji) {
+  private async onEmojiSelected(event: MouseEvent, emoji: IEmoji) {
     event.stopImmediatePropagation();
     event.preventDefault();
     this.lbEmoji.caption = `${emoji.htmlCode.join('')}`;
-    this.replyEditor.value = this.replyEditor.getMarkdownValue() + `<span style='font-size:1.25rem;'>${emoji.htmlCode.join('')}</span>`
+    const newSpan = document.createElement('span');
+    newSpan.innerHTML = `<span style='font-size:1.25rem;'>${emoji.htmlCode.join('')}</span>`;
+    this.value = this.updatedValue + '\n' +  newSpan.innerHTML;
+
     this.recentEmojis[emoji.name] = emoji;
     const parent = (event.target as Control).closest('.emoji-group') as Control;
     if (parent) {
@@ -688,10 +749,22 @@ export class ScomPostComposer extends Module {
       this.recent && this.recent.clearInnerHTML();
     }
     const index = this.hasRecentEmojis ? 0 : 1;
-    this.onEmojiCateSelected(this.gridEmojiCate.children[index] as Control, emojiCategories[index]);
+    if (this.gridEmojiCate?.children?.length) {
+      this.onEmojiCateSelected(this.gridEmojiCate.children[index] as Control, emojiCategories[index]);
+    }
     this.pnlColors.clearInnerHTML();
     this.renderColor(this.currentEmojiColor);
     this.mdEmoji.refresh();
+  }
+
+  private onTypeChanged(target: Switch) {
+    this.postEditor.setValue(this._data.value);
+    this.mdEditor.value = this._data.value;
+    this.postEditor.visible = target.checked;
+    this.mdEditor.visible = !target.checked;
+    if (!this.postEditor.visible) {
+      this.postEditor.onHide();
+    }
   }
 
   protected _handleClick(event: MouseEvent, stopPropagation?: boolean): boolean {
@@ -760,9 +833,13 @@ export class ScomPostComposer extends Module {
             objectFit='cover'
             fallbackUrl={assets.fullPath('img/default_avatar.png')}
           ></i-image>
-          <i-panel grid={{ area: 'editor' }}>
+          <i-panel
+            grid={{ area: 'editor' }}
+            maxHeight={'45rem'}
+            overflow={{x: 'hidden', y: 'auto'}}
+          >
             <i-markdown-editor
-              id="replyEditor"
+              id="mdEditor"
               width="100%"
               viewer={false}
               hideModeSwitch={true}
@@ -779,15 +856,25 @@ export class ScomPostComposer extends Module {
               onChanged={this.onEditorChanged}
               cursor='text'
               border={{style: 'none'}}
+              visible={true}
             ></i-markdown-editor>
-            <i-vstack id="pnlMedias" />
+            <i-scom-editor
+              id="postEditor"
+              width="100%"
+              font={{size: '1.25rem', color: Theme.text.primary}}
+              cursor='text'
+              visible={false}
+              onChanged={this.onEditorChanged}
+            ></i-scom-editor>
+            {/* <i-vstack id="pnlMedias" /> */}
           </i-panel>
-          
+
           {/* comment */}
           <i-hstack
             id="pnlBorder"
             horizontalAlignment="space-between"
             grid={{ area: 'reply' }}
+            padding={{top: '0.625rem'}}
           >
             <i-hstack
               id="pnlIcons"
@@ -888,13 +975,16 @@ export class ScomPostComposer extends Module {
                   </i-vstack>
                 </i-modal>
               </i-panel>
-              <i-icon
-                name="map-marker-alt" width={28} height={28} fill={Theme.colors.primary.main}
-                border={{radius: '50%'}}
-                padding={{top: 5, bottom: 5, left: 5, right: 5}}
-                tooltip={{content: 'SCOM widgets', placement: 'bottom'}}
-                onClick={() => this.onShowModal('mdWidgets')}
-              ></i-icon>
+              <i-switch
+                id="typeSwitch"
+                height={28}
+                display="inline-flex"
+                grid={{verticalAlignment: 'center'}}
+                tooltip={{content: 'Change editor', placement: 'bottom'}}
+                uncheckedTrackColor={Theme.divider}
+                checkedTrackColor={Theme.colors.primary.main}
+                onChanged={this.onTypeChanged}
+              ></i-switch>
             </i-hstack>
             <i-button
               id="btnReply"
@@ -992,10 +1082,8 @@ export class ScomPostComposer extends Module {
                 <i-switch
                   id="autoPlaySwitch"
                   checked={true}
-                  checkedThumbColor={Theme.colors.info.main}
-                  checkedTrackColor={Theme.colors.info.light}
-                  uncheckedTrackColor='rgb(147, 147, 147)'
-                  uncheckedThumbColor={Theme.colors.secondary.contrastText}
+                  uncheckedTrackColor={Theme.divider}
+                  checkedTrackColor={Theme.colors.primary.main}
                   onChanged={this.onGifPlayChanged}
                 ></i-switch>
               </i-hstack>

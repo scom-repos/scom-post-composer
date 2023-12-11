@@ -63,19 +63,57 @@ declare module "@scom/scom-post-composer/store/index.ts" {
     import { IAuthor } from "@scom/scom-post";
     export const getCurrentUser: () => IAuthor;
 }
+/// <amd-module name="@scom/scom-post-composer/components/form.tsx" />
+declare module "@scom/scom-post-composer/components/form.tsx" {
+    import { ControlElement, Module, Container } from '@ijstech/components';
+    interface ScomPostComposerUploadElement extends ControlElement {
+        onConfirm: (url: string) => void;
+        url?: string;
+    }
+    export interface IUploadForm {
+        onConfirm: (url: string) => void;
+        url?: string;
+    }
+    global {
+        namespace JSX {
+            interface IntrinsicElements {
+                ['i-scom-post-composer-upload']: ScomPostComposerUploadElement;
+            }
+        }
+    }
+    export class ScomPostComposerUpload extends Module {
+        private inputUrl;
+        private btnSubmit;
+        private _data;
+        static create(options?: ScomPostComposerUploadElement, parent?: Container): Promise<ScomPostComposerUpload>;
+        constructor(parent?: Container, options?: any);
+        get data(): IUploadForm;
+        set data(value: IUploadForm);
+        setData(value: IUploadForm): void;
+        private onFormSubmit;
+        private onInputChanged;
+        init(): void;
+        render(): any;
+    }
+}
+/// <amd-module name="@scom/scom-post-composer/components/index.ts" />
+declare module "@scom/scom-post-composer/components/index.ts" {
+    export { ScomPostComposerUpload } from "@scom/scom-post-composer/components/form.tsx";
+}
 /// <amd-module name="@scom/scom-post-composer" />
 declare module "@scom/scom-post-composer" {
-    import { Module, MarkdownEditor, ControlElement, Container } from '@ijstech/components';
+    import { Module, ControlElement, Container } from '@ijstech/components';
     import { IPost, IPostData } from '@scom/scom-post';
     type IReplyType = 'reply' | 'post' | 'quoted';
-    type onChangedCallback = (target: MarkdownEditor) => void;
-    type onSubmitCallback = (target: MarkdownEditor, medias: IPostData[]) => void;
+    type onChangedCallback = (content: string) => void;
+    type onSubmitCallback = (content: string, medias: IPostData[]) => void;
     interface IReplyInput {
         replyTo?: IPost;
         isReplyToShown?: boolean;
         type?: IReplyType;
         placeholder?: string;
         buttonCaption?: string;
+        value?: string;
     }
     interface ScomPostComposerElement extends ControlElement {
         replyTo?: IPost;
@@ -96,9 +134,7 @@ declare module "@scom/scom-post-composer" {
     export class ScomPostComposer extends Module {
         private mdEmoji;
         private mdGif;
-        private mdWidgets;
         private lbReplyTo;
-        private replyEditor;
         private btnReply;
         private pnlReplyTo;
         private gridReply;
@@ -119,11 +155,13 @@ declare module "@scom/scom-post-composer" {
         private inputEmoji;
         private gifLoading;
         private autoPlaySwitch;
-        private pnlMedias;
         private selectedColor;
         private recent;
+        private postEditor;
+        private mdEditor;
+        private typeSwitch;
+        private uploadForm;
         private _data;
-        private extensions;
         private currentGifPage;
         private totalGifPage;
         private renderedMap;
@@ -152,14 +190,19 @@ declare module "@scom/scom-post-composer" {
         private get hasRecentEmojis();
         private get emojiColors();
         private get currentEmojiColor();
+        get value(): string;
+        set value(content: string);
+        get updatedValue(): any;
         private isRecent;
         setData(value: IReplyInput): void;
         clear(): void;
+        private resetEditor;
         private clearObservers;
         private updateGrid;
         private onEditorChanged;
         private onReply;
         private onUpload;
+        private onSetImage;
         private onCloseModal;
         private onShowModal;
         private onGifMdOpen;
@@ -184,6 +227,7 @@ declare module "@scom/scom-post-composer" {
         private onEmojiSelected;
         private onEmojiSearch;
         private onEmojiMdOpen;
+        private onTypeChanged;
         protected _handleClick(event: MouseEvent, stopPropagation?: boolean): boolean;
         init(): void;
         render(): any;

@@ -180,15 +180,74 @@ define("@scom/scom-post-composer/store/index.ts", ["require", "exports", "@scom/
     };
     exports.getCurrentUser = getCurrentUser;
 });
-define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components", "@scom/scom-post-composer/global/index.ts", "@scom/scom-post-composer/store/index.ts", "@scom/scom-post-composer/assets.ts"], function (require, exports, components_2, index_1, index_2, assets_2) {
+define("@scom/scom-post-composer/components/form.tsx", ["require", "exports", "@ijstech/components"], function (require, exports, components_2) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ScomPostComposerUpload = void 0;
+    const Theme = components_2.Styles.Theme.ThemeVars;
+    let ScomPostComposerUpload = class ScomPostComposerUpload extends components_2.Module {
+        static async create(options, parent) {
+            let self = new this(parent, options);
+            await self.ready();
+            return self;
+        }
+        constructor(parent, options) {
+            super(parent, options);
+        }
+        get data() {
+            return this._data;
+        }
+        set data(value) {
+            this._data = value;
+        }
+        setData(value) {
+            this._data = value;
+            this.inputUrl.value = value.url || '';
+        }
+        onFormSubmit() {
+            const { onConfirm } = this.data;
+            if (onConfirm)
+                onConfirm(this.inputUrl.value);
+            this.inputUrl.value = '';
+        }
+        onInputChanged(target) {
+            this.btnSubmit.enabled = !!target.value;
+        }
+        init() {
+            super.init();
+            const onConfirm = this.getAttribute('onConfirm', true);
+            const url = this.getAttribute('url', true);
+            if (onConfirm)
+                this.setData({ onConfirm, url });
+        }
+        render() {
+            return (this.$render("i-vstack", { gap: "1rem", padding: { top: '1rem', bottom: '1rem', left: '1rem', right: '1rem' } },
+                this.$render("i-input", { id: "inputUrl", placeholder: 'Enter URL', width: '100%', height: '2rem', border: { radius: '0.5rem' }, padding: { left: '0.5rem', right: '0.5rem' }, onChanged: this.onInputChanged }),
+                this.$render("i-hstack", { horizontalAlignment: 'end' },
+                    this.$render("i-panel", null,
+                        this.$render("i-button", { id: "btnSubmit", height: 36, padding: { left: '1rem', right: '1rem' }, background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText, bold: true }, border: { radius: '0.5rem' }, enabled: false, caption: "Confirm", onClick: this.onFormSubmit })))));
+        }
+    };
+    ScomPostComposerUpload = __decorate([
+        (0, components_2.customElements)('i-scom-post-composer-upload')
+    ], ScomPostComposerUpload);
+    exports.ScomPostComposerUpload = ScomPostComposerUpload;
+});
+define("@scom/scom-post-composer/components/index.ts", ["require", "exports", "@scom/scom-post-composer/components/form.tsx"], function (require, exports, form_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ScomPostComposerUpload = void 0;
+    Object.defineProperty(exports, "ScomPostComposerUpload", { enumerable: true, get: function () { return form_1.ScomPostComposerUpload; } });
+});
+define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components", "@scom/scom-post-composer/global/index.ts", "@scom/scom-post-composer/store/index.ts", "@scom/scom-post-composer/assets.ts", "@scom/scom-post-composer/components/index.ts"], function (require, exports, components_3, index_1, index_2, assets_2, index_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomPostComposer = void 0;
-    const Theme = components_2.Styles.Theme.ThemeVars;
-    let ScomPostComposer = class ScomPostComposer extends components_2.Module {
+    const Theme = components_3.Styles.Theme.ThemeVars;
+    let ScomPostComposer = class ScomPostComposer extends components_3.Module {
         constructor(parent, options) {
             super(parent, options);
-            this.extensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'tiff', 'tif', 'mp4', 'webm', 'ogg', 'avi', 'mkv', 'mov', 'm3u8'];
+            // private extensions: string[] = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'tiff', 'tif', 'mp4', 'webm', 'ogg', 'avi', 'mkv', 'mov', 'm3u8'];
             this.currentGifPage = 0;
             this.totalGifPage = 1;
             this.renderedMap = {};
@@ -198,7 +257,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                         return;
                     if (this.currentGifPage < this.totalGifPage) {
                         ++this.currentGifPage;
-                        this.renderGifs(this.inputGif.value || '');
+                        this.renderGifs(this.inputGif.value || '', this.autoPlaySwitch.checked);
                     }
                     // else {
                     //   this.clearObservers();
@@ -216,6 +275,8 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.emojiGroupsData = new Map();
             this.onRecentClear = this.onRecentClear.bind(this);
             this.onEmojiColorSelected = this.onEmojiColorSelected.bind(this);
+            this.onUpload = this.onUpload.bind(this);
+            this.onGifPlayChanged = this.onGifPlayChanged.bind(this);
         }
         static async create(options, parent) {
             let self = new this(parent, options);
@@ -264,6 +325,17 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         get currentEmojiColor() {
             return this.selectedColor?.background?.color || this.emojiColors[0];
         }
+        get value() {
+            return this._data.value;
+        }
+        set value(content) {
+            this._data.value = content;
+            this.mdEditor.value = content;
+            this.postEditor.setValue(content);
+        }
+        get updatedValue() {
+            return this.typeSwitch.checked ? this.postEditor.value : this.mdEditor.getMarkdownValue();
+        }
         isRecent(category) {
             return category.value === 'recent';
         }
@@ -273,16 +345,17 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.lbReplyTo.caption = `${this.replyTo?.author?.internetIdentifier || ''}`;
             this.imgReplier.url = (0, index_2.getCurrentUser)()?.avatar;
             if (this.placeholder)
-                this.replyEditor.placeholder = this.placeholder;
+                this.mdEditor.placeholder = this.placeholder;
             if (this.buttonCaption)
                 this.btnReply.caption = this.buttonCaption;
             this.updateGrid();
         }
         clear() {
+            this.typeSwitch.checked = false;
+            this.resetEditor();
             this.pnlReplyTo.visible = false;
             this.lbReplyTo.caption = '';
             this.imgReplier.url = undefined;
-            this.replyEditor.value = '';
             this.pnlBorder.border = {
                 top: {
                     width: '1px',
@@ -292,8 +365,21 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             };
             this.currentGifPage = 1;
             this.totalGifPage = 1;
-            this.pnlMedias.clearInnerHTML();
+            // this.pnlMedias.clearInnerHTML();
             this.emojiGroupsData = new Map();
+        }
+        resetEditor() {
+            if (this.postEditor) {
+                this.postEditor.value = '';
+                this.postEditor.visible = this.typeSwitch.checked;
+                if (!this.postEditor.visible) {
+                    this.postEditor.onHide();
+                }
+            }
+            if (this.mdEditor) {
+                this.mdEditor.value = '';
+                this.mdEditor.visible = !this.typeSwitch.checked;
+            }
         }
         clearObservers() {
             this.bottomElm.visible = false;
@@ -328,19 +414,37 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         onEditorChanged() {
             if (!this.pnlIcons.visible)
                 this.pnlIcons.visible = true;
-            this.btnReply.enabled = !!this.replyEditor.getMarkdownValue();
+            this._data.value = this.updatedValue;
+            this.btnReply.enabled = !!this._data.value;
             if (this.onChanged)
-                this.onChanged(this.replyEditor);
+                this.onChanged(this._data.value);
         }
         onReply() {
-            if (this.onSubmit)
-                this.onSubmit(this.replyEditor, [...this.newReply]);
-            this.replyEditor.value = '';
-            this.pnlMedias.clearInnerHTML();
+            if (this.onSubmit) {
+                this._data.value = this.updatedValue;
+                this.onSubmit(this._data.value, [...this.newReply]);
+            }
+            this.resetEditor();
+            // this.pnlMedias.clearInnerHTML();
         }
         async onUpload() {
-            const result = components_2.application.uploadFile(this.extensions);
-            console.log('onUpload', result);
+            // const result = application.uploadFile(this.extensions);
+            if (!this.uploadForm) {
+                this.uploadForm = await index_3.ScomPostComposerUpload.create({
+                    onConfirm: this.onSetImage.bind(this)
+                });
+            }
+            this.uploadForm.openModal({
+                title: 'Upload',
+                width: 400,
+            });
+        }
+        onSetImage(url) {
+            const imgMd = `\n![](${url})\n`;
+            this.value = this.updatedValue + imgMd;
+            if (!this.btnReply.enabled)
+                this.btnReply.enabled = true;
+            this.uploadForm.closeModal();
         }
         onCloseModal(name) {
             this[name].visible = false;
@@ -368,40 +472,52 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         }
         onGifSelected(gif) {
             this.onCloseModal('mdGif');
-            this.btnReply.enabled = true;
-            let index = this.newReply.length;
-            const mediaWrap = this.$render("i-panel", { margin: { bottom: '0.5rem' }, overflow: 'hidden', opacity: 0.7 },
-                this.$render("i-image", { width: '100%', height: 'auto', display: "block", url: gif.images.original_still.url }),
-                this.$render("i-icon", { name: "times", width: '1.25rem', height: '1.25rem', fill: Theme.text.primary, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, background: { color: 'rgba(15, 20, 25, 0.75)' }, position: 'absolute', right: "10px", top: "10px", zIndex: 2, cursor: "pointer", onClick: () => {
-                        mediaWrap.remove();
-                        this.newReply.splice(index, 1);
-                    } }));
-            mediaWrap.parent = this.pnlMedias;
-            this.pnlMedias.appendChild(mediaWrap);
-            const getPostData = (render) => {
-                return {
-                    module: '@scom/scom-image',
-                    data: {
-                        "properties": {
-                            url: render ? gif.images.original_still.url : gif.images.original.url
-                        },
-                        "tag": {
-                            "width": "100%",
-                            "height": "auto",
-                            "pt": 0,
-                            "pb": 0,
-                            "pl": 0,
-                            "pr": 0
-                        }
-                    }
-                };
-            };
-            this.newReply.push(getPostData(false));
+            const imgMd = `\n![${gif.images.original.url}](${gif.images.original_still.url})\n`;
+            this.value = this.updatedValue + imgMd;
+            if (!this.btnReply.enabled)
+                this.btnReply.enabled = true;
+            // let index = this.newReply.length;
+            // const mediaWrap = <i-panel margin={{bottom: '0.5rem'}} overflow={'hidden'} opacity={0.7}>
+            //   <i-image width={'100%'} height={'auto'} display="block" url={gif.images.original_still.url}></i-image>
+            //   <i-icon
+            //     name="times" width={'1.25rem'} height={'1.25rem'} fill={Theme.text.primary}
+            //     border={{radius: '50%'}}
+            //     padding={{top: 5, bottom: 5, left: 5, right: 5}}
+            //     background={{color: 'rgba(15, 20, 25, 0.75)'}}
+            //     position='absolute' right="10px" top="10px" zIndex={2}
+            //     cursor="pointer"
+            //     onClick={() => {
+            //       mediaWrap.remove();
+            //       this.newReply.splice(index, 1);
+            //     }}
+            //   ></i-icon>
+            // </i-panel>;
+            // mediaWrap.parent = this.pnlMedias;
+            // this.pnlMedias.appendChild(mediaWrap);
+            // const getPostData = (render: boolean) => {
+            //   return {
+            //     module: '@scom/scom-image',
+            //     data: {
+            //       "properties": {
+            //         url: render ? gif.images.original_still.url : gif.images.original.url
+            //       },
+            //       "tag": {
+            //         "width": "100%",
+            //         "height": "auto",
+            //         "pt": 0,
+            //         "pb": 0,
+            //         "pl": 0,
+            //         "pr": 0
+            //       }
+            //     }
+            //   }
+            // }
+            // this.newReply.push(getPostData(false));
         }
         onGifSearch(q) {
             this.onToggleMainGif(false);
             this.inputGif.value = q;
-            this.renderGifs(q);
+            this.renderGifs(q, this.autoPlaySwitch.checked);
         }
         onToggleMainGif(value) {
             this.gridGifCate.visible = value;
@@ -420,7 +536,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.renderedMap = {};
             this.mdGif.refresh();
         }
-        async renderGifs(q) {
+        async renderGifs(q, autoplay) {
             if (this.renderedMap[this.currentGifPage])
                 return;
             this.gifLoading.visible = true;
@@ -429,16 +545,15 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             const { data = [], pagination: { total_count, count } } = await (0, index_1.fetchGifs)(params);
             this.totalGifPage = Math.ceil(total_count / count);
             this.bottomElm.visible = this.totalGifPage > 1;
-            const autoPlay = this.autoPlaySwitch.checked;
             for (let gif of data) {
                 this.gridGif.appendChild(this.$render("i-panel", { onClick: () => this.onGifSelected(gif), width: "100%", overflow: 'hidden' },
-                    this.$render("i-image", { url: autoPlay ? gif.images.fixed_height.url : gif.images.fixed_height_still.url, width: '100%', height: '100%', objectFit: 'cover', display: 'block' })));
+                    this.$render("i-image", { url: autoplay ? gif.images.fixed_height.url : gif.images.fixed_height_still.url, width: '100%', height: '100%', objectFit: 'cover', display: 'block' })));
             }
             this.gifLoading.visible = false;
             this.mdGif.refresh();
         }
         onGifPlayChanged(target) {
-            this.renderGifs(this.inputGif.value);
+            this.renderGifs(this.inputGif.value, target.checked);
         }
         onIconGifClicked(icon) {
             if (icon.name === 'times') {
@@ -534,7 +649,9 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 this.recent.clearInnerHTML();
                 this.recent = null;
             }
-            this.onEmojiCateSelected(this.gridEmojiCate.children[1], index_1.emojiCategories[1]);
+            if (this.gridEmojiCate?.children[1]) {
+                this.onEmojiCateSelected(this.gridEmojiCate.children[1], index_1.emojiCategories[1]);
+            }
         }
         renderEmojiColors() {
             this.pnlColors.clearInnerHTML();
@@ -569,6 +686,8 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.updateEmojiGroups();
         }
         onEmojiCateSelected(target, category) {
+            if (!target)
+                return;
             const preventSelected = this.isEmojiSearching || (this.isRecent(category) && !this.recent?.children[1]?.innerHTML);
             if (preventSelected)
                 return;
@@ -589,11 +708,13 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 }
             }
         }
-        onEmojiSelected(event, emoji) {
+        async onEmojiSelected(event, emoji) {
             event.stopImmediatePropagation();
             event.preventDefault();
             this.lbEmoji.caption = `${emoji.htmlCode.join('')}`;
-            this.replyEditor.value = this.replyEditor.getMarkdownValue() + `<span style='font-size:1.25rem;'>${emoji.htmlCode.join('')}</span>`;
+            const newSpan = document.createElement('span');
+            newSpan.innerHTML = `<span style='font-size:1.25rem;'>${emoji.htmlCode.join('')}</span>`;
+            this.value = this.updatedValue + '\n' + newSpan.innerHTML;
             this.recentEmojis[emoji.name] = emoji;
             const parent = event.target.closest('.emoji-group');
             if (parent) {
@@ -631,10 +752,21 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 this.recent && this.recent.clearInnerHTML();
             }
             const index = this.hasRecentEmojis ? 0 : 1;
-            this.onEmojiCateSelected(this.gridEmojiCate.children[index], index_1.emojiCategories[index]);
+            if (this.gridEmojiCate?.children?.length) {
+                this.onEmojiCateSelected(this.gridEmojiCate.children[index], index_1.emojiCategories[index]);
+            }
             this.pnlColors.clearInnerHTML();
             this.renderColor(this.currentEmojiColor);
             this.mdEmoji.refresh();
+        }
+        onTypeChanged(target) {
+            this.postEditor.setValue(this._data.value);
+            this.mdEditor.value = this._data.value;
+            this.postEditor.visible = target.checked;
+            this.mdEditor.visible = !target.checked;
+            if (!this.postEditor.visible) {
+                this.postEditor.onHide();
+            }
         }
         _handleClick(event, stopPropagation) {
             this.pnlIcons.visible = true;
@@ -668,8 +800,8 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                     ] },
                     this.$render("i-image", { id: "imgReplier", grid: { area: 'avatar' }, width: '2.75rem', height: '2.75rem', display: "block", background: { color: Theme.background.main }, border: { radius: '50%' }, overflow: 'hidden', margin: { top: '0.75rem' }, objectFit: 'cover', fallbackUrl: assets_2.default.fullPath('img/default_avatar.png') }),
                     this.$render("i-panel", { grid: { area: 'editor' } },
-                        this.$render("i-markdown-editor", { id: "replyEditor", width: "100%", viewer: false, hideModeSwitch: true, mode: "wysiwyg", toolbarItems: [], font: { size: '1.25rem', color: Theme.text.primary }, lineHeight: 1.5, padding: { top: 12, bottom: 12, left: 0, right: 0 }, background: { color: 'transparent' }, height: "auto", minHeight: 0, overflow: 'hidden', overflowWrap: "break-word", onChanged: this.onEditorChanged, cursor: 'text', border: { style: 'none' } }),
-                        this.$render("i-vstack", { id: "pnlMedias" })),
+                        this.$render("i-markdown-editor", { id: "mdEditor", width: "100%", viewer: false, hideModeSwitch: true, mode: "wysiwyg", toolbarItems: [], font: { size: '1.25rem', color: Theme.text.primary }, lineHeight: 1.5, padding: { top: 12, bottom: 12, left: 0, right: 0 }, background: { color: 'transparent' }, height: "auto", minHeight: 0, overflow: 'hidden', overflowWrap: "break-word", onChanged: this.onEditorChanged, cursor: 'text', border: { style: 'none' }, visible: true }),
+                        this.$render("i-scom-editor", { id: "postEditor", width: "100%", font: { size: '1.25rem', color: Theme.text.primary }, cursor: 'text', visible: false, onChanged: this.onEditorChanged })),
                     this.$render("i-hstack", { id: "pnlBorder", horizontalAlignment: "space-between", grid: { area: 'reply' } },
                         this.$render("i-hstack", { id: "pnlIcons", gap: "4px", verticalAlignment: "center", visible: false },
                             this.$render("i-icon", { name: "image", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Media', placement: 'bottom' }, onClick: this.onUpload }),
@@ -687,7 +819,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                                         this.$render("i-hstack", { bottom: "0px", left: "0px", position: "absolute", width: '100%', verticalAlignment: "center", horizontalAlignment: "space-between", padding: { top: '0.75rem', left: '0.75rem', right: '0.75rem', bottom: '0.75rem' }, gap: "0.75rem", zIndex: 20, background: { color: Theme.background.modal }, border: { radius: '0 0 1rem 1rem', top: { width: '1px', style: 'solid', color: Theme.divider } } },
                                             this.$render("i-label", { id: "lbEmoji", width: '1.25rem', height: '1.25rem', display: "inline-block" }),
                                             this.$render("i-hstack", { id: "pnlColors", verticalAlignment: "center", gap: '0.25rem', overflow: 'hidden', cursor: "pointer", padding: { top: '0.25rem', left: '0.25rem', right: '0.25rem', bottom: '0.25rem' } }))))),
-                            this.$render("i-icon", { name: "map-marker-alt", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'SCOM widgets', placement: 'bottom' }, onClick: () => this.onShowModal('mdWidgets') })),
+                            this.$render("i-switch", { id: "typeSwitch", height: 28, display: "inline-flex", grid: { verticalAlignment: 'center' }, tooltip: { content: 'Change editor', placement: 'bottom' }, uncheckedTrackColor: Theme.divider, checkedTrackColor: Theme.colors.primary.main, onChanged: this.onTypeChanged })),
                         this.$render("i-button", { id: "btnReply", height: 36, padding: { left: '1rem', right: '1rem' }, background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText, bold: true }, border: { radius: '30px' }, enabled: false, margin: { left: 'auto' }, caption: "Post", onClick: this.onReply }))),
                 this.$render("i-modal", { id: "mdGif", border: { radius: '1rem' }, maxWidth: '600px', maxHeight: '90vh', overflow: { y: 'auto' }, padding: { top: 0, right: 0, left: 0, bottom: 0 }, mediaQueries: [
                         {
@@ -715,7 +847,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                         this.$render("i-vstack", { id: "pnlGif", visible: false },
                             this.$render("i-hstack", { horizontalAlignment: "space-between", gap: "0.5rem", padding: { left: '0.75rem', right: '0.75rem', top: '0.75rem', bottom: '0.75rem' } },
                                 this.$render("i-label", { caption: "Auto-play GIFs", font: { color: Theme.text.secondary, size: '0.9rem' } }),
-                                this.$render("i-switch", { id: "autoPlaySwitch", checked: true, checkedThumbColor: Theme.colors.info.main, checkedTrackColor: Theme.colors.info.light, uncheckedTrackColor: 'rgb(147, 147, 147)', uncheckedThumbColor: Theme.colors.secondary.contrastText, onChanged: this.onGifPlayChanged })),
+                                this.$render("i-switch", { id: "autoPlaySwitch", checked: true, uncheckedTrackColor: Theme.divider, checkedTrackColor: Theme.colors.primary.main, onChanged: this.onGifPlayChanged })),
                             this.$render("i-panel", { id: "topElm", width: '100%' }),
                             this.$render("i-card-layout", { id: "gridGif", autoRowSize: "auto", autoColumnSize: "auto", cardHeight: 'auto', columnsPerRow: 4 }),
                             this.$render("i-panel", { id: "bottomElm", width: '100%', minHeight: 20 },
@@ -744,7 +876,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         }
     };
     ScomPostComposer = __decorate([
-        (0, components_2.customElements)('i-scom-post-composer')
+        (0, components_3.customElements)('i-scom-post-composer')
     ], ScomPostComposer);
     exports.ScomPostComposer = ScomPostComposer;
 });
