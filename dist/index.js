@@ -776,6 +776,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             }
             return true;
         }
+        // position={'absolute'} top={0} height={'100vh'} zIndex={999}
         init() {
             super.init();
             this.onChanged = this.getAttribute('onChanged', true) || this.onChanged;
@@ -788,6 +789,15 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.setData({ isReplyToShown, replyTo, type, placeholder, buttonCaption });
             this.renderGifCate();
             this.renderEmojis();
+            window.onresize = () => {
+                const innerWidth = window.innerWidth;
+                if (innerWidth < 768) {
+                    this.position = 'absolute';
+                    this.top = 0;
+                    this.zIndex = 9999;
+                    this.height = '100vh';
+                }
+            };
         }
         render() {
             return (this.$render("i-panel", { padding: { bottom: '0.75rem', top: '0.75rem' }, cursor: 'default' },

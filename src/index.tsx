@@ -775,7 +775,7 @@ export class ScomPostComposer extends Module {
     }
     return true;
   }
-
+  // position={'absolute'} top={0} height={'100vh'} zIndex={999}
   init() {
     super.init();
     this.onChanged = this.getAttribute('onChanged', true) || this.onChanged;
@@ -788,6 +788,15 @@ export class ScomPostComposer extends Module {
     this.setData({ isReplyToShown, replyTo, type, placeholder, buttonCaption });
     this.renderGifCate();
     this.renderEmojis();
+    window.onresize = () => {
+        const innerWidth = window.innerWidth;
+        if(innerWidth < 768) {
+          this.position = 'absolute';
+          this.top = 0;
+          this.zIndex = 9999;
+          this.height = '100vh';
+        }
+    }
   }
 
   render() {
