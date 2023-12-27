@@ -119,10 +119,12 @@ declare module "@scom/scom-post-composer" {
         replyTo?: IPost;
         isReplyToShown?: boolean;
         type?: IReplyType;
+        mobile?: boolean;
         placeholder?: string;
         buttonCaption?: string;
         onChanged?: onChangedCallback;
         onSubmit?: onSubmitCallback;
+        onCancel?: () => void;
     }
     global {
         namespace JSX {
@@ -132,6 +134,7 @@ declare module "@scom/scom-post-composer" {
         }
     }
     export class ScomPostComposer extends Module {
+        private pnlPostComposer;
         private mdEmoji;
         private mdGif;
         private lbReplyTo;
@@ -172,8 +175,10 @@ declare module "@scom/scom-post-composer" {
         private emojiCateMapper;
         private emojiGroupsData;
         private searchTimer;
+        private mobile;
         onChanged: onChangedCallback;
         onSubmit: onSubmitCallback;
+        onCancel: () => void;
         constructor(parent?: Container, options?: any);
         static create(options?: ScomPostComposerElement, parent?: Container): Promise<ScomPostComposer>;
         get replyTo(): IPost;
@@ -230,6 +235,9 @@ declare module "@scom/scom-post-composer" {
         private onTypeChanged;
         protected _handleClick(event: MouseEvent, stopPropagation?: boolean): boolean;
         init(): void;
+        private handleMobileCloseComposer;
+        private renderMobilePostComposer;
+        private renderPostComposer;
         render(): any;
     }
 }
