@@ -283,6 +283,13 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             await self.ready();
             return self;
         }
+        get focusedPost() {
+            return this._focusedPost;
+        }
+        set focusedPost(value) {
+            this._focusedPost = value;
+            this.updateFocusedPost();
+        }
         get replyTo() {
             return this._data.replyTo;
         }
@@ -418,7 +425,6 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.btnReply.enabled = !!this._data.value;
             if (this.onChanged)
                 this.onChanged(this._data.value);
-            console.log(this.focusedPost);
         }
         onReply() {
             if (this.onSubmit) {
@@ -439,6 +445,13 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 title: 'Upload',
                 width: 400,
             });
+        }
+        updateFocusedPost() {
+            console.log('pnlFocusedPost', this.pnlFocusedPost);
+            if (this.pnlFocusedPost && this.mobile) {
+                this.pnlFocusedPost.clearInnerHTML();
+                this.pnlFocusedPost.append(this.$render("i-scom-post", { id: this.focusedPost.id, data: this.focusedPost, type: "short" }));
+            }
         }
         onSetImage(url) {
             const imgMd = `\n![](${url})\n`;
@@ -789,7 +802,6 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             const placeholder = this.getAttribute('placeholder', true);
             const buttonCaption = this.getAttribute('buttonCaption', true);
             this.focusedPost = this.getAttribute('focusedPost', true);
-            console.log('focusedPost', this.focusedPost);
             const mobile = this.getAttribute('mobile', true);
             this.mobile = mobile;
             if (mobile) {
@@ -801,6 +813,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.setData({ isReplyToShown, replyTo, type, placeholder, buttonCaption });
             this.renderGifCate();
             this.renderEmojis();
+            // this.updateFocusedPost();
         }
         async handleMobileCloseComposer() {
             if (this.onCancel)
@@ -814,6 +827,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 this.$render("i-hstack", { id: "pnlReplyTo", visible: false, gap: "0.5rem", verticalAlignment: "center", padding: { top: '0.25rem', bottom: '0.75rem', left: '3.25rem' } },
                     this.$render("i-label", { caption: "Replying to", font: { size: '1rem', color: Theme.text.secondary } }),
                     this.$render("i-label", { id: "lbReplyTo", link: { href: '' }, font: { size: '1rem', color: Theme.colors.primary.main } })),
+                this.$render("i-panel", { id: 'pnlFocusedPost' }),
                 this.$render("i-grid-layout", { id: "gridReply", gap: { column: '0.75rem' }, height: "", templateColumns: ['2.75rem', 'minmax(auto, calc(100% - 3.5rem))'], templateRows: ['auto'], templateAreas: [
                         ['avatar', 'editor'],
                         ['avatar', 'reply']

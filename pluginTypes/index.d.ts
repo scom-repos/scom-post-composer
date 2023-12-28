@@ -159,13 +159,14 @@ declare module "@scom/scom-post-composer" {
         private inputEmoji;
         private gifLoading;
         private autoPlaySwitch;
+        private pnlFocusedPost;
         private selectedColor;
         private recent;
         private postEditor;
         private mdEditor;
         private typeSwitch;
         private uploadForm;
-        focusedPost: IPost;
+        private _focusedPost;
         private _data;
         private currentGifPage;
         private totalGifPage;
@@ -183,6 +184,8 @@ declare module "@scom/scom-post-composer" {
         onCancel: () => void;
         constructor(parent?: Container, options?: any);
         static create(options?: ScomPostComposerElement, parent?: Container): Promise<ScomPostComposer>;
+        get focusedPost(): IPost;
+        set focusedPost(value: IPost);
         get replyTo(): IPost;
         set replyTo(value: IPost);
         get type(): IReplyType;
@@ -209,6 +212,7 @@ declare module "@scom/scom-post-composer" {
         private onEditorChanged;
         private onReply;
         private onUpload;
+        private updateFocusedPost;
         private onSetImage;
         private onCloseModal;
         private onShowModal;
