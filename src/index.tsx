@@ -99,6 +99,7 @@ export class ScomPostComposer extends Module {
     private inputEmoji: Input;
     private gifLoading: VStack;
     private autoPlaySwitch: Switch;
+    private pnlFocusedPost: Panel;
     // private pnlMedias: VStack;
     private selectedColor: Panel;
     private recent: Panel;
@@ -107,7 +108,7 @@ export class ScomPostComposer extends Module {
     private typeSwitch: Switch;
     private uploadForm: ScomPostComposerUpload;
 
-    public focusedPost: IPost;
+    private _focusedPost: IPost;
     private _data: IReplyInput;
     // private extensions: string[] = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'tiff', 'tif', 'mp4', 'webm', 'ogg', 'avi', 'mkv', 'mov', 'm3u8'];
     private currentGifPage: number = 0;
@@ -153,6 +154,15 @@ export class ScomPostComposer extends Module {
         let self = new this(parent, options);
         await self.ready();
         return self;
+    }
+
+    get focusedPost() {
+        return this._focusedPost;
+    }
+
+    set focusedPost(value) {
+        this._focusedPost = value;
+        this.updateFocusedPost();
     }
 
     get replyTo() {
@@ -329,6 +339,18 @@ export class ScomPostComposer extends Module {
             title: 'Upload',
             width: 400,
         })
+    }
+
+    private updateFocusedPost() {
+        console.log('pnlFocusedPost', this.pnlFocusedPost);
+        if(this.pnlFocusedPost && this.mobile) {
+            this.pnlFocusedPost.clearInnerHTML();
+            this.pnlFocusedPost.append(<i-scom-post
+                id={this.focusedPost.id}
+                data={this.focusedPost}
+                type="short"
+            ></i-scom-post>)
+        }
     }
 
     private onSetImage(url: string) {
@@ -814,6 +836,7 @@ export class ScomPostComposer extends Module {
         this.setData({isReplyToShown, replyTo, type, placeholder, buttonCaption});
         this.renderGifCate();
         this.renderEmojis();
+        // this.updateFocusedPost();
     }
 
     private async handleMobileCloseComposer() {
@@ -855,6 +878,9 @@ export class ScomPostComposer extends Module {
                     font={{size: '1rem', color: Theme.colors.primary.main}}
                 ></i-label>
             </i-hstack>
+            <i-panel id={'pnlFocusedPost'}>
+
+            </i-panel>
             <i-grid-layout
                 id="gridReply"
                 gap={{column: '0.75rem'}}
