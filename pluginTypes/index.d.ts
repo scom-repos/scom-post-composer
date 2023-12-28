@@ -125,6 +125,7 @@ declare module "@scom/scom-post-composer" {
         onChanged?: onChangedCallback;
         onSubmit?: onSubmitCallback;
         onCancel?: () => void;
+        focusedPost?: IPost;
     }
     global {
         namespace JSX {
@@ -164,6 +165,7 @@ declare module "@scom/scom-post-composer" {
         private mdEditor;
         private typeSwitch;
         private uploadForm;
+        focusedPost: IPost;
         private _data;
         private currentGifPage;
         private totalGifPage;

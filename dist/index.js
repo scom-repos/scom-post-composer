@@ -418,6 +418,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.btnReply.enabled = !!this._data.value;
             if (this.onChanged)
                 this.onChanged(this._data.value);
+            console.log(this.focusedPost);
         }
         onReply() {
             if (this.onSubmit) {
@@ -787,6 +788,8 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             const isReplyToShown = this.getAttribute('isReplyToShown', true, false);
             const placeholder = this.getAttribute('placeholder', true);
             const buttonCaption = this.getAttribute('buttonCaption', true);
+            this.focusedPost = this.getAttribute('focusedPost', true);
+            console.log('focusedPost', this.focusedPost);
             const mobile = this.getAttribute('mobile', true);
             this.mobile = mobile;
             if (mobile) {
