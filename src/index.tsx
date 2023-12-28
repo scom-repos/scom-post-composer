@@ -35,6 +35,7 @@ import assets from './assets';
 import {ScomEditor} from '@scom/scom-editor';
 import {ScomPostComposerUpload} from './components/index';
 
+
 const Theme = Styles.Theme.ThemeVars;
 
 type IReplyType = 'reply' | 'post' | 'quoted';
@@ -60,6 +61,8 @@ interface ScomPostComposerElement extends ControlElement {
     onChanged?: onChangedCallback;
     onSubmit?: onSubmitCallback;
     onCancel?: () => void;
+    focusedPost?: IPost
+
 }
 
 declare global {
@@ -104,6 +107,7 @@ export class ScomPostComposer extends Module {
     private typeSwitch: Switch;
     private uploadForm: ScomPostComposerUpload;
 
+    public focusedPost: IPost;
     private _data: IReplyInput;
     // private extensions: string[] = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'tiff', 'tif', 'mp4', 'webm', 'ogg', 'avi', 'mkv', 'mov', 'm3u8'];
     private currentGifPage: number = 0;
@@ -799,6 +803,7 @@ export class ScomPostComposer extends Module {
         const isReplyToShown = this.getAttribute('isReplyToShown', true, false);
         const placeholder = this.getAttribute('placeholder', true);
         const buttonCaption = this.getAttribute('buttonCaption', true);
+        this.focusedPost = this.getAttribute('focusedPost', true);
         const mobile = this.getAttribute('mobile', true);
         this.mobile = mobile;
         if (mobile) {
