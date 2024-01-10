@@ -447,10 +447,12 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             });
         }
         updateFocusedPost() {
-            console.log('pnlFocusedPost', this.pnlFocusedPost);
             if (this.pnlFocusedPost && this.mobile) {
+                const focusedPost = this.$render("i-scom-post", { id: this.focusedPost.id, data: this.focusedPost, type: "short", limitHeight: true, isReply: true });
                 this.pnlFocusedPost.clearInnerHTML();
-                this.pnlFocusedPost.append(this.$render("i-scom-post", { id: this.focusedPost.id, data: this.focusedPost, type: "short" }));
+                this.pnlFocusedPost.append(focusedPost);
+                focusedPost.renderShowMore();
+                // focusedPost.init();
             }
         }
         onSetImage(url) {

@@ -342,14 +342,18 @@ export class ScomPostComposer extends Module {
     }
 
     private updateFocusedPost() {
-        console.log('pnlFocusedPost', this.pnlFocusedPost);
         if(this.pnlFocusedPost && this.mobile) {
-            this.pnlFocusedPost.clearInnerHTML();
-            this.pnlFocusedPost.append(<i-scom-post
+            const focusedPost = <i-scom-post
                 id={this.focusedPost.id}
                 data={this.focusedPost}
                 type="short"
-            ></i-scom-post>)
+                limitHeight={true}
+                isReply={true}
+            ></i-scom-post>;
+            this.pnlFocusedPost.clearInnerHTML();
+            this.pnlFocusedPost.append(focusedPost);
+            focusedPost.renderShowMore();
+            // focusedPost.init();
         }
     }
 
