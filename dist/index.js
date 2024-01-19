@@ -346,6 +346,10 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         isRecent(category) {
             return category.value === 'recent';
         }
+        disableMarkdownEditor() {
+            console.log('[scom-post-composer] disableMarkdownEditor');
+            this.typeSwitch.visible = false;
+        }
         setData(value) {
             this.clear();
             this._data = value;

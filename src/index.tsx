@@ -35,7 +35,6 @@ import assets from './assets';
 import {ScomEditor} from '@scom/scom-editor';
 import {ScomPostComposerUpload} from './components/index';
 
-
 const Theme = Styles.Theme.ThemeVars;
 
 type IReplyType = 'reply' | 'post' | 'quoted';
@@ -61,8 +60,8 @@ interface ScomPostComposerElement extends ControlElement {
     onChanged?: onChangedCallback;
     onSubmit?: onSubmitCallback;
     onCancel?: () => void;
-    focusedPost?: IPost
-
+    focusedPost?: IPost;
+    disableMarkdownEditor?: boolean;
 }
 
 declare global {
@@ -237,6 +236,11 @@ export class ScomPostComposer extends Module {
 
     private isRecent(category: IEmojiCategory) {
         return category.value === 'recent';
+    }
+
+    public disableMarkdownEditor() {
+        console.log('[scom-post-composer] disableMarkdownEditor')
+        this.typeSwitch.visible = false;
     }
 
     setData(value: IReplyInput) {
@@ -824,6 +828,7 @@ export class ScomPostComposer extends Module {
         this.onChanged = this.getAttribute('onChanged', true) || this.onChanged;
         this.onSubmit = this.getAttribute('onSubmit', true) || this.onSubmit;
         this.onCancel = this.getAttribute('onCancel', true) || this.onCancel;
+
         const replyTo = this.getAttribute('replyTo', true);
         const type = this.getAttribute('type', true, 'reply');
         const isReplyToShown = this.getAttribute('isReplyToShown', true, false);
