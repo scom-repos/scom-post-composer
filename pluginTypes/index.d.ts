@@ -126,6 +126,7 @@ declare module "@scom/scom-post-composer" {
         onSubmit?: onSubmitCallback;
         onCancel?: () => void;
         focusedPost?: IPost;
+        disableMarkdownEditor?: boolean;
     }
     global {
         namespace JSX {
@@ -204,6 +205,7 @@ declare module "@scom/scom-post-composer" {
         set value(content: string);
         get updatedValue(): any;
         private isRecent;
+        disableMarkdownEditor(): void;
         setData(value: IReplyInput): void;
         clear(): void;
         private resetEditor;
