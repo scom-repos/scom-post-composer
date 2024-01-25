@@ -58,11 +58,6 @@ declare module "@scom/scom-post-composer/assets.ts" {
     };
     export default _default;
 }
-/// <amd-module name="@scom/scom-post-composer/store/index.ts" />
-declare module "@scom/scom-post-composer/store/index.ts" {
-    import { IAuthor } from "@scom/scom-post";
-    export const getCurrentUser: () => IAuthor;
-}
 /// <amd-module name="@scom/scom-post-composer/components/form.tsx" />
 declare module "@scom/scom-post-composer/components/form.tsx" {
     import { ControlElement, Module, Container } from '@ijstech/components';
@@ -127,6 +122,7 @@ declare module "@scom/scom-post-composer" {
         onCancel?: () => void;
         focusedPost?: IPost;
         disableMarkdownEditor?: boolean;
+        avatar?: string;
     }
     global {
         namespace JSX {
@@ -180,6 +176,7 @@ declare module "@scom/scom-post-composer" {
         private emojiGroupsData;
         private searchTimer;
         private mobile;
+        private _avatar;
         onChanged: onChangedCallback;
         onSubmit: onSubmitCallback;
         onCancel: () => void;
@@ -203,6 +200,8 @@ declare module "@scom/scom-post-composer" {
         private get currentEmojiColor();
         get value(): string;
         set value(content: string);
+        get avatar(): string;
+        set avatar(value: string);
         get updatedValue(): any;
         private isRecent;
         disableMarkdownEditor(): void;
