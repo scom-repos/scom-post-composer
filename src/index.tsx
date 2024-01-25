@@ -1006,6 +1006,7 @@ export class ScomPostComposer extends Module {
                                 padding={{top: 0, left: 0, right: 0, bottom: 0}}
                                 closeOnScrollChildFixed={true}
                                 onOpen={this.onEmojiMdOpen.bind(this)}
+                                visible={false}
                             >
                                 <i-vstack position='relative' padding={{left: '0.25rem', right: '0.25rem'}}>
                                     <i-hstack
@@ -1380,6 +1381,7 @@ export class ScomPostComposer extends Module {
                                 padding={{top: 0, left: 0, right: 0, bottom: 0}}
                                 closeOnScrollChildFixed={true}
                                 onOpen={this.onEmojiMdOpen.bind(this)}
+                                visible={false}
                             >
                                 <i-vstack position='relative' padding={{left: '0.25rem', right: '0.25rem'}}>
                                     <i-hstack
