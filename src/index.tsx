@@ -62,6 +62,7 @@ interface ScomPostComposerElement extends ControlElement {
     focusedPost?: IPost;
     disableMarkdownEditor?: boolean;
     avatar?: string;
+    autoFocus?: boolean;
 }
 
 declare global {
@@ -137,6 +138,7 @@ export class ScomPostComposer extends Module {
     private searchTimer: any;
     private mobile: boolean;
     private _avatar: string;
+    private autoFocus: boolean;
 
     public onChanged: onChangedCallback;
     public onSubmit: onSubmitCallback;
@@ -154,6 +156,10 @@ export class ScomPostComposer extends Module {
         let self = new this(parent, options);
         await self.ready();
         return self;
+    }
+
+    setFocus() {
+        this.mdEditor.setFocus();
     }
 
     get focusedPost() {
@@ -842,6 +848,7 @@ export class ScomPostComposer extends Module {
         const isReplyToShown = this.getAttribute('isReplyToShown', true, false);
         const placeholder = this.getAttribute('placeholder', true);
         const buttonCaption = this.getAttribute('buttonCaption', true);
+        this.autoFocus = this.getAttribute('autoFocus', true);
         this.focusedPost = this.getAttribute('focusedPost', true);
         const mobile = this.getAttribute('mobile', true);
         this.mobile = mobile;
@@ -854,6 +861,11 @@ export class ScomPostComposer extends Module {
         this.setData({isReplyToShown, replyTo, type, placeholder, buttonCaption});
         this.renderGifCate();
         this.renderEmojis();
+        // if(this.autoFocus) {
+            this.mdEditor.autofocus = this.autofocus
+        if(this.autoFocus)
+            this.mdEditor.setFocus();
+        // }
         // this.updateFocusedPost();
     }
 
