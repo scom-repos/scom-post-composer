@@ -30,7 +30,6 @@ import {
     IEmoji,
     searchEmojis
 } from './global/index';
-import {getCurrentUser} from './store/index';
 import assets from './assets';
 import {ScomEditor} from '@scom/scom-editor';
 import {ScomPostComposerUpload} from './components/index';
@@ -62,6 +61,7 @@ interface ScomPostComposerElement extends ControlElement {
     onCancel?: () => void;
     focusedPost?: IPost;
     disableMarkdownEditor?: boolean;
+    avatar?: string;
 }
 
 declare global {
@@ -136,6 +136,7 @@ export class ScomPostComposer extends Module {
     private emojiGroupsData: Map<string, any> = new Map();
     private searchTimer: any;
     private mobile: boolean;
+    private _avatar: string;
 
     public onChanged: onChangedCallback;
     public onSubmit: onSubmitCallback;
@@ -230,6 +231,15 @@ export class ScomPostComposer extends Module {
         this.postEditor.setValue(content);
     }
 
+    get avatar() {
+        return this._avatar;
+    }
+
+    set avatar(value: string) {
+        this._avatar = value || assets.fullPath('img/default_avatar.png');
+        if (this.imgReplier) this.imgReplier.url = this._avatar;
+    }
+
     get updatedValue() {
         return this.typeSwitch.checked ? this.postEditor.value : this.mdEditor.getMarkdownValue();
     }
@@ -247,7 +257,6 @@ export class ScomPostComposer extends Module {
         this.clear();
         this._data = value;
         this.lbReplyTo.caption = `${this.replyTo?.author?.internetIdentifier || ''}`;
-        this.imgReplier.url = getCurrentUser()?.avatar;
         if (this.placeholder) this.mdEditor.placeholder = this.placeholder;
         if (this.buttonCaption) this.btnReply.caption = this.buttonCaption;
         this.updateGrid();
@@ -258,7 +267,6 @@ export class ScomPostComposer extends Module {
         this.resetEditor();
         this.pnlReplyTo.visible = false;
         this.lbReplyTo.caption = '';
-        this.imgReplier.url = undefined;
         this.pnlBorder.border = {
             top: {
                 width: '1px',
@@ -837,6 +845,7 @@ export class ScomPostComposer extends Module {
         this.focusedPost = this.getAttribute('focusedPost', true);
         const mobile = this.getAttribute('mobile', true);
         this.mobile = mobile;
+        this.avatar = this.getAttribute('avatar', true);
         if (mobile) {
             this.renderMobilePostComposer();
         } else {
@@ -913,6 +922,7 @@ export class ScomPostComposer extends Module {
                     overflow={'hidden'}
                     margin={{top: '0.75rem'}}
                     objectFit='cover'
+                    url={this._avatar}
                     fallbackUrl={assets.fullPath('img/default_avatar.png')}
                 ></i-image>
                 <i-panel
@@ -1286,6 +1296,7 @@ export class ScomPostComposer extends Module {
                     overflow={'hidden'}
                     margin={{top: '0.75rem'}}
                     objectFit='cover'
+                    url={this._avatar}
                     fallbackUrl={assets.fullPath('img/default_avatar.png')}
                 ></i-image>
                 <i-panel

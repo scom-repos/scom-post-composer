@@ -162,24 +162,6 @@ define("@scom/scom-post-composer/assets.ts", ["require", "exports", "@ijstech/co
         fullPath
     };
 });
-define("@scom/scom-post-composer/store/index.ts", ["require", "exports", "@scom/scom-post-composer/assets.ts"], function (require, exports, assets_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.getCurrentUser = void 0;
-    const getCurrentUser = () => {
-        const user = {
-            id: "",
-            username: "",
-            internetIdentifier: "",
-            pubKey: "",
-            displayName: "",
-            description: "",
-            avatar: assets_1.default.fullPath('img/default_avatar.png')
-        };
-        return user;
-    };
-    exports.getCurrentUser = getCurrentUser;
-});
 define("@scom/scom-post-composer/components/form.tsx", ["require", "exports", "@ijstech/components"], function (require, exports, components_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -239,7 +221,7 @@ define("@scom/scom-post-composer/components/index.ts", ["require", "exports", "@
     exports.ScomPostComposerUpload = void 0;
     Object.defineProperty(exports, "ScomPostComposerUpload", { enumerable: true, get: function () { return form_1.ScomPostComposerUpload; } });
 });
-define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components", "@scom/scom-post-composer/global/index.ts", "@scom/scom-post-composer/store/index.ts", "@scom/scom-post-composer/assets.ts", "@scom/scom-post-composer/components/index.ts"], function (require, exports, components_3, index_1, index_2, assets_2, index_3) {
+define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components", "@scom/scom-post-composer/global/index.ts", "@scom/scom-post-composer/assets.ts", "@scom/scom-post-composer/components/index.ts"], function (require, exports, components_3, index_1, assets_1, index_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomPostComposer = void 0;
@@ -340,6 +322,14 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.mdEditor.value = content;
             this.postEditor.setValue(content);
         }
+        get avatar() {
+            return this._avatar;
+        }
+        set avatar(value) {
+            this._avatar = value || assets_1.default.fullPath('img/default_avatar.png');
+            if (this.imgReplier)
+                this.imgReplier.url = this._avatar;
+        }
         get updatedValue() {
             return this.typeSwitch.checked ? this.postEditor.value : this.mdEditor.getMarkdownValue();
         }
@@ -354,7 +344,6 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.clear();
             this._data = value;
             this.lbReplyTo.caption = `${this.replyTo?.author?.internetIdentifier || ''}`;
-            this.imgReplier.url = (0, index_2.getCurrentUser)()?.avatar;
             if (this.placeholder)
                 this.mdEditor.placeholder = this.placeholder;
             if (this.buttonCaption)
@@ -366,7 +355,6 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.resetEditor();
             this.pnlReplyTo.visible = false;
             this.lbReplyTo.caption = '';
-            this.imgReplier.url = undefined;
             this.pnlBorder.border = {
                 top: {
                     width: '1px',
@@ -441,7 +429,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         async onUpload() {
             // const result = application.uploadFile(this.extensions);
             if (!this.uploadForm) {
-                this.uploadForm = await index_3.ScomPostComposerUpload.create({
+                this.uploadForm = await index_2.ScomPostComposerUpload.create({
                     onConfirm: this.onSetImage.bind(this)
                 });
             }
@@ -810,6 +798,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.focusedPost = this.getAttribute('focusedPost', true);
             const mobile = this.getAttribute('mobile', true);
             this.mobile = mobile;
+            this.avatar = this.getAttribute('avatar', true);
             if (mobile) {
                 this.renderMobilePostComposer();
             }
@@ -838,7 +827,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                         ['avatar', 'editor'],
                         ['avatar', 'reply']
                     ], padding: { left: '0.75rem' } },
-                    this.$render("i-image", { id: "imgReplier", grid: { area: 'avatar' }, width: '2.75rem', height: '2.75rem', display: "block", background: { color: Theme.background.main }, border: { radius: '50%' }, overflow: 'hidden', margin: { top: '0.75rem' }, objectFit: 'cover', fallbackUrl: assets_2.default.fullPath('img/default_avatar.png') }),
+                    this.$render("i-image", { id: "imgReplier", grid: { area: 'avatar' }, width: '2.75rem', height: '2.75rem', display: "block", background: { color: Theme.background.main }, border: { radius: '50%' }, overflow: 'hidden', margin: { top: '0.75rem' }, objectFit: 'cover', url: this._avatar, fallbackUrl: assets_1.default.fullPath('img/default_avatar.png') }),
                     this.$render("i-panel", { grid: { area: 'editor' }, maxHeight: '45rem', overflow: { x: 'hidden', y: 'auto' } },
                         this.$render("i-markdown-editor", { id: "mdEditor", width: "100%", viewer: false, hideModeSwitch: true, mode: "wysiwyg", toolbarItems: [], font: { size: '1.25rem', color: Theme.text.primary }, lineHeight: 1.5, padding: { top: 12, bottom: 12, left: 0, right: 0 }, background: { color: 'transparent' }, height: "auto", minHeight: 0, overflow: 'hidden', overflowWrap: "break-word", onChanged: this.onEditorChanged.bind(this), cursor: 'text', border: { style: 'none' }, visible: true }),
                         this.$render("i-scom-editor", { id: "postEditor", width: "100%", font: { size: '1.25rem', color: Theme.text.primary }, cursor: 'text', visible: false, onChanged: this.onEditorChanged.bind(this) })),
@@ -931,7 +920,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                         ['avatar', 'editor'],
                         ['avatar', 'reply']
                     ] },
-                    this.$render("i-image", { id: "imgReplier", grid: { area: 'avatar' }, width: '2.75rem', height: '2.75rem', display: "block", background: { color: Theme.background.main }, border: { radius: '50%' }, overflow: 'hidden', margin: { top: '0.75rem' }, objectFit: 'cover', fallbackUrl: assets_2.default.fullPath('img/default_avatar.png') }),
+                    this.$render("i-image", { id: "imgReplier", grid: { area: 'avatar' }, width: '2.75rem', height: '2.75rem', display: "block", background: { color: Theme.background.main }, border: { radius: '50%' }, overflow: 'hidden', margin: { top: '0.75rem' }, objectFit: 'cover', url: this._avatar, fallbackUrl: assets_1.default.fullPath('img/default_avatar.png') }),
                     this.$render("i-panel", { grid: { area: 'editor' }, maxHeight: '45rem', overflow: { x: 'hidden', y: 'auto' } },
                         this.$render("i-markdown-editor", { id: "mdEditor", width: "100%", viewer: false, hideModeSwitch: true, mode: "wysiwyg", toolbarItems: [], font: { size: '1.25rem', color: Theme.text.primary }, lineHeight: 1.5, padding: { top: 12, bottom: 12, left: 0, right: 0 }, background: { color: 'transparent' }, height: "auto", minHeight: 0, overflow: 'hidden', overflowWrap: "break-word", onChanged: this.onEditorChanged.bind(this), cursor: 'text', border: { style: 'none' }, visible: true }),
                         this.$render("i-scom-editor", { id: "postEditor", width: "100%", font: { size: '1.25rem', color: Theme.text.primary }, cursor: 'text', visible: false, onChanged: this.onEditorChanged.bind(this) })),
