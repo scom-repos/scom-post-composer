@@ -265,6 +265,9 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             await self.ready();
             return self;
         }
+        setFocus() {
+            this.mdEditor.setFocus();
+        }
         get focusedPost() {
             return this._focusedPost;
         }
@@ -795,6 +798,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             const isReplyToShown = this.getAttribute('isReplyToShown', true, false);
             const placeholder = this.getAttribute('placeholder', true);
             const buttonCaption = this.getAttribute('buttonCaption', true);
+            this.autoFocus = this.getAttribute('autoFocus', true);
             this.focusedPost = this.getAttribute('focusedPost', true);
             const mobile = this.getAttribute('mobile', true);
             this.mobile = mobile;
@@ -808,6 +812,11 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.setData({ isReplyToShown, replyTo, type, placeholder, buttonCaption });
             this.renderGifCate();
             this.renderEmojis();
+            // if(this.autoFocus) {
+            this.mdEditor.autofocus = this.autofocus;
+            if (this.autoFocus)
+                this.mdEditor.setFocus();
+            // }
             // this.updateFocusedPost();
         }
         async handleMobileCloseComposer() {

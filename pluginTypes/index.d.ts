@@ -123,6 +123,7 @@ declare module "@scom/scom-post-composer" {
         focusedPost?: IPost;
         disableMarkdownEditor?: boolean;
         avatar?: string;
+        autoFocus?: boolean;
     }
     global {
         namespace JSX {
@@ -177,11 +178,13 @@ declare module "@scom/scom-post-composer" {
         private searchTimer;
         private mobile;
         private _avatar;
+        private autoFocus;
         onChanged: onChangedCallback;
         onSubmit: onSubmitCallback;
         onCancel: () => void;
         constructor(parent?: Container, options?: any);
         static create(options?: ScomPostComposerElement, parent?: Container): Promise<ScomPostComposer>;
+        setFocus(): void;
         get focusedPost(): IPost;
         set focusedPost(value: IPost);
         get replyTo(): IPost;
