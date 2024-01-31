@@ -365,12 +365,13 @@ export class ScomPostComposer extends Module {
                 id={this.focusedPost.id}
                 data={this.focusedPost}
                 type="short"
+                overflowEllipse={true}
                 limitHeight={true}
                 isReply={true}
             ></i-scom-post>;
             this.pnlFocusedPost.clearInnerHTML();
             this.pnlFocusedPost.append(focusedPost);
-            focusedPost.renderShowMore();
+            // focusedPost.renderShowMore();
             // focusedPost.init();
         }
     }
@@ -876,7 +877,7 @@ export class ScomPostComposer extends Module {
 
     private renderMobilePostComposer() {
         const elm = <i-panel cursor='default'>
-            <i-hstack justifyContent={'space-between'} alignItems={'center'} padding={{left: '0.5rem', right: '0.5rem'}}
+            <i-hstack justifyContent={'space-between'} alignItems={'center'} padding={{left: '0.5rem', right: '0.5rem'}} position={'fixed'} top={0} zIndex={10} background={{color: '#000'}} width={'100%'}
                       border={{bottom: {width: '.5px', style: 'solid', color: Theme.divider}}} height={50}>
                 <i-button caption={"Cancel"} onClick={this.handleMobileCloseComposer.bind(this)}
                           padding={{left: 5, right: 5, top: 5, bottom: 5}} font={{size: Theme.typography.fontSize}}
@@ -908,7 +909,7 @@ export class ScomPostComposer extends Module {
                     font={{size: '1rem', color: Theme.colors.primary.main}}
                 ></i-label>
             </i-hstack>
-            <i-panel id={'pnlFocusedPost'}>
+            <i-panel id={'pnlFocusedPost'} padding={{top: 50}}>
 
             </i-panel>
             <i-grid-layout

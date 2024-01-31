@@ -443,10 +443,10 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         }
         updateFocusedPost() {
             if (this.pnlFocusedPost && this.mobile) {
-                const focusedPost = this.$render("i-scom-post", { id: this.focusedPost.id, data: this.focusedPost, type: "short", limitHeight: true, isReply: true });
+                const focusedPost = this.$render("i-scom-post", { id: this.focusedPost.id, data: this.focusedPost, type: "short", overflowEllipse: true, limitHeight: true, isReply: true });
                 this.pnlFocusedPost.clearInnerHTML();
                 this.pnlFocusedPost.append(focusedPost);
-                focusedPost.renderShowMore();
+                // focusedPost.renderShowMore();
                 // focusedPost.init();
             }
         }
@@ -825,13 +825,13 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         }
         renderMobilePostComposer() {
             const elm = this.$render("i-panel", { cursor: 'default' },
-                this.$render("i-hstack", { justifyContent: 'space-between', alignItems: 'center', padding: { left: '0.5rem', right: '0.5rem' }, border: { bottom: { width: '.5px', style: 'solid', color: Theme.divider } }, height: 50 },
+                this.$render("i-hstack", { justifyContent: 'space-between', alignItems: 'center', padding: { left: '0.5rem', right: '0.5rem' }, position: 'fixed', top: 0, zIndex: 10, background: { color: '#000' }, width: '100%', border: { bottom: { width: '.5px', style: 'solid', color: Theme.divider } }, height: 50 },
                     this.$render("i-button", { caption: "Cancel", onClick: this.handleMobileCloseComposer.bind(this), padding: { left: 5, right: 5, top: 5, bottom: 5 }, font: { size: Theme.typography.fontSize }, background: { color: 'transparent' } }),
                     this.$render("i-button", { id: "btnReply", caption: "Post", enabled: false, onClick: this.onReply.bind(this), padding: { left: '1rem', right: '1rem' }, height: 36, background: { color: Theme.colors.primary.main }, font: { size: Theme.typography.fontSize, color: Theme.colors.primary.contrastText, bold: true }, border: { radius: '30px' } })),
                 this.$render("i-hstack", { id: "pnlReplyTo", visible: false, gap: "0.5rem", verticalAlignment: "center", padding: { top: '0.25rem', bottom: '0.75rem', left: '3.25rem' } },
                     this.$render("i-label", { caption: "Replying to", font: { size: '1rem', color: Theme.text.secondary } }),
                     this.$render("i-label", { id: "lbReplyTo", link: { href: '' }, font: { size: '1rem', color: Theme.colors.primary.main } })),
-                this.$render("i-panel", { id: 'pnlFocusedPost' }),
+                this.$render("i-panel", { id: 'pnlFocusedPost', padding: { top: 50 } }),
                 this.$render("i-grid-layout", { id: "gridReply", gap: { column: '0.75rem' }, height: "", templateColumns: ['2.75rem', 'minmax(auto, calc(100% - 3.5rem))'], templateRows: ['auto'], templateAreas: [
                         ['avatar', 'editor'],
                         ['avatar', 'reply']
