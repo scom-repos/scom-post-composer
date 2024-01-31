@@ -121,9 +121,9 @@ declare module "@scom/scom-post-composer" {
         onSubmit?: onSubmitCallback;
         onCancel?: () => void;
         focusedPost?: IPost;
-        disableMarkdownEditor?: boolean;
         avatar?: string;
         autoFocus?: boolean;
+        isAttachmentDisabled?: boolean;
     }
     global {
         namespace JSX {
@@ -164,6 +164,8 @@ declare module "@scom/scom-post-composer" {
         private mdEditor;
         private typeSwitch;
         private uploadForm;
+        private iconMedia;
+        private iconMediaMobile;
         private _focusedPost;
         private _data;
         private currentGifPage;
@@ -179,6 +181,7 @@ declare module "@scom/scom-post-composer" {
         private mobile;
         private _avatar;
         private autoFocus;
+        private _isAttachmentDisabled;
         onChanged: onChangedCallback;
         onSubmit: onSubmitCallback;
         onCancel: () => void;
@@ -206,6 +209,8 @@ declare module "@scom/scom-post-composer" {
         get avatar(): string;
         set avatar(value: string);
         get updatedValue(): any;
+        get isAttachmentDisabled(): boolean;
+        set isAttachmentDisabled(value: boolean);
         private isRecent;
         disableMarkdownEditor(): void;
         setData(value: IReplyInput): void;
