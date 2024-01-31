@@ -62,6 +62,7 @@ interface ScomPostComposerElement extends ControlElement {
     focusedPost?: IPost;
     avatar?: string;
     autoFocus?: boolean;
+    isAttachmentDisabled?: boolean;
 }
 
 declare global {
@@ -107,6 +108,7 @@ export class ScomPostComposer extends Module {
     private typeSwitch: Switch;
     private uploadForm: ScomPostComposerUpload;
     private iconMedia: Icon;
+    private iconMediaMobile: Icon;
 
     private _focusedPost: IPost;
     private _data: IReplyInput;
@@ -139,6 +141,7 @@ export class ScomPostComposer extends Module {
     private mobile: boolean;
     private _avatar: string;
     private autoFocus: boolean;
+    private _isAttachmentDisabled: boolean;
 
     public onChanged: onChangedCallback;
     public onSubmit: onSubmitCallback;
@@ -250,6 +253,20 @@ export class ScomPostComposer extends Module {
         return this.typeSwitch.checked ? this.postEditor.value : this.mdEditor.getMarkdownValue();
     }
 
+    get isAttachmentDisabled() {
+        return this._isAttachmentDisabled;
+    }
+
+    set isAttachmentDisabled(value: boolean) {
+        this._isAttachmentDisabled = value;
+        if (this.iconMedia) {
+            this.iconMedia.visible = this.iconMedia.enabled = !value;
+        }
+        if (this.iconMediaMobile) {
+            this.iconMediaMobile.visible = this.iconMediaMobile.enabled = !value;
+        }
+    }
+
     private isRecent(category: IEmojiCategory) {
         return category.value === 'recent';
     }
@@ -257,11 +274,6 @@ export class ScomPostComposer extends Module {
     public disableMarkdownEditor() {
         console.log('[scom-post-composer] disableMarkdownEditor')
         this.typeSwitch.visible = false;
-    }
-
-    public disableAttachment() {
-        this.iconMedia.visible = false;
-        this.iconMedia.enabled = false;
     }
 
     setData(value: IReplyInput) {
@@ -858,6 +870,7 @@ export class ScomPostComposer extends Module {
         const mobile = this.getAttribute('mobile', true);
         this.mobile = mobile;
         this.avatar = this.getAttribute('avatar', true);
+        this.isAttachmentDisabled = this.getAttribute('isAttachmentDisabled', true, false);
         if (mobile) {
             this.renderMobilePostComposer();
         } else {
@@ -991,11 +1004,13 @@ export class ScomPostComposer extends Module {
                         visible={false}
                     >
                         <i-icon
-                            id="iconMedia"
+                            id="iconMediaMobile"
                             name="image" width={28} height={28} fill={Theme.colors.primary.main}
                             border={{radius: '50%'}}
                             padding={{top: 5, bottom: 5, left: 5, right: 5}}
                             tooltip={{content: 'Media', placement: 'bottom'}}
+                            visible={!this.isAttachmentDisabled}
+                            enabled={!this.isAttachmentDisabled}
                             onClick={this.onUpload.bind(this)}
                         ></i-icon>
                         <i-icon
@@ -1367,10 +1382,13 @@ export class ScomPostComposer extends Module {
                         visible={false}
                     >
                         <i-icon
+                            id="iconMediaMobile"
                             name="image" width={28} height={28} fill={Theme.colors.primary.main}
                             border={{radius: '50%'}}
                             padding={{top: 5, bottom: 5, left: 5, right: 5}}
                             tooltip={{content: 'Media', placement: 'bottom'}}
+                            visible={!this.isAttachmentDisabled}
+                            enabled={!this.isAttachmentDisabled}
                             onClick={this.onUpload.bind(this)}
                         ></i-icon>
                         <i-icon
