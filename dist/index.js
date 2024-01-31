@@ -343,6 +343,10 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             console.log('[scom-post-composer] disableMarkdownEditor');
             this.typeSwitch.visible = false;
         }
+        disableAttachment() {
+            this.iconMedia.visible = false;
+            this.iconMedia.enabled = false;
+        }
         setData(value) {
             this.clear();
             this._data = value;
@@ -842,7 +846,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                         this.$render("i-scom-editor", { id: "postEditor", width: "100%", font: { size: '1.25rem', color: Theme.text.primary }, cursor: 'text', visible: false, onChanged: this.onEditorChanged.bind(this) })),
                     this.$render("i-hstack", { id: "pnlBorder", horizontalAlignment: "space-between", grid: { area: 'reply' }, padding: { top: '0.625rem' } },
                         this.$render("i-hstack", { id: "pnlIcons", gap: "4px", verticalAlignment: "center", visible: false },
-                            this.$render("i-icon", { name: "image", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Media', placement: 'bottom' }, onClick: this.onUpload.bind(this) }),
+                            this.$render("i-icon", { id: "iconMedia", name: "image", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Media', placement: 'bottom' }, onClick: this.onUpload.bind(this) }),
                             this.$render("i-icon", { name: "images", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'GIF', placement: 'bottom' }, onClick: () => this.onShowModal('mdGif') }),
                             this.$render("i-panel", null,
                                 this.$render("i-icon", { name: "smile", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Emoji', placement: 'bottom' }, onClick: () => this.onShowModal('mdEmoji') }),

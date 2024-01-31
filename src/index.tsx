@@ -60,7 +60,6 @@ interface ScomPostComposerElement extends ControlElement {
     onSubmit?: onSubmitCallback;
     onCancel?: () => void;
     focusedPost?: IPost;
-    disableMarkdownEditor?: boolean;
     avatar?: string;
     autoFocus?: boolean;
 }
@@ -107,6 +106,7 @@ export class ScomPostComposer extends Module {
     private mdEditor: MarkdownEditor;
     private typeSwitch: Switch;
     private uploadForm: ScomPostComposerUpload;
+    private iconMedia: Icon;
 
     private _focusedPost: IPost;
     private _data: IReplyInput;
@@ -257,6 +257,11 @@ export class ScomPostComposer extends Module {
     public disableMarkdownEditor() {
         console.log('[scom-post-composer] disableMarkdownEditor')
         this.typeSwitch.visible = false;
+    }
+
+    public disableAttachment() {
+        this.iconMedia.visible = false;
+        this.iconMedia.enabled = false;
     }
 
     setData(value: IReplyInput) {
@@ -986,6 +991,7 @@ export class ScomPostComposer extends Module {
                         visible={false}
                     >
                         <i-icon
+                            id="iconMedia"
                             name="image" width={28} height={28} fill={Theme.colors.primary.main}
                             border={{radius: '50%'}}
                             padding={{top: 5, bottom: 5, left: 5, right: 5}}

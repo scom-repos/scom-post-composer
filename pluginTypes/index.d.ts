@@ -121,7 +121,6 @@ declare module "@scom/scom-post-composer" {
         onSubmit?: onSubmitCallback;
         onCancel?: () => void;
         focusedPost?: IPost;
-        disableMarkdownEditor?: boolean;
         avatar?: string;
         autoFocus?: boolean;
     }
@@ -164,6 +163,7 @@ declare module "@scom/scom-post-composer" {
         private mdEditor;
         private typeSwitch;
         private uploadForm;
+        private iconMedia;
         private _focusedPost;
         private _data;
         private currentGifPage;
@@ -208,6 +208,7 @@ declare module "@scom/scom-post-composer" {
         get updatedValue(): any;
         private isRecent;
         disableMarkdownEditor(): void;
+        disableAttachment(): void;
         setData(value: IReplyInput): void;
         clear(): void;
         private resetEditor;
