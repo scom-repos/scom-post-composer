@@ -166,6 +166,8 @@ declare module "@scom/scom-post-composer" {
         private uploadForm;
         private iconMedia;
         private iconMediaMobile;
+        private pnlActions;
+        private mdPostActions;
         private _focusedPost;
         private _data;
         private currentGifPage;
@@ -182,6 +184,7 @@ declare module "@scom/scom-post-composer" {
         private _avatar;
         private autoFocus;
         private _isAttachmentDisabled;
+        private currentPostData;
         onChanged: onChangedCallback;
         onSubmit: onSubmitCallback;
         onCancel: () => void;
@@ -211,6 +214,8 @@ declare module "@scom/scom-post-composer" {
         get updatedValue(): any;
         get isAttachmentDisabled(): boolean;
         set isAttachmentDisabled(value: boolean);
+        private removeShow;
+        private onShowModal2;
         private isRecent;
         disableMarkdownEditor(): void;
         setData(value: IReplyInput): void;
@@ -241,6 +246,7 @@ declare module "@scom/scom-post-composer" {
         private filterGroups;
         private onRecentClear;
         private renderEmojiColors;
+        private renderActions;
         private renderColor;
         private onEmojiColorSelected;
         private onEmojiCateSelected;

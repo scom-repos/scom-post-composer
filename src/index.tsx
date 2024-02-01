@@ -17,7 +17,7 @@ import {
     Icon,
     VStack,
     Control,
-    Switch
+    Switch, application
 } from '@ijstech/components';
 import {IPost, IPostData} from '@scom/scom-post';
 import {
@@ -39,6 +39,13 @@ const Theme = Styles.Theme.ThemeVars;
 type IReplyType = 'reply' | 'post' | 'quoted';
 type onChangedCallback = (content: string) => void;
 type onSubmitCallback = (content: string, medias: IPostData[]) => void;
+type Action = {
+    caption: string;
+    icon?: {name: string, fill?: string;};
+    tooltip?: string;
+    onClick?: (e?: any) => void;
+    hoveredColor?: string;
+}
 
 interface IReplyInput {
     replyTo?: IPost;
@@ -109,6 +116,8 @@ export class ScomPostComposer extends Module {
     private uploadForm: ScomPostComposerUpload;
     private iconMedia: Icon;
     private iconMediaMobile: Icon;
+    private pnlActions: VStack;
+    private mdPostActions: Modal;
 
     private _focusedPost: IPost;
     private _data: IReplyInput;
@@ -142,6 +151,7 @@ export class ScomPostComposer extends Module {
     private _avatar: string;
     private autoFocus: boolean;
     private _isAttachmentDisabled: boolean;
+    private currentPostData: any;
 
     public onChanged: onChangedCallback;
     public onSubmit: onSubmitCallback;
@@ -267,6 +277,21 @@ export class ScomPostComposer extends Module {
         }
     }
 
+    private removeShow(name: string) {
+        if (this[name]) this[name].classList.remove('show');
+    }
+
+    private onShowModal2(target: Control, data: any, name: string) {
+        this.currentPostData = data;
+        if (this[name]) {
+            this[name].parent = target;
+            this[name].position = 'absolute';
+            this[name].refresh();
+            this[name].visible = true;
+            this[name].classList.add('show');
+        }
+    }
+
     private isRecent(category: IEmojiCategory) {
         return category.value === 'recent';
     }
@@ -378,6 +403,8 @@ export class ScomPostComposer extends Module {
 
     private updateFocusedPost() {
         if(this.pnlFocusedPost && this.mobile) {
+            this.renderActions();
+            const onProfileClicked = (target: Control, data: any, event: Event) => this.onShowModal2(target, data, 'mdPostActions');
             const focusedPost = <i-scom-post
                 id={this.focusedPost.id}
                 data={this.focusedPost}
@@ -385,6 +412,7 @@ export class ScomPostComposer extends Module {
                 overflowEllipse={true}
                 limitHeight={true}
                 isReply={true}
+                onProfileClicked={onProfileClicked}
             ></i-scom-post>;
             this.pnlFocusedPost.clearInnerHTML();
             this.pnlFocusedPost.append(focusedPost);
@@ -719,6 +747,136 @@ export class ScomPostComposer extends Module {
         for (let color of this.emojiColors) {
             this.renderColor(color);
         }
+    }
+
+    private renderActions() {
+        const actions: Action[] = [
+            {
+                caption: 'Copy note link',
+                icon: { name: 'copy' },
+                tooltip: 'The link has been copied successfully',
+                onClick: (e) => {
+                    if(typeof this.currentPostData !== 'undefined') {
+                        application.copyToClipboard(`${window.location.origin}/#/e/${this.currentPostData.id}`)
+                    }
+                    this.mdPostActions.visible = false;
+                }
+            },
+            {
+                caption: 'Copy note text',
+                icon: { name: 'copy' },
+                tooltip: 'The text has been copied successfully',
+                onClick: (e) => {
+                    application.copyToClipboard(this.currentPostData['eventData']?.content)
+                    this.mdPostActions.visible = false;
+                }
+            },
+            {
+                caption: 'Copy note ID',
+                icon: { name: 'copy' },
+                tooltip: 'The ID has been copied successfully',
+                onClick: (e) => {
+                    if(typeof this.currentPostData !== 'undefined') {
+                        application.copyToClipboard(this.currentPostData.id)
+                    }
+                    this.mdPostActions.visible = false;
+                }
+            },
+            {
+                caption: 'Copy raw data',
+                icon: { name: 'copy' },
+                tooltip: 'The raw data has been copied successfully',
+                onClick: (e) => {
+                    if(typeof this.currentPostData !== 'undefined') {
+                        application.copyToClipboard(JSON.stringify(this.currentPostData['eventData']))
+                    }
+                    this.mdPostActions.visible = false;
+
+                }
+            },
+            // {
+            //     caption: 'Broadcast note',
+            //     icon: { name: "broadcast-tower" }
+            // },
+            {
+                caption: 'Copy user public key',
+                icon: { name: 'copy' },
+                tooltip: 'The public key has been copied successfully',
+                onClick: (e) => {
+                    if(typeof this.currentPostData !== 'undefined') {
+                        application.copyToClipboard(this.currentPostData.author.npub || '')
+                    }
+                    this.mdPostActions.visible = false;
+                }
+            },
+            // {
+            //     caption: 'Mute user',
+            //     icon: { name: "user-slash", fill: Theme.colors.error.main },
+            //     hoveredColor: 'color-mix(in srgb, var(--colors-error-main) 25%, var(--background-paper))'
+            // },
+            // {
+            //     caption: 'Report user',
+            //     icon: { name: "exclamation-circle", fill: Theme.colors.error.main },
+            //     hoveredColor: 'color-mix(in srgb, var(--colors-error-main) 25%, var(--background-paper))'
+            // }
+        ]
+        this.pnlActions.clearInnerHTML();
+        for (let i = 0; i < actions.length; i++) {
+            const item: any = actions[i];
+            this.pnlActions.appendChild(
+                <i-hstack
+                    horizontalAlignment="space-between"
+                    verticalAlignment="center"
+                    width="100%"
+                    padding={{top: '0.625rem', bottom: '0.625rem', left: '0.75rem', right: '0.75rem'}}
+                    background={{color: 'transparent'}}
+                    border={{radius: '0.5rem'}}
+                    opacity={item.hoveredColor ? 1 : 0.667}
+                    hover={{
+                        backgroundColor: item.hoveredColor || Theme.action.hoverBackground,
+                        opacity: 1
+                    }}
+                    onClick={item.onClick?.bind(this)}
+                >
+                    <i-label
+                        caption={item.caption}
+                        font={{color: item.icon?.fill || Theme.text.primary, weight: 400, size: '0.875rem'}}
+                    ></i-label>
+                    <i-icon
+                        name={item.icon.name}
+                        width='0.75rem' height='0.75rem'
+                        display='inline-flex'
+                        fill={item.icon?.fill || Theme.text.primary}
+                    ></i-icon>
+                </i-hstack>
+            )
+        }
+        this.pnlActions.appendChild(
+            <i-hstack
+                width="100%"
+                horizontalAlignment="center"
+                padding={{top: 12, bottom: 12, left: 16, right: 16}}
+                visible={false}
+                mediaQueries={[
+                    {
+                        maxWidth: '767px',
+                        properties: { visible: true }
+                    }
+                ]}
+            >
+                <i-button
+                    caption='Cancel'
+                    width="100%" minHeight={44}
+                    padding={{left: 16, right: 16}}
+                    font={{color: Theme.text.primary, weight: 600}}
+                    border={{radius: '30px', width: '1px', style: 'solid', color: Theme.colors.secondary.light}}
+                    grid={{horizontalAlignment: 'center'}}
+                    background={{color: 'transparent'}}
+                    boxShadow="none"
+                    onClick={() => this.onCloseModal('mdPostActions')}
+                ></i-button>
+            </i-hstack>
+        )
     }
 
     private renderColor(color: string) {
@@ -1126,6 +1284,36 @@ export class ScomPostComposer extends Module {
 
                 </i-hstack>
             </i-grid-layout>
+
+            <i-modal
+                id="mdPostActions"
+                visible={false}
+                maxWidth={'15rem'}
+                minWidth={'12.25rem'}
+                popupPlacement='bottomRight'
+                showBackdrop={false}
+                border={{radius: '0.25rem', width: '1px', style: 'solid', color: Theme.divider}}
+                padding={{top: '0.5rem', left: '0.5rem', right: '0.5rem', bottom: '0.5rem'}}
+                mediaQueries={[
+                    {
+                        maxWidth: '767px',
+                        properties: {
+                            showBackdrop: true,
+                            popupPlacement: 'bottom',
+                            position: 'fixed',
+                            zIndex: 999,
+                            maxWidth: '100%',
+                            width: '100%',
+                            maxHeight: '50vh',
+                            overflow: {y: 'auto'},
+                            border: {radius: '16px 16px 0 0'}
+                        }
+                    }
+                ]}
+                onClose={() => this.removeShow('mdPostActions')}
+            >
+                <i-vstack id="pnlActions" minWidth={0} maxHeight={'27.5rem'} overflow={{y: 'auto'}}/>
+            </i-modal>
 
             <i-modal
                 id="mdGif"

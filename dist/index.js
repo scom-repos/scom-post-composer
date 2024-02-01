@@ -348,6 +348,20 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 this.iconMediaMobile.visible = this.iconMediaMobile.enabled = !value;
             }
         }
+        removeShow(name) {
+            if (this[name])
+                this[name].classList.remove('show');
+        }
+        onShowModal2(target, data, name) {
+            this.currentPostData = data;
+            if (this[name]) {
+                this[name].parent = target;
+                this[name].position = 'absolute';
+                this[name].refresh();
+                this[name].visible = true;
+                this[name].classList.add('show');
+            }
+        }
         isRecent(category) {
             return category.value === 'recent';
         }
@@ -455,7 +469,9 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         }
         updateFocusedPost() {
             if (this.pnlFocusedPost && this.mobile) {
-                const focusedPost = this.$render("i-scom-post", { id: this.focusedPost.id, data: this.focusedPost, type: "short", overflowEllipse: true, limitHeight: true, isReply: true });
+                this.renderActions();
+                const onProfileClicked = (target, data, event) => this.onShowModal2(target, data, 'mdPostActions');
+                const focusedPost = this.$render("i-scom-post", { id: this.focusedPost.id, data: this.focusedPost, type: "short", overflowEllipse: true, limitHeight: true, isReply: true, onProfileClicked: onProfileClicked });
                 this.pnlFocusedPost.clearInnerHTML();
                 this.pnlFocusedPost.append(focusedPost);
                 // focusedPost.renderShowMore();
@@ -682,6 +698,94 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 this.renderColor(color);
             }
         }
+        renderActions() {
+            const actions = [
+                {
+                    caption: 'Copy note link',
+                    icon: { name: 'copy' },
+                    tooltip: 'The link has been copied successfully',
+                    onClick: (e) => {
+                        if (typeof this.currentPostData !== 'undefined') {
+                            components_3.application.copyToClipboard(`${window.location.origin}/#/e/${this.currentPostData.id}`);
+                        }
+                        this.mdPostActions.visible = false;
+                    }
+                },
+                {
+                    caption: 'Copy note text',
+                    icon: { name: 'copy' },
+                    tooltip: 'The text has been copied successfully',
+                    onClick: (e) => {
+                        components_3.application.copyToClipboard(this.currentPostData['eventData']?.content);
+                        this.mdPostActions.visible = false;
+                    }
+                },
+                {
+                    caption: 'Copy note ID',
+                    icon: { name: 'copy' },
+                    tooltip: 'The ID has been copied successfully',
+                    onClick: (e) => {
+                        if (typeof this.currentPostData !== 'undefined') {
+                            components_3.application.copyToClipboard(this.currentPostData.id);
+                        }
+                        this.mdPostActions.visible = false;
+                    }
+                },
+                {
+                    caption: 'Copy raw data',
+                    icon: { name: 'copy' },
+                    tooltip: 'The raw data has been copied successfully',
+                    onClick: (e) => {
+                        if (typeof this.currentPostData !== 'undefined') {
+                            components_3.application.copyToClipboard(JSON.stringify(this.currentPostData['eventData']));
+                        }
+                        this.mdPostActions.visible = false;
+                    }
+                },
+                // {
+                //     caption: 'Broadcast note',
+                //     icon: { name: "broadcast-tower" }
+                // },
+                {
+                    caption: 'Copy user public key',
+                    icon: { name: 'copy' },
+                    tooltip: 'The public key has been copied successfully',
+                    onClick: (e) => {
+                        if (typeof this.currentPostData !== 'undefined') {
+                            components_3.application.copyToClipboard(this.currentPostData.author.npub || '');
+                        }
+                        this.mdPostActions.visible = false;
+                    }
+                },
+                // {
+                //     caption: 'Mute user',
+                //     icon: { name: "user-slash", fill: Theme.colors.error.main },
+                //     hoveredColor: 'color-mix(in srgb, var(--colors-error-main) 25%, var(--background-paper))'
+                // },
+                // {
+                //     caption: 'Report user',
+                //     icon: { name: "exclamation-circle", fill: Theme.colors.error.main },
+                //     hoveredColor: 'color-mix(in srgb, var(--colors-error-main) 25%, var(--background-paper))'
+                // }
+            ];
+            this.pnlActions.clearInnerHTML();
+            for (let i = 0; i < actions.length; i++) {
+                const item = actions[i];
+                this.pnlActions.appendChild(this.$render("i-hstack", { horizontalAlignment: "space-between", verticalAlignment: "center", width: "100%", padding: { top: '0.625rem', bottom: '0.625rem', left: '0.75rem', right: '0.75rem' }, background: { color: 'transparent' }, border: { radius: '0.5rem' }, opacity: item.hoveredColor ? 1 : 0.667, hover: {
+                        backgroundColor: item.hoveredColor || Theme.action.hoverBackground,
+                        opacity: 1
+                    }, onClick: item.onClick?.bind(this) },
+                    this.$render("i-label", { caption: item.caption, font: { color: item.icon?.fill || Theme.text.primary, weight: 400, size: '0.875rem' } }),
+                    this.$render("i-icon", { name: item.icon.name, width: '0.75rem', height: '0.75rem', display: 'inline-flex', fill: item.icon?.fill || Theme.text.primary })));
+            }
+            this.pnlActions.appendChild(this.$render("i-hstack", { width: "100%", horizontalAlignment: "center", padding: { top: 12, bottom: 12, left: 16, right: 16 }, visible: false, mediaQueries: [
+                    {
+                        maxWidth: '767px',
+                        properties: { visible: true }
+                    }
+                ] },
+                this.$render("i-button", { caption: 'Cancel', width: "100%", minHeight: 44, padding: { left: 16, right: 16 }, font: { color: Theme.text.primary, weight: 600 }, border: { radius: '30px', width: '1px', style: 'solid', color: Theme.colors.secondary.light }, grid: { horizontalAlignment: 'center' }, background: { color: 'transparent' }, boxShadow: "none", onClick: () => this.onCloseModal('mdPostActions') })));
+        }
         renderColor(color) {
             const isCurrentColor = color === this.currentEmojiColor;
             const colorEl = (this.$render("i-panel", { background: { color }, border: { radius: '50%' }, width: '1.188rem', height: '1.188rem', padding: { left: '0.35rem' }, stack: { grow: '0', shrink: '0', basis: '1.188rem' }, boxShadow: `${isCurrentColor ? 'rgb(29, 155, 240) 0px 0px 0px 2px' : 'none'}`, onClick: this.onEmojiColorSelected },
@@ -879,6 +983,23 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                                                     bottom: '0.25rem'
                                                 } }))))),
                             this.$render("i-switch", { id: "typeSwitch", height: 28, display: "inline-flex", grid: { verticalAlignment: 'center' }, tooltip: { content: 'Change editor', placement: 'bottom' }, uncheckedTrackColor: Theme.divider, checkedTrackColor: Theme.colors.primary.main, onChanged: this.onTypeChanged.bind(this) })))),
+                this.$render("i-modal", { id: "mdPostActions", visible: false, maxWidth: '15rem', minWidth: '12.25rem', popupPlacement: 'bottomRight', showBackdrop: false, border: { radius: '0.25rem', width: '1px', style: 'solid', color: Theme.divider }, padding: { top: '0.5rem', left: '0.5rem', right: '0.5rem', bottom: '0.5rem' }, mediaQueries: [
+                        {
+                            maxWidth: '767px',
+                            properties: {
+                                showBackdrop: true,
+                                popupPlacement: 'bottom',
+                                position: 'fixed',
+                                zIndex: 999,
+                                maxWidth: '100%',
+                                width: '100%',
+                                maxHeight: '50vh',
+                                overflow: { y: 'auto' },
+                                border: { radius: '16px 16px 0 0' }
+                            }
+                        }
+                    ], onClose: () => this.removeShow('mdPostActions') },
+                    this.$render("i-vstack", { id: "pnlActions", minWidth: 0, maxHeight: '27.5rem', overflow: { y: 'auto' } })),
                 this.$render("i-modal", { id: "mdGif", border: { radius: '1rem' }, maxWidth: '600px', maxHeight: '90vh', overflow: { y: 'auto' }, padding: { top: 0, right: 0, left: 0, bottom: 0 }, mediaQueries: [
                         {
                             maxWidth: '767px',
