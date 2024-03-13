@@ -1053,8 +1053,26 @@ export class ScomPostComposer extends Module {
 
     private renderMobilePostComposer() {
         const elm = <i-panel cursor='default'>
-            <i-hstack justifyContent={'space-between'} alignItems={'center'} padding={{left: '0.5rem', right: '0.5rem'}} position={'fixed'} top={0} zIndex={10} background={{color: '#000'}} width={'100%'}
-                      border={{bottom: {width: '.5px', style: 'solid', color: Theme.divider}}} height={50}>
+            <i-hstack
+                justifyContent={'space-between'}
+                alignItems={'center'}
+                padding={{left: '0.5rem', right: '0.5rem'}}
+                position={'fixed'}
+                top={0}
+                zIndex={10}
+                background={{color: '#000'}}
+                width={'100%'}
+                border={{bottom: {width: '.5px', style: 'solid', color: Theme.divider}}}
+                height={50}
+                mediaQueries={[
+                    {
+                        maxWidth: '767px',
+                        properties: {
+                            border: { bottom: { style: 'none' }}
+                        }
+                    }
+                ]}
+            >
                 <i-button caption={"Cancel"} onClick={this.handleMobileCloseComposer.bind(this)}
                           padding={{left: 5, right: 5, top: 5, bottom: 5}} font={{size: Theme.typography.fontSize}}
                           background={{color: 'transparent'}}/>
