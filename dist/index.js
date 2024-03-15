@@ -221,15 +221,34 @@ define("@scom/scom-post-composer/components/index.ts", ["require", "exports", "@
     exports.ScomPostComposerUpload = void 0;
     Object.defineProperty(exports, "ScomPostComposerUpload", { enumerable: true, get: function () { return form_1.ScomPostComposerUpload; } });
 });
-define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components", "@scom/scom-post-composer/global/index.ts", "@scom/scom-post-composer/assets.ts", "@scom/scom-post-composer/components/index.ts"], function (require, exports, components_3, index_1, assets_1, index_2) {
+define("@scom/scom-post-composer/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_3) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.modalStyle = void 0;
+    exports.modalStyle = components_3.Styles.style({
+        $nest: {
+            '.modal > div:nth-child(2)': {
+                width: '100%',
+                height: '100%',
+                overflow: 'hidden'
+            },
+            'i-scom-storage': {
+                display: 'block',
+                width: '100%',
+                height: 'calc(100% - 2rem)',
+                overflow: 'hidden'
+            }
+        }
+    });
+});
+define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components", "@scom/scom-post-composer/global/index.ts", "@scom/scom-post-composer/assets.ts", "@scom/scom-post-composer/components/index.ts", "@scom/scom-post-composer/index.css.ts", "@scom/scom-storage"], function (require, exports, components_4, index_1, assets_1, index_2, index_css_1, scom_storage_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomPostComposer = void 0;
-    const Theme = components_3.Styles.Theme.ThemeVars;
-    let ScomPostComposer = class ScomPostComposer extends components_3.Module {
+    const Theme = components_4.Styles.Theme.ThemeVars;
+    let ScomPostComposer = class ScomPostComposer extends components_4.Module {
         constructor(parent, options) {
             super(parent, options);
-            // private extensions: string[] = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'tiff', 'tif', 'mp4', 'webm', 'ogg', 'avi', 'mkv', 'mov', 'm3u8'];
             this.currentGifPage = 0;
             this.totalGifPage = 1;
             this.renderedMap = {};
@@ -259,6 +278,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.onEmojiColorSelected = this.onEmojiColorSelected.bind(this);
             this.onUpload = this.onUpload.bind(this);
             this.onGifPlayChanged = this.onGifPlayChanged.bind(this);
+            this.showStorage = this.showStorage.bind(this);
         }
         static async create(options, parent) {
             let self = new this(parent, options);
@@ -511,7 +531,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         }
         onGifSelected(gif) {
             this.onCloseModal('mdGif');
-            const imgMd = `\n![${gif.images.original.url}](${gif.images.original_still.url})\n`;
+            const imgMd = `\n![${gif.images.fixed_height.url}](${gif.images.fixed_height_still.url})\n`;
             this.value = this.updatedValue + imgMd;
             if (!this.btnReply.enabled)
                 this.btnReply.enabled = true;
@@ -706,7 +726,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                     tooltip: 'The link has been copied successfully',
                     onClick: (e) => {
                         if (typeof this.currentPostData !== 'undefined') {
-                            components_3.application.copyToClipboard(`${window.location.origin}/#/e/${this.currentPostData.id}`);
+                            components_4.application.copyToClipboard(`${window.location.origin}/#/e/${this.currentPostData.id}`);
                         }
                         this.mdPostActions.visible = false;
                     }
@@ -716,7 +736,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                     icon: { name: 'copy' },
                     tooltip: 'The text has been copied successfully',
                     onClick: (e) => {
-                        components_3.application.copyToClipboard(this.currentPostData['eventData']?.content);
+                        components_4.application.copyToClipboard(this.currentPostData['eventData']?.content);
                         this.mdPostActions.visible = false;
                     }
                 },
@@ -726,7 +746,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                     tooltip: 'The ID has been copied successfully',
                     onClick: (e) => {
                         if (typeof this.currentPostData !== 'undefined') {
-                            components_3.application.copyToClipboard(this.currentPostData.id);
+                            components_4.application.copyToClipboard(this.currentPostData.id);
                         }
                         this.mdPostActions.visible = false;
                     }
@@ -737,7 +757,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                     tooltip: 'The raw data has been copied successfully',
                     onClick: (e) => {
                         if (typeof this.currentPostData !== 'undefined') {
-                            components_3.application.copyToClipboard(JSON.stringify(this.currentPostData['eventData']));
+                            components_4.application.copyToClipboard(JSON.stringify(this.currentPostData['eventData']));
                         }
                         this.mdPostActions.visible = false;
                     }
@@ -752,7 +772,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                     tooltip: 'The public key has been copied successfully',
                     onClick: (e) => {
                         if (typeof this.currentPostData !== 'undefined') {
-                            components_3.application.copyToClipboard(this.currentPostData.author.npub || '');
+                            components_4.application.copyToClipboard(this.currentPostData.author.npub || '');
                         }
                         this.mdPostActions.visible = false;
                     }
@@ -885,6 +905,23 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.pnlColors.clearInnerHTML();
             this.renderColor(this.currentEmojiColor);
             this.mdEmoji.refresh();
+        }
+        showStorage() {
+            if (!this.storageEl) {
+                this.storageEl = scom_storage_1.ScomStorage.getInstance();
+                this.storageEl.onOpen = (path) => {
+                    this.storageEl.closeModal();
+                    this.postEditor.insertFile(path);
+                };
+                this.storageEl.onCancel = () => this.storageEl.closeModal();
+            }
+            this.storageEl.openModal({
+                width: 800,
+                maxWidth: '100%',
+                height: '90vh',
+                overflow: 'hidden',
+                class: index_css_1.modalStyle
+            });
         }
         onTypeChanged(target) {
             this.postEditor.setValue(this._data.value);
@@ -1099,6 +1136,8 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                                                     right: '0.25rem',
                                                     bottom: '0.25rem'
                                                 } }))))),
+                            this.$render("i-panel", null,
+                                this.$render("i-icon", { name: "file", width: 28, height: 28, fill: Theme.colors.primary.main, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Select File', placement: 'bottom' }, onClick: this.showStorage })),
                             this.$render("i-switch", { id: "typeSwitch", height: 28, display: "inline-flex", grid: { verticalAlignment: 'center' }, tooltip: { content: 'Change editor', placement: 'bottom' }, uncheckedTrackColor: Theme.divider, checkedTrackColor: Theme.colors.primary.main, onChanged: this.onTypeChanged.bind(this) })),
                         this.$render("i-button", { id: "btnReply", height: 36, padding: { left: '1rem', right: '1rem' }, background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText, bold: true }, border: { radius: '30px' }, enabled: false, margin: { left: 'auto' }, caption: "Post", onClick: this.onReply.bind(this) }))),
                 this.$render("i-modal", { id: "mdGif", border: { radius: '1rem' }, maxWidth: '600px', maxHeight: '90vh', overflow: { y: 'auto' }, padding: { top: 0, right: 0, left: 0, bottom: 0 }, mediaQueries: [
@@ -1159,7 +1198,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         }
     };
     ScomPostComposer = __decorate([
-        (0, components_3.customElements)('i-scom-post-composer')
+        (0, components_4.customElements)('i-scom-post-composer')
     ], ScomPostComposer);
     exports.ScomPostComposer = ScomPostComposer;
 });

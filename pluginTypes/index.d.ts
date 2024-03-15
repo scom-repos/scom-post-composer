@@ -95,6 +95,10 @@ declare module "@scom/scom-post-composer/components/form.tsx" {
 declare module "@scom/scom-post-composer/components/index.ts" {
     export { ScomPostComposerUpload } from "@scom/scom-post-composer/components/form.tsx";
 }
+/// <amd-module name="@scom/scom-post-composer/index.css.ts" />
+declare module "@scom/scom-post-composer/index.css.ts" {
+    export const modalStyle: string;
+}
 /// <amd-module name="@scom/scom-post-composer" />
 declare module "@scom/scom-post-composer" {
     import { Module, ControlElement, Container } from '@ijstech/components';
@@ -168,6 +172,7 @@ declare module "@scom/scom-post-composer" {
         private iconMediaMobile;
         private pnlActions;
         private mdPostActions;
+        private storageEl;
         private _focusedPost;
         private _data;
         private currentGifPage;
@@ -253,6 +258,7 @@ declare module "@scom/scom-post-composer" {
         private onEmojiSelected;
         private onEmojiSearch;
         private onEmojiMdOpen;
+        private showStorage;
         private onTypeChanged;
         protected _handleClick(event: MouseEvent, stopPropagation?: boolean): boolean;
         init(): void;

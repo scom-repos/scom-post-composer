@@ -17,7 +17,7 @@ import {
     Icon,
     VStack,
     Control,
-    Switch, application
+    Switch, application, IPFS
 } from '@ijstech/components';
 import {IPost, IPostData} from '@scom/scom-post';
 import {
@@ -33,6 +33,8 @@ import {
 import assets from './assets';
 import {ScomEditor} from '@scom/scom-editor';
 import {ScomPostComposerUpload} from './components/index';
+import { modalStyle } from './index.css';
+import {ScomStorage} from '@scom/scom-storage';
 
 const Theme = Styles.Theme.ThemeVars;
 
@@ -118,10 +120,10 @@ export class ScomPostComposer extends Module {
     private iconMediaMobile: Icon;
     private pnlActions: VStack;
     private mdPostActions: Modal;
+    private storageEl: ScomStorage;
 
     private _focusedPost: IPost;
     private _data: IReplyInput;
-    // private extensions: string[] = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'tiff', 'tif', 'mp4', 'webm', 'ogg', 'avi', 'mkv', 'mov', 'm3u8'];
     private currentGifPage: number = 0;
     private totalGifPage: number = 1;
     private renderedMap: { [key: number]: boolean } = {};
@@ -163,6 +165,7 @@ export class ScomPostComposer extends Module {
         this.onEmojiColorSelected = this.onEmojiColorSelected.bind(this);
         this.onUpload = this.onUpload.bind(this);
         this.onGifPlayChanged = this.onGifPlayChanged.bind(this);
+        this.showStorage = this.showStorage.bind(this);
     }
 
     static async create(options?: ScomPostComposerElement, parent?: Container) {
@@ -474,7 +477,7 @@ export class ScomPostComposer extends Module {
 
     private onGifSelected(gif: any) {
         this.onCloseModal('mdGif');
-        const imgMd = `\n![${gif.images.original.url}](${gif.images.original_still.url})\n`;
+        const imgMd = `\n![${gif.images.fixed_height.url}](${gif.images.fixed_height_still.url})\n`;
         this.value = this.updatedValue + imgMd;
         if (!this.btnReply.enabled) this.btnReply.enabled = true;
 
@@ -991,6 +994,24 @@ export class ScomPostComposer extends Module {
         this.pnlColors.clearInnerHTML();
         this.renderColor(this.currentEmojiColor);
         this.mdEmoji.refresh();
+    }
+
+    private showStorage() {
+        if (!this.storageEl) {
+            this.storageEl = ScomStorage.getInstance();
+            this.storageEl.onOpen = (path: string) => {
+                this.storageEl.closeModal();
+                this.postEditor.insertFile(path);
+            }
+            this.storageEl.onCancel = () => this.storageEl.closeModal();
+        }
+        this.storageEl.openModal({
+            width: 800,
+            maxWidth: '100%',
+            height: '90vh',
+            overflow: 'hidden',
+            class: modalStyle
+        })
     }
 
     private onTypeChanged(target: Switch) {
@@ -1695,6 +1716,14 @@ export class ScomPostComposer extends Module {
                                     </i-hstack>
                                 </i-vstack>
                             </i-modal>
+                        </i-panel>
+                        <i-panel>
+                            <i-icon
+                                name="file" width={28} height={28} fill={Theme.colors.primary.main}
+                                padding={{top: 5, bottom: 5, left: 5, right: 5}}
+                                tooltip={{content: 'Select File', placement: 'bottom'}}
+                                onClick={this.showStorage}
+                            ></i-icon>
                         </i-panel>
                         <i-switch
                             id="typeSwitch"
