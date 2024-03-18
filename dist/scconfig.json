@@ -5,6 +5,7 @@
     "dependencies": [
         "@ijstech/components",
         "@scom/scom-post",
+        "@scom/scom-storage",
         "@scom/scom-editor"
     ]
 }
