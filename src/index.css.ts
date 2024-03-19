@@ -10,7 +10,7 @@ export const modalStyle = Styles.style({
     'i-scom-storage': {
       display: 'block',
       width: '100%',
-      height: 'calc(100% - 2rem)',
+      height: 'calc(100% - 1.5rem)',
       overflow: 'hidden'
     }
   }

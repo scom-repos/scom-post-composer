@@ -1001,7 +1001,18 @@ export class ScomPostComposer extends Module {
             this.storageEl = ScomStorage.getInstance();
             this.storageEl.onOpen = (path: string) => {
                 this.storageEl.closeModal();
-                this.postEditor.insertFile(path);
+                if (this.typeSwitch.checked) {
+                    this.postEditor.insertFile(path);
+                } else {
+                    const imageTypes = ['jpg', 'jpeg', 'png', 'gif', 'svg'];
+                    const ext = path.split('.').pop();
+                    if (imageTypes.includes(ext)) {
+                        this.mdEditor.value = this.updatedValue + '\n\n' + `![${path.split('/').pop()}](<${path}>)` + '\n\n';
+                    } else {
+                        const linkMd = `[${path}](<${path}>)`;
+                        this.mdEditor.value = this.updatedValue + '\n\n' + linkMd + '\n\n';
+                    }
+                }
             }
             this.storageEl.onCancel = () => this.storageEl.closeModal();
         }
@@ -1010,6 +1021,8 @@ export class ScomPostComposer extends Module {
             maxWidth: '100%',
             height: '90vh',
             overflow: 'hidden',
+            zIndex: 1000,
+            closeIcon: {width: '1rem', height: '1rem', name: 'times', fill: Theme.text.primary, margin: {bottom: '0.5rem'}},
             class: modalStyle
         })
     }

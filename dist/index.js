@@ -235,7 +235,7 @@ define("@scom/scom-post-composer/index.css.ts", ["require", "exports", "@ijstech
             'i-scom-storage': {
                 display: 'block',
                 width: '100%',
-                height: 'calc(100% - 2rem)',
+                height: 'calc(100% - 1.5rem)',
                 overflow: 'hidden'
             }
         }
@@ -911,7 +911,20 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 this.storageEl = scom_storage_1.ScomStorage.getInstance();
                 this.storageEl.onOpen = (path) => {
                     this.storageEl.closeModal();
-                    this.postEditor.insertFile(path);
+                    if (this.typeSwitch.checked) {
+                        this.postEditor.insertFile(path);
+                    }
+                    else {
+                        const imageTypes = ['jpg', 'jpeg', 'png', 'gif', 'svg'];
+                        const ext = path.split('.').pop();
+                        if (imageTypes.includes(ext)) {
+                            this.mdEditor.value = this.updatedValue + '\n\n' + `![${path.split('/').pop()}](<${path}>)` + '\n\n';
+                        }
+                        else {
+                            const linkMd = `[${path}](<${path}>)`;
+                            this.mdEditor.value = this.updatedValue + '\n\n' + linkMd + '\n\n';
+                        }
+                    }
                 };
                 this.storageEl.onCancel = () => this.storageEl.closeModal();
             }
@@ -920,6 +933,8 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 maxWidth: '100%',
                 height: '90vh',
                 overflow: 'hidden',
+                zIndex: 1000,
+                closeIcon: { width: '1rem', height: '1rem', name: 'times', fill: Theme.text.primary, margin: { bottom: '0.5rem' } },
                 class: index_css_1.modalStyle
             });
         }
