@@ -418,7 +418,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         }
         resetEditor() {
             if (this.postEditor) {
-                this.postEditor.value = '';
+                this.postEditor.setValue('');
                 this.postEditor.visible = this.typeSwitch.checked;
                 if (!this.postEditor.visible) {
                     this.postEditor.onHide();

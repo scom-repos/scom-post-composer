@@ -333,7 +333,7 @@ export class ScomPostComposer extends Module {
 
     private resetEditor() {
         if (this.postEditor) {
-            this.postEditor.value = '';
+            this.postEditor.setValue('');
             this.postEditor.visible = this.typeSwitch.checked;
             if (!this.postEditor.visible) {
                 this.postEditor.onHide();
