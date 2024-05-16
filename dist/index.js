@@ -946,6 +946,9 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             if (!this.postEditor.visible) {
                 this.postEditor.onHide();
             }
+            else {
+                this.postEditor.focus();
+            }
         }
         _handleClick(event, stopPropagation) {
             this.pnlIcons.visible = true;

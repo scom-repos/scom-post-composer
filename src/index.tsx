@@ -1034,6 +1034,8 @@ export class ScomPostComposer extends Module {
         this.mdEditor.visible = !target.checked;
         if (!this.postEditor.visible) {
             this.postEditor.onHide();
+        } else {
+            this.postEditor.focus();
         }
     }
 
