@@ -726,7 +726,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                     tooltip: 'The link has been copied successfully',
                     onClick: (e) => {
                         if (typeof this.currentPostData !== 'undefined') {
-                            components_4.application.copyToClipboard(`${window.location.origin}/#/e/${this.currentPostData.id}`);
+                            components_4.application.copyToClipboard(`${window.location.origin}/#!/e/${this.currentPostData.id}`);
                         }
                         this.mdPostActions.visible = false;
                     }
@@ -985,7 +985,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.renderGifCate();
             this.renderEmojis();
             // if(this.autoFocus) {
-            this.mdEditor.autofocus = this.autofocus;
+            this.mdEditor.autoFocus = this.autoFocus;
             if (this.autoFocus)
                 this.mdEditor.setFocus();
             // }
