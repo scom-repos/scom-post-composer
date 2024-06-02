@@ -760,7 +760,7 @@ export class ScomPostComposer extends Module {
                 tooltip: 'The link has been copied successfully',
                 onClick: (e) => {
                     if(typeof this.currentPostData !== 'undefined') {
-                        application.copyToClipboard(`${window.location.origin}/#/e/${this.currentPostData.id}`)
+                        application.copyToClipboard(`${window.location.origin}/#!/e/${this.currentPostData.id}`)
                     }
                     this.mdPostActions.visible = false;
                 }
@@ -1075,7 +1075,7 @@ export class ScomPostComposer extends Module {
         this.renderGifCate();
         this.renderEmojis();
         // if(this.autoFocus) {
-            this.mdEditor.autofocus = this.autofocus
+        this.mdEditor.autoFocus = this.autoFocus;
         if(this.autoFocus)
             this.mdEditor.setFocus();
         // }
