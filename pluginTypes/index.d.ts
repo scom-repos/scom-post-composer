@@ -147,6 +147,7 @@ declare module "@scom/scom-post-composer" {
         private imgReplier;
         private pnlBorder;
         private pnlIcons;
+        private gifCateLoading;
         private gridGif;
         private gridGifCate;
         private pnlGif;
@@ -190,6 +191,8 @@ declare module "@scom/scom-post-composer" {
         private autoFocus;
         private _isAttachmentDisabled;
         private currentPostData;
+        private gifCateInitState;
+        private emojiInitState;
         onChanged: onChangedCallback;
         onSubmit: onSubmitCallback;
         onCancel: () => void;
@@ -235,6 +238,7 @@ declare module "@scom/scom-post-composer" {
         private onSetImage;
         private onCloseModal;
         private onShowModal;
+        private onShowGifModal;
         private onGifMdOpen;
         private onGifMdClose;
         private renderGifCate;
@@ -245,6 +249,8 @@ declare module "@scom/scom-post-composer" {
         private onGifPlayChanged;
         private onIconGifClicked;
         private renderEmojis;
+        private initEmojiGroup;
+        private initEmojis;
         private renderEmojiCate;
         private renderEmojiGroup;
         private updateEmojiGroups;

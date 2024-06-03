@@ -140,7 +140,7 @@ export const searchEmojis = (q: string, mapper: Map<string, any>) => {
   const keyword = q.toLowerCase();
   const categoryName = emojiCategories.find(cate => cate.name.toLowerCase().includes(keyword))?.name;
   if (categoryName) return mapper.get(categoryName);
-  const groups = Array.from(mapper);
+  const groups = mapper.values();
   let result = [];
   for (let group of groups) {
     const filteredGroup = [...group].filter(emoji => emoji.name.toLowerCase().includes(keyword));

@@ -140,7 +140,7 @@ define("@scom/scom-post-composer/global/index.ts", ["require", "exports"], funct
         const categoryName = exports.emojiCategories.find(cate => cate.name.toLowerCase().includes(keyword))?.name;
         if (categoryName)
             return mapper.get(categoryName);
-        const groups = Array.from(mapper);
+        const groups = mapper.values();
         let result = [];
         for (let group of groups) {
             const filteredGroup = [...group].filter(emoji => emoji.name.toLowerCase().includes(keyword));
@@ -274,11 +274,14 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.recentEmojis = {};
             this.emojiCateMapper = new Map();
             this.emojiGroupsData = new Map();
+            this.gifCateInitState = 0;
+            this.emojiInitState = 0;
             this.onRecentClear = this.onRecentClear.bind(this);
             this.onEmojiColorSelected = this.onEmojiColorSelected.bind(this);
             this.onUpload = this.onUpload.bind(this);
             this.onGifPlayChanged = this.onGifPlayChanged.bind(this);
             this.showStorage = this.showStorage.bind(this);
+            this.onShowGifModal = this.onShowGifModal.bind(this);
         }
         static async create(options, parent) {
             let self = new this(parent, options);
@@ -512,6 +515,13 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this[name].refresh();
             this[name].visible = true;
         }
+        async onShowGifModal() {
+            if (!this.gifCateInitState) {
+                this.gifCateInitState = 1;
+                this.renderGifCate();
+            }
+            this.onShowModal('mdGif');
+        }
         onGifMdOpen() {
             this.autoPlaySwitch.checked = true;
             this.onToggleMainGif(true);
@@ -521,8 +531,11 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         }
         async renderGifCate() {
             this.gridGifCate.clearInnerHTML();
+            this.gifCateLoading.visible = true;
             const { data = [] } = await (0, index_1.fetchReactionGifs)();
             const limitedList = [...data].slice(0, 8);
+            this.gifCateLoading.visible = false;
+            this.gridGifCate.visible = true;
             for (let cate of limitedList) {
                 this.gridGifCate.appendChild(this.$render("i-panel", { overflow: 'hidden', onClick: () => this.onGifSearch(cate.name) },
                     this.$render("i-image", { url: cate.gif.images['480w_still'].url, width: '100%', display: 'block' }),
@@ -627,10 +640,21 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.recentEmojis = {};
             this.emojiCateMapper = new Map();
             this.renderEmojiCate();
-            for (let category of index_1.emojiCategories) {
-                this.renderEmojiGroup(this.groupEmojis, category);
-            }
             this.renderColor(this.emojiColors[0]);
+        }
+        async initEmojiGroup(category) {
+            if (this.isRecent(category) && !this.hasRecentEmojis)
+                return;
+            if (!this.emojiGroupsData.has(category.value)) {
+                const list = await (0, index_1.fetchEmojis)({ category: category.value });
+                this.emojiGroupsData.set(category.value, JSON.parse(JSON.stringify(list)));
+            }
+            this.renderEmojiGroup(this.groupEmojis, category);
+        }
+        async initEmojis() {
+            for (let category of index_1.emojiCategories) {
+                await this.initEmojiGroup(category);
+            }
         }
         async renderEmojiCate() {
             this.gridEmojiCate.clearInnerHTML();
@@ -659,11 +683,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 data = this.filterGroups(result);
             }
             else {
-                if (!this.emojiGroupsData.has(category.value)) {
-                    const list = await (0, index_1.fetchEmojis)({ category: category.value });
-                    this.emojiGroupsData.set(category.value, JSON.parse(JSON.stringify(list)));
-                }
-                data = this.filterGroups(this.emojiGroupsData.get(category.value));
+                data = this.filterGroups(this.emojiGroupsData.get(category.value) || []);
             }
             for (let i = 0; i < data.length; i++) {
                 const item = data[i];
@@ -871,18 +891,27 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         async onEmojiSearch() {
             if (this.searchTimer)
                 clearTimeout(this.searchTimer);
-            this.pnlEmojiResult.visible = true;
-            this.groupEmojis.visible = false;
-            this.pnlEmojiResult.clearInnerHTML();
-            this.searchTimer = setTimeout(() => {
-                const category = {
-                    name: 'Search results',
-                    value: 'search'
-                };
-                this.renderEmojiGroup(this.pnlEmojiResult, category);
+            if (!this.inputEmoji.value) {
+                this.pnlEmojiResult.visible = false;
+                this.groupEmojis.visible = true;
+                this.lbEmoji.caption = '';
+                this.isEmojiSearching = false;
                 this.mdEmoji.refresh();
-            }, 100);
-            this.isEmojiSearching = true;
+            }
+            else {
+                this.pnlEmojiResult.visible = true;
+                this.groupEmojis.visible = false;
+                this.pnlEmojiResult.clearInnerHTML();
+                this.searchTimer = setTimeout(() => {
+                    const category = {
+                        name: 'Search results',
+                        value: 'search'
+                    };
+                    this.renderEmojiGroup(this.pnlEmojiResult, category);
+                    this.mdEmoji.refresh();
+                }, 100);
+                this.isEmojiSearching = true;
+            }
         }
         onEmojiMdOpen() {
             this.pnlEmojiResult.visible = false;
@@ -890,21 +919,27 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.inputEmoji.value = '';
             this.lbEmoji.caption = '';
             this.isEmojiSearching = false;
-            if (this.hasRecentEmojis) {
-                const recent = this.groupEmojis.querySelector('#recent');
-                recent && this.groupEmojis.removeChild(recent);
-                this.renderEmojiGroup(this.groupEmojis, index_1.emojiCategories[0]);
+            if (!this.emojiInitState) {
+                this.emojiInitState = 1;
+                this.initEmojis();
             }
             else {
-                this.recent && this.recent.clearInnerHTML();
+                if (this.hasRecentEmojis) {
+                    const recent = this.groupEmojis.querySelector('#recent');
+                    recent && this.groupEmojis.removeChild(recent);
+                    this.renderEmojiGroup(this.groupEmojis, index_1.emojiCategories[0]);
+                }
+                else {
+                    this.recent && this.recent.clearInnerHTML();
+                }
+                const index = this.hasRecentEmojis ? 0 : 1;
+                if (this.gridEmojiCate?.children?.length) {
+                    this.onEmojiCateSelected(this.gridEmojiCate.children[index], index_1.emojiCategories[index]);
+                }
+                this.pnlColors.clearInnerHTML();
+                this.renderColor(this.currentEmojiColor);
+                this.mdEmoji.refresh();
             }
-            const index = this.hasRecentEmojis ? 0 : 1;
-            if (this.gridEmojiCate?.children?.length) {
-                this.onEmojiCateSelected(this.gridEmojiCate.children[index], index_1.emojiCategories[index]);
-            }
-            this.pnlColors.clearInnerHTML();
-            this.renderColor(this.currentEmojiColor);
-            this.mdEmoji.refresh();
         }
         showStorage() {
             if (!this.storageEl) {
@@ -982,7 +1017,6 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 this.renderPostComposer();
             }
             this.setData({ isReplyToShown, replyTo, type, placeholder, buttonCaption });
-            this.renderGifCate();
             this.renderEmojis();
             // if(this.autoFocus) {
             this.mdEditor.autoFocus = this.autoFocus;
@@ -1022,7 +1056,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                     this.$render("i-hstack", { id: "pnlBorder", horizontalAlignment: "space-between", grid: { area: 'reply' }, padding: { top: '0.625rem' } },
                         this.$render("i-hstack", { id: "pnlIcons", gap: "4px", verticalAlignment: "center", visible: false },
                             this.$render("i-icon", { id: "iconMediaMobile", name: "image", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Media', placement: 'bottom' }, visible: !this.isAttachmentDisabled, enabled: !this.isAttachmentDisabled, onClick: this.onUpload.bind(this) }),
-                            this.$render("i-icon", { name: "images", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'GIF', placement: 'bottom' }, onClick: () => this.onShowModal('mdGif') }),
+                            this.$render("i-icon", { name: "images", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'GIF', placement: 'bottom' }, onClick: this.onShowGifModal }),
                             this.$render("i-panel", null,
                                 this.$render("i-icon", { name: "smile", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Emoji', placement: 'bottom' }, onClick: () => this.onShowModal('mdEmoji') }),
                                 this.$render("i-modal", { id: "mdEmoji", maxWidth: '100%', minWidth: 320, popupPlacement: 'bottomRight', showBackdrop: false, border: { radius: '1rem' }, boxShadow: 'rgba(101, 119, 134, 0.2) 0px 0px 15px, rgba(101, 119, 134, 0.15) 0px 0px 3px 1px', padding: { top: 0, left: 0, right: 0, bottom: 0 }, closeOnScrollChildFixed: true, onOpen: this.onEmojiMdOpen.bind(this), visible: false },
@@ -1084,7 +1118,11 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                             this.$render("i-hstack", { verticalAlignment: "center", padding: { left: '0.75rem', right: '0.75rem' }, border: { radius: '9999px', width: '1px', style: 'solid', color: Theme.divider }, minHeight: 40, width: '100%', background: { color: Theme.input.background }, gap: "4px" },
                                 this.$render("i-icon", { width: 16, height: 16, name: 'search', fill: Theme.text.secondary }),
                                 this.$render("i-input", { id: "inputGif", placeholder: 'Search for Gifs', width: '100%', height: '100%', captionWidth: '0px', border: { style: 'none' }, showClearButton: true, onClearClick: () => this.onToggleMainGif(true), onKeyUp: (target) => this.onGifSearch(target.value) }))),
-                        this.$render("i-card-layout", { id: "gridGifCate", cardMinWidth: '18rem', cardHeight: '9.375rem' }),
+                        this.$render("i-panel", { id: "gifCateLoading", height: 600 },
+                            this.$render("i-stack", { direction: "vertical", height: "100%", width: "100%", class: "i-loading-overlay", background: { color: Theme.background.modal } },
+                                this.$render("i-stack", { direction: "vertical", class: "i-loading-spinner", alignItems: "center", justifyContent: "center" },
+                                    this.$render("i-icon", { class: "i-loading-spinner_icon", name: "spinner", width: 24, height: 24, fill: Theme.colors.primary.main })))),
+                        this.$render("i-card-layout", { id: "gridGifCate", cardMinWidth: '18rem', cardHeight: '9.375rem', visible: false }),
                         this.$render("i-vstack", { id: "pnlGif", visible: false },
                             this.$render("i-hstack", { horizontalAlignment: "space-between", gap: "0.5rem", padding: { left: '0.75rem', right: '0.75rem', top: '0.75rem', bottom: '0.75rem' } },
                                 this.$render("i-label", { caption: "Auto-play GIFs", font: { color: Theme.text.secondary, size: '0.9rem' } }),
@@ -1132,7 +1170,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                     this.$render("i-hstack", { id: "pnlBorder", horizontalAlignment: "space-between", grid: { area: 'reply' }, padding: { top: '0.625rem' } },
                         this.$render("i-hstack", { id: "pnlIcons", gap: "4px", verticalAlignment: "center", visible: false },
                             this.$render("i-icon", { id: "iconMediaMobile", name: "image", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Media', placement: 'bottom' }, visible: !this.isAttachmentDisabled, enabled: !this.isAttachmentDisabled, onClick: this.onUpload.bind(this) }),
-                            this.$render("i-icon", { name: "images", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'GIF', placement: 'bottom' }, onClick: () => this.onShowModal('mdGif') }),
+                            this.$render("i-icon", { name: "images", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'GIF', placement: 'bottom' }, onClick: this.onShowGifModal }),
                             this.$render("i-panel", null,
                                 this.$render("i-icon", { name: "smile", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Emoji', placement: 'bottom' }, onClick: () => this.onShowModal('mdEmoji') }),
                                 this.$render("i-modal", { id: "mdEmoji", maxWidth: '100%', minWidth: 320, popupPlacement: 'bottomRight', showBackdrop: false, border: { radius: '1rem' }, boxShadow: 'rgba(101, 119, 134, 0.2) 0px 0px 15px, rgba(101, 119, 134, 0.15) 0px 0px 3px 1px', padding: { top: 0, left: 0, right: 0, bottom: 0 }, closeOnScrollChildFixed: true, onOpen: this.onEmojiMdOpen.bind(this), visible: false },
@@ -1180,7 +1218,11 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                             this.$render("i-hstack", { verticalAlignment: "center", padding: { left: '0.75rem', right: '0.75rem' }, border: { radius: '9999px', width: '1px', style: 'solid', color: Theme.divider }, minHeight: 40, width: '100%', background: { color: Theme.input.background }, gap: "4px" },
                                 this.$render("i-icon", { width: 16, height: 16, name: 'search', fill: Theme.text.secondary }),
                                 this.$render("i-input", { id: "inputGif", placeholder: 'Search for Gifs', width: '100%', height: '100%', captionWidth: '0px', border: { style: 'none' }, showClearButton: true, onClearClick: () => this.onToggleMainGif(true), onKeyUp: (target) => this.onGifSearch(target.value) }))),
-                        this.$render("i-card-layout", { id: "gridGifCate", cardMinWidth: '18rem', cardHeight: '9.375rem' }),
+                        this.$render("i-panel", { id: "gifCateLoading", height: 600 },
+                            this.$render("i-stack", { direction: "vertical", height: "100%", width: "100%", class: "i-loading-overlay", background: { color: Theme.background.modal } },
+                                this.$render("i-stack", { direction: "vertical", class: "i-loading-spinner", alignItems: "center", justifyContent: "center" },
+                                    this.$render("i-icon", { class: "i-loading-spinner_icon", name: "spinner", width: 24, height: 24, fill: Theme.colors.primary.main })))),
+                        this.$render("i-card-layout", { id: "gridGifCate", cardMinWidth: '18rem', cardHeight: '9.375rem', visible: false }),
                         this.$render("i-vstack", { id: "pnlGif", visible: false },
                             this.$render("i-hstack", { horizontalAlignment: "space-between", gap: "0.5rem", padding: { left: '0.75rem', right: '0.75rem', top: '0.75rem', bottom: '0.75rem' } },
                                 this.$render("i-label", { caption: "Auto-play GIFs", font: { color: Theme.text.secondary, size: '0.9rem' } }),
