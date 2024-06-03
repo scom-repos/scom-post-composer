@@ -94,6 +94,7 @@ export class ScomPostComposer extends Module {
     private imgReplier: Image;
     private pnlBorder: Panel;
     private pnlIcons: HStack;
+    private gifCateLoading: Panel;
     private gridGif: CardLayout;
     private gridGifCate: CardLayout;
     private pnlGif: Panel;
@@ -154,6 +155,8 @@ export class ScomPostComposer extends Module {
     private autoFocus: boolean;
     private _isAttachmentDisabled: boolean;
     private currentPostData: any;
+    private gifCateInitState = 0;
+    private emojiInitState = 0;
 
     public onChanged: onChangedCallback;
     public onSubmit: onSubmitCallback;
@@ -166,6 +169,7 @@ export class ScomPostComposer extends Module {
         this.onUpload = this.onUpload.bind(this);
         this.onGifPlayChanged = this.onGifPlayChanged.bind(this);
         this.showStorage = this.showStorage.bind(this);
+        this.onShowGifModal = this.onShowGifModal.bind(this);
     }
 
     static async create(options?: ScomPostComposerElement, parent?: Container) {
@@ -440,6 +444,14 @@ export class ScomPostComposer extends Module {
         this[name].visible = true;
     }
 
+    private async onShowGifModal() {
+        if (!this.gifCateInitState) {
+            this.gifCateInitState = 1;
+            this.renderGifCate();
+        }
+        this.onShowModal('mdGif');
+    }
+
     private onGifMdOpen() {
         this.autoPlaySwitch.checked = true;
         this.onToggleMainGif(true);
@@ -451,8 +463,11 @@ export class ScomPostComposer extends Module {
 
     private async renderGifCate() {
         this.gridGifCate.clearInnerHTML();
+        this.gifCateLoading.visible = true;
         const {data = []} = await fetchReactionGifs();
         const limitedList = [...data].slice(0, 8);
+        this.gifCateLoading.visible = false;
+        this.gridGifCate.visible = true;
         for (let cate of limitedList) {
             this.gridGifCate.appendChild(
                 <i-panel
@@ -586,10 +601,22 @@ export class ScomPostComposer extends Module {
         this.recentEmojis = {};
         this.emojiCateMapper = new Map();
         this.renderEmojiCate();
-        for (let category of emojiCategories) {
-            this.renderEmojiGroup(this.groupEmojis, category);
-        }
         this.renderColor(this.emojiColors[0]);
+    }
+
+    private async initEmojiGroup(category: IEmojiCategory) {
+        if (this.isRecent(category) && !this.hasRecentEmojis) return;
+        if (!this.emojiGroupsData.has(category.value)) {
+            const list = await fetchEmojis({category: category.value});
+            this.emojiGroupsData.set(category.value, JSON.parse(JSON.stringify(list)));
+        }
+        this.renderEmojiGroup(this.groupEmojis, category);
+    }
+
+    private async initEmojis() {
+        for (let category of emojiCategories) {
+            await this.initEmojiGroup(category);
+        }
     }
 
     private async renderEmojiCate() {
@@ -672,11 +699,7 @@ export class ScomPostComposer extends Module {
             const result = searchEmojis(this.inputEmoji.value, this.emojiGroupsData);
             data = this.filterGroups(result);
         } else {
-            if (!this.emojiGroupsData.has(category.value)) {
-                const list = await fetchEmojis({category: category.value});
-                this.emojiGroupsData.set(category.value, JSON.parse(JSON.stringify(list)));
-            }
-            data = this.filterGroups(this.emojiGroupsData.get(category.value));
+            data = this.filterGroups(this.emojiGroupsData.get(category.value) || []);
         }
         for (let i = 0; i < data.length; i++) {
             const item = data[i];
@@ -960,18 +983,26 @@ export class ScomPostComposer extends Module {
 
     private async onEmojiSearch() {
         if (this.searchTimer) clearTimeout(this.searchTimer);
-        this.pnlEmojiResult.visible = true;
-        this.groupEmojis.visible = false;
-        this.pnlEmojiResult.clearInnerHTML();
-        this.searchTimer = setTimeout(() => {
-            const category = {
-                name: 'Search results',
-                value: 'search'
-            }
-            this.renderEmojiGroup(this.pnlEmojiResult, category);
+        if (!this.inputEmoji.value) {
+            this.pnlEmojiResult.visible = false;
+            this.groupEmojis.visible = true;
+            this.lbEmoji.caption = '';
+            this.isEmojiSearching = false;
             this.mdEmoji.refresh();
-        }, 100)
-        this.isEmojiSearching = true;
+        } else {
+            this.pnlEmojiResult.visible = true;
+            this.groupEmojis.visible = false;
+            this.pnlEmojiResult.clearInnerHTML();
+            this.searchTimer = setTimeout(() => {
+                const category = {
+                    name: 'Search results',
+                    value: 'search'
+                }
+                this.renderEmojiGroup(this.pnlEmojiResult, category);
+                this.mdEmoji.refresh();
+            }, 100)
+            this.isEmojiSearching = true;
+        }
     }
 
     private onEmojiMdOpen() {
@@ -980,20 +1011,25 @@ export class ScomPostComposer extends Module {
         this.inputEmoji.value = '';
         this.lbEmoji.caption = '';
         this.isEmojiSearching = false;
-        if (this.hasRecentEmojis) {
-            const recent = this.groupEmojis.querySelector('#recent');
-            recent && this.groupEmojis.removeChild(recent);
-            this.renderEmojiGroup(this.groupEmojis, emojiCategories[0]);
+        if (!this.emojiInitState) {
+            this.emojiInitState = 1;
+            this.initEmojis();
         } else {
-            this.recent && this.recent.clearInnerHTML();
+            if (this.hasRecentEmojis) {
+                const recent = this.groupEmojis.querySelector('#recent');
+                recent && this.groupEmojis.removeChild(recent);
+                this.renderEmojiGroup(this.groupEmojis, emojiCategories[0]);
+            } else {
+                this.recent && this.recent.clearInnerHTML();
+            }
+            const index = this.hasRecentEmojis ? 0 : 1;
+            if (this.gridEmojiCate?.children?.length) {
+                this.onEmojiCateSelected(this.gridEmojiCate.children[index] as Control, emojiCategories[index]);
+            }
+            this.pnlColors.clearInnerHTML();
+            this.renderColor(this.currentEmojiColor);
+            this.mdEmoji.refresh();
         }
-        const index = this.hasRecentEmojis ? 0 : 1;
-        if (this.gridEmojiCate?.children?.length) {
-            this.onEmojiCateSelected(this.gridEmojiCate.children[index] as Control, emojiCategories[index]);
-        }
-        this.pnlColors.clearInnerHTML();
-        this.renderColor(this.currentEmojiColor);
-        this.mdEmoji.refresh();
     }
 
     private showStorage() {
@@ -1072,7 +1108,6 @@ export class ScomPostComposer extends Module {
             this.renderPostComposer();
         }
         this.setData({isReplyToShown, replyTo, type, placeholder, buttonCaption});
-        this.renderGifCate();
         this.renderEmojis();
         // if(this.autoFocus) {
         this.mdEditor.autoFocus = this.autoFocus;
@@ -1231,7 +1266,7 @@ export class ScomPostComposer extends Module {
                             border={{radius: '50%'}}
                             padding={{top: 5, bottom: 5, left: 5, right: 5}}
                             tooltip={{content: 'GIF', placement: 'bottom'}}
-                            onClick={() => this.onShowModal('mdGif')}
+                            onClick={this.onShowGifModal}
                         ></i-icon>
                         <i-panel>
                             <i-icon
@@ -1435,10 +1470,29 @@ export class ScomPostComposer extends Module {
                             ></i-input>
                         </i-hstack>
                     </i-hstack>
+                    <i-panel id="gifCateLoading" height={600}>
+                        <i-stack
+                            direction="vertical"
+                            height="100%" width="100%"
+                            class="i-loading-overlay"
+                            background={{color: Theme.background.modal}}
+                        >
+                            <i-stack direction="vertical" class="i-loading-spinner" alignItems="center" justifyContent="center">
+                                <i-icon
+                                    class="i-loading-spinner_icon"
+                                    name="spinner"
+                                    width={24}
+                                    height={24}
+                                    fill={Theme.colors.primary.main}
+                                />
+                            </i-stack>
+                        </i-stack>
+                    </i-panel>
                     <i-card-layout
                         id="gridGifCate"
                         cardMinWidth={'18rem'}
                         cardHeight={'9.375rem'}
+                        visible={false}
                     ></i-card-layout>
                     <i-vstack id="pnlGif" visible={false}>
                         <i-hstack
@@ -1639,7 +1693,7 @@ export class ScomPostComposer extends Module {
                             border={{radius: '50%'}}
                             padding={{top: 5, bottom: 5, left: 5, right: 5}}
                             tooltip={{content: 'GIF', placement: 'bottom'}}
-                            onClick={() => this.onShowModal('mdGif')}
+                            onClick={this.onShowGifModal}
                         ></i-icon>
                         <i-panel>
                             <i-icon
@@ -1832,10 +1886,29 @@ export class ScomPostComposer extends Module {
                             ></i-input>
                         </i-hstack>
                     </i-hstack>
+                    <i-panel id="gifCateLoading" height={600}>
+                        <i-stack
+                            direction="vertical"
+                            height="100%" width="100%"
+                            class="i-loading-overlay"
+                            background={{color: Theme.background.modal}}
+                        >
+                            <i-stack direction="vertical" class="i-loading-spinner" alignItems="center" justifyContent="center">
+                                <i-icon
+                                    class="i-loading-spinner_icon"
+                                    name="spinner"
+                                    width={24}
+                                    height={24}
+                                    fill={Theme.colors.primary.main}
+                                />
+                            </i-stack>
+                        </i-stack>
+                    </i-panel>
                     <i-card-layout
                         id="gridGifCate"
                         cardMinWidth={'18rem'}
                         cardHeight={'9.375rem'}
+                        visible={false}
                     ></i-card-layout>
                     <i-vstack id="pnlGif" visible={false}>
                         <i-hstack
