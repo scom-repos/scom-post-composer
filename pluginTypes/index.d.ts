@@ -128,6 +128,7 @@ declare module "@scom/scom-post-composer" {
         avatar?: string;
         autoFocus?: boolean;
         isAttachmentDisabled?: boolean;
+        apiBaseUrl?: string;
     }
     global {
         namespace JSX {
@@ -193,6 +194,7 @@ declare module "@scom/scom-post-composer" {
         private currentPostData;
         private gifCateInitState;
         private emojiInitState;
+        private _apiBaseUrl;
         onChanged: onChangedCallback;
         onSubmit: onSubmitCallback;
         onCancel: () => void;
@@ -211,6 +213,8 @@ declare module "@scom/scom-post-composer" {
         set buttonCaption(value: string);
         get isReplyToShown(): boolean;
         set isReplyToShown(value: boolean);
+        get apiBaseUrl(): string;
+        set apiBaseUrl(value: string);
         private get isQuote();
         private get hasRecentEmojis();
         private get emojiColors();

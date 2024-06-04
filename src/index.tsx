@@ -72,6 +72,7 @@ interface ScomPostComposerElement extends ControlElement {
     avatar?: string;
     autoFocus?: boolean;
     isAttachmentDisabled?: boolean;
+    apiBaseUrl?: string;
 }
 
 declare global {
@@ -157,6 +158,7 @@ export class ScomPostComposer extends Module {
     private currentPostData: any;
     private gifCateInitState = 0;
     private emojiInitState = 0;
+    private _apiBaseUrl: string;
 
     public onChanged: onChangedCallback;
     public onSubmit: onSubmitCallback;
@@ -229,6 +231,14 @@ export class ScomPostComposer extends Module {
 
     set isReplyToShown(value: boolean) {
         this._data.isReplyToShown = value ?? false;
+    }
+
+    get apiBaseUrl() {
+        return this._apiBaseUrl;
+    }
+
+    set apiBaseUrl(value: string) {
+        this._apiBaseUrl = value;
     }
 
     private get isQuote() {
@@ -420,6 +430,7 @@ export class ScomPostComposer extends Module {
                 limitHeight={true}
                 isReply={true}
                 onProfileClicked={onProfileClicked}
+                apiBaseUrl={this.apiBaseUrl}
             ></i-scom-post>;
             this.pnlFocusedPost.clearInnerHTML();
             this.pnlFocusedPost.append(focusedPost);
@@ -1091,6 +1102,8 @@ export class ScomPostComposer extends Module {
         this.onSubmit = this.getAttribute('onSubmit', true) || this.onSubmit;
         this.onCancel = this.getAttribute('onCancel', true) || this.onCancel;
 
+        const apiBaseUrl = this.getAttribute('apiBaseUrl', true);
+        if (apiBaseUrl) this.apiBaseUrl = apiBaseUrl;
         const replyTo = this.getAttribute('replyTo', true);
         const type = this.getAttribute('type', true, 'reply');
         const isReplyToShown = this.getAttribute('isReplyToShown', true, false);
