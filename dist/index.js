@@ -328,6 +328,12 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         set isReplyToShown(value) {
             this._data.isReplyToShown = value ?? false;
         }
+        get apiBaseUrl() {
+            return this._apiBaseUrl;
+        }
+        set apiBaseUrl(value) {
+            this._apiBaseUrl = value;
+        }
         get isQuote() {
             return this.type === 'quoted';
         }
@@ -494,7 +500,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             if (this.pnlFocusedPost && this.mobile) {
                 this.renderActions();
                 const onProfileClicked = (target, data, event) => this.onShowModal2(target, data, 'mdPostActions');
-                const focusedPost = this.$render("i-scom-post", { id: this.focusedPost.id, data: this.focusedPost, type: "short", overflowEllipse: true, limitHeight: true, isReply: true, onProfileClicked: onProfileClicked });
+                const focusedPost = this.$render("i-scom-post", { id: this.focusedPost.id, data: this.focusedPost, type: "short", overflowEllipse: true, limitHeight: true, isReply: true, onProfileClicked: onProfileClicked, apiBaseUrl: this.apiBaseUrl });
                 this.pnlFocusedPost.clearInnerHTML();
                 this.pnlFocusedPost.append(focusedPost);
                 // focusedPost.renderShowMore();
@@ -999,6 +1005,9 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.onChanged = this.getAttribute('onChanged', true) || this.onChanged;
             this.onSubmit = this.getAttribute('onSubmit', true) || this.onSubmit;
             this.onCancel = this.getAttribute('onCancel', true) || this.onCancel;
+            const apiBaseUrl = this.getAttribute('apiBaseUrl', true);
+            if (apiBaseUrl)
+                this.apiBaseUrl = apiBaseUrl;
             const replyTo = this.getAttribute('replyTo', true);
             const type = this.getAttribute('type', true, 'reply');
             const isReplyToShown = this.getAttribute('isReplyToShown', true, false);
