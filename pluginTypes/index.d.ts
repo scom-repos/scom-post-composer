@@ -101,17 +101,11 @@ declare module "@scom/scom-post-composer/index.css.ts" {
 }
 /// <amd-module name="@scom/scom-post-composer" />
 declare module "@scom/scom-post-composer" {
-    import { Module, ControlElement, Container, IconName } from '@ijstech/components';
+    import { Module, ControlElement, Container } from '@ijstech/components';
     import { IPost, IPostData } from '@scom/scom-post';
     type IReplyType = 'reply' | 'post' | 'quoted';
     type onChangedCallback = (content: string) => void;
     type onSubmitCallback = (content: string, medias: IPostData[]) => void;
-    interface IPostAudience {
-        title: string;
-        icon: IconName;
-        desc?: string;
-        value: string;
-    }
     interface IReplyInput {
         replyTo?: IPost;
         isReplyToShown?: boolean;
@@ -226,7 +220,7 @@ declare module "@scom/scom-post-composer" {
         set isReplyToShown(value: boolean);
         get apiBaseUrl(): string;
         set apiBaseUrl(value: string);
-        get postAudience(): IPostAudience;
+        get postAudience(): string;
         private get isQuote();
         private get hasRecentEmojis();
         private get emojiColors();

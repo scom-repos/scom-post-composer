@@ -351,7 +351,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this._apiBaseUrl = value;
         }
         get postAudience() {
-            return this.audience;
+            return this.audience?.value;
         }
         get isQuote() {
             return this.type === 'quoted';
@@ -403,6 +403,8 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this._isPostAudienceShown = value;
             if (this.btnPostAudience)
                 this.btnPostAudience.visible = value;
+            if (!value && this.mdPostAudience?.visible)
+                this.mdPostAudience.visible = false;
         }
         removeShow(name) {
             if (this[name])

@@ -333,6 +333,7 @@ export class ScomPostComposer extends Module {
     set isPostAudienceShown(value: boolean) {
         this._isPostAudienceShown = value;
         if (this.btnPostAudience) this.btnPostAudience.visible = value;
+        if (!value && this.mdPostAudience?.visible) this.mdPostAudience.visible = false;
     }
 
     private removeShow(name: string) {
