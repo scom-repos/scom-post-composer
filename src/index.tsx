@@ -17,7 +17,7 @@ import {
     Icon,
     VStack,
     Control,
-    Switch, application, IPFS
+    Switch, application, IPFS, StackLayout, IconName
 } from '@ijstech/components';
 import {IPost, IPostData} from '@scom/scom-post';
 import {
@@ -38,15 +38,38 @@ import {ScomStorage} from '@scom/scom-storage';
 
 const Theme = Styles.Theme.ThemeVars;
 
+const PostAudience: IPostAudience[] = [
+    {
+        title: 'Public',
+        icon: 'globe-americas',
+        desc: 'Anyone on or off Nostr',
+        value: 'public'
+    },
+    {
+        title: 'Members',
+        icon: 'user-friends',
+        desc: 'Members of the community',
+        value: 'members'
+    }
+]
+
 type IReplyType = 'reply' | 'post' | 'quoted';
 type onChangedCallback = (content: string) => void;
 type onSubmitCallback = (content: string, medias: IPostData[]) => void;
+type onPostAudienceChangedCallback = (value: string) => void;
 type Action = {
     caption: string;
     icon?: {name: string, fill?: string;};
     tooltip?: string;
     onClick?: (e?: any) => void;
     hoveredColor?: string;
+}
+
+interface IPostAudience {
+    title: string;
+    icon: IconName;
+    desc?: string;
+    value: string;
 }
 
 interface IReplyInput {
@@ -73,6 +96,7 @@ interface ScomPostComposerElement extends ControlElement {
     autoFocus?: boolean;
     isAttachmentDisabled?: boolean;
     apiBaseUrl?: string;
+    isPostAudienceShown?: boolean;
 }
 
 declare global {
@@ -88,8 +112,10 @@ export class ScomPostComposer extends Module {
     private pnlPostComposer: Panel;
     private mdEmoji: Modal;
     private mdGif: Modal;
+    private mdPostAudience: Modal;
     private lbReplyTo: Label;
     private btnReply: Button;
+    private btnPostAudience: Button;
     private pnlReplyTo: Panel;
     private gridReply: GridLayout;
     private imgReplier: Image;
@@ -159,6 +185,8 @@ export class ScomPostComposer extends Module {
     private gifCateInitState = 0;
     private emojiInitState = 0;
     private _apiBaseUrl: string;
+    private _isPostAudienceShown: boolean = false;
+    private audience: IPostAudience = PostAudience[1];
 
     public onChanged: onChangedCallback;
     public onSubmit: onSubmitCallback;
@@ -241,6 +269,10 @@ export class ScomPostComposer extends Module {
         this._apiBaseUrl = value;
     }
 
+    get postAudience() {
+        return this.audience?.value;
+    }
+
     private get isQuote() {
         return this.type === 'quoted';
     }
@@ -292,6 +324,15 @@ export class ScomPostComposer extends Module {
         if (this.iconMediaMobile) {
             this.iconMediaMobile.visible = this.iconMediaMobile.enabled = !value;
         }
+    }
+
+    get isPostAudienceShown() {
+        return this._isPostAudienceShown;
+    }
+
+    set isPostAudienceShown(value: boolean) {
+        this._isPostAudienceShown = value;
+        if (this.btnPostAudience) this.btnPostAudience.visible = value;
     }
 
     private removeShow(name: string) {
@@ -1095,6 +1136,10 @@ export class ScomPostComposer extends Module {
         return true;
     }
 
+    private showPostAudienceModal() {
+        this.onShowModal('mdPostAudience');
+    }
+
     // position={'absolute'} top={0} height={'100vh'} zIndex={999}
     init() {
         super.init();
@@ -1115,6 +1160,10 @@ export class ScomPostComposer extends Module {
         this.mobile = mobile;
         this.avatar = this.getAttribute('avatar', true);
         this.isAttachmentDisabled = this.getAttribute('isAttachmentDisabled', true, false);
+        const isPostAudienceShown = this.getAttribute('isPostAudienceShown', true);
+        if (isPostAudienceShown != null) {
+            this._isPostAudienceShown = isPostAudienceShown;
+        }
         if (mobile) {
             this.renderMobilePostComposer();
         } else {
@@ -1135,7 +1184,61 @@ export class ScomPostComposer extends Module {
             await this.onCancel();
     }
 
+    private handlePostAudienceClick(audience: IPostAudience) {
+        this.audience = audience;
+        this.btnPostAudience.caption = audience.title;
+        this.btnPostAudience.icon.name = audience.icon;
+        this.onCloseModal('mdPostAudience')
+    }
+
+    private renderPostAudiences() {
+        const panel: StackLayout = <i-stack direction="vertical"></i-stack>;
+        for (let audience of PostAudience) {
+            panel.appendChild(
+                <i-stack
+                    direction="horizontal"
+                    alignItems="center"
+                    width="100%"
+                    padding={{ top: '0.75rem', bottom: '0.75rem', left: '1rem', right: '1rem' }}
+                    background={{ color: 'transparent' }}
+                    border={{ radius: '0.125rem' }}
+                    gap="0.75rem"
+                    cursor="pointer"
+                    hover={{
+                        fontColor: Theme.text.primary,
+                        backgroundColor: Theme.action.hoverBackground
+                    }}
+                    onClick={() => this.handlePostAudienceClick(audience)}
+                >
+                    <i-icon
+                        name={audience.icon}
+                        width={'0.75rem'} height={'0.75rem'}
+                        display='inline-flex'
+                        fill={Theme.text.primary}
+                    ></i-icon>
+                    <i-stack direction="vertical" height="100%" minWidth={0} justifyContent="space-between" lineHeight="1.125rem">
+                        <i-label
+                            caption={audience.title || ""}
+                            font={{ size: '0.9375rem', weight: 700 }}
+                            textOverflow="ellipsis"
+                            overflow="hidden"
+                        ></i-label>
+                        <i-label
+                            caption={audience.desc || ""}
+                            font={{ size: '0.75rem', weight: 400, color: Theme.text.secondary }}
+                            lineHeight={'1rem'}
+                            textOverflow="ellipsis"
+                            overflow="hidden"
+                        ></i-label>
+                    </i-stack>
+                </i-stack>
+            )
+        }
+        return panel;
+    }
+
     private renderMobilePostComposer() {
+        const pnlPostAudiences = this.renderPostAudiences();
         const elm = <i-panel cursor='default'>
             <i-hstack
                 justifyContent={'space-between'}
@@ -1257,7 +1360,7 @@ export class ScomPostComposer extends Module {
                     id="pnlBorder"
                     horizontalAlignment="space-between"
                     grid={{area: 'reply'}}
-                    padding={{top: '0.625rem'}}
+                    padding={{top: '0.625rem', right: '0.5rem'}}
                 >
                     <i-hstack
                         id="pnlIcons"
@@ -1383,7 +1486,36 @@ export class ScomPostComposer extends Module {
                             onChanged={this.onTypeChanged.bind(this)}
                         ></i-switch>
                     </i-hstack>
-
+                    <i-panel>
+                        <i-button
+                            id="btnPostAudience"
+                            height={32}
+                            padding={{left: '1rem', right: '1rem'}}
+                            background={{color: Theme.colors.secondary.main}}
+                            font={{color: Theme.colors.secondary.contrastText, bold: true}}
+                            border={{radius: '0.375rem'}}
+                            caption={this.audience.title}
+                            icon={{ width: 14, height: 14, name: this.audience.icon, fill: Theme.colors.secondary.contrastText }}
+                            rightIcon={{ width: 14, height: 14, name: 'angle-down', fill: Theme.colors.secondary.contrastText }}
+                            visible={this.isPostAudienceShown}
+                            onClick={this.showPostAudienceModal.bind(this)}
+                        ></i-button>
+                        <i-modal
+                            id="mdPostAudience"
+                            maxWidth={'15rem'}
+                            minWidth={'12.25rem'}
+                            maxHeight={'27.5rem'}
+                            popupPlacement='bottomRight'
+                            showBackdrop={false}
+                            border={{ radius: '0.5rem' }}
+                            boxShadow="rgba(255, 255, 255, 0.2) 0px 0px 15px, rgba(255, 255, 255, 0.15) 0px 0px 3px 1px"
+                            padding={{ top: 0, bottom: 0, left: 0, right: 0 }}
+                            overflow={{ y: 'hidden' }}
+                            visible={false}
+                        >
+                            {pnlPostAudiences}
+                        </i-modal>
+                    </i-panel>
                 </i-hstack>
             </i-grid-layout>
 
@@ -1601,6 +1733,7 @@ export class ScomPostComposer extends Module {
     }
 
     private renderPostComposer() {
+        const pnlPostAudiences = this.renderPostAudiences();
         this.pnlPostComposer.append(<i-panel padding={{bottom: '0.75rem', top: '0.75rem'}} cursor='default'>
             <i-hstack
                 id="pnlReplyTo"
@@ -1818,18 +1951,49 @@ export class ScomPostComposer extends Module {
                             onChanged={this.onTypeChanged.bind(this)}
                         ></i-switch>
                     </i-hstack>
-                    <i-button
-                        id="btnReply"
-                        height={36}
-                        padding={{left: '1rem', right: '1rem'}}
-                        background={{color: Theme.colors.primary.main}}
-                        font={{color: Theme.colors.primary.contrastText, bold: true}}
-                        border={{radius: '30px'}}
-                        enabled={false}
-                        margin={{left: 'auto'}}
-                        caption="Post"
-                        onClick={this.onReply.bind(this)}
-                    ></i-button>
+                    <i-stack direction="horizontal" width="100%" alignItems="center" justifyContent="end" gap="0.5rem">
+                        <i-panel>
+                            <i-button
+                                id="btnPostAudience"
+                                height={32}
+                                padding={{left: '1rem', right: '1rem'}}
+                                background={{color: Theme.colors.secondary.main}}
+                                font={{color: Theme.colors.secondary.contrastText, bold: true}}
+                                border={{radius: '0.375rem'}}
+                                caption={this.audience.title}
+                                icon={{ width: 14, height: 14, name: this.audience.icon, fill: Theme.colors.secondary.contrastText }}
+                                rightIcon={{ width: 14, height: 14, name: 'angle-down', fill: Theme.colors.secondary.contrastText }}
+                                visible={this.isPostAudienceShown}
+                                onClick={this.showPostAudienceModal.bind(this)}
+                            ></i-button>
+                            <i-modal
+                                id="mdPostAudience"
+                                maxWidth={'15rem'}
+                                minWidth={'12.25rem'}
+                                maxHeight={'27.5rem'}
+                                popupPlacement='bottomRight'
+                                showBackdrop={false}
+                                border={{ radius: '0.5rem' }}
+                                boxShadow="rgba(255, 255, 255, 0.2) 0px 0px 15px, rgba(255, 255, 255, 0.15) 0px 0px 3px 1px"
+                                padding={{ top: 0, bottom: 0, left: 0, right: 0 }}
+                                overflow={{ y: 'hidden' }}
+                                visible={false}
+                            >
+                                {pnlPostAudiences}
+                            </i-modal>
+                        </i-panel>
+                        <i-button
+                            id="btnReply"
+                            height={36}
+                            padding={{left: '1rem', right: '1rem'}}
+                            background={{color: Theme.colors.primary.main}}
+                            font={{color: Theme.colors.primary.contrastText, bold: true}}
+                            border={{radius: '30px'}}
+                            enabled={false}
+                            caption="Post"
+                            onClick={this.onReply.bind(this)}
+                        ></i-button>
+                    </i-stack>
                 </i-hstack>
             </i-grid-layout>
 
