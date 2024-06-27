@@ -246,6 +246,20 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomPostComposer = void 0;
     const Theme = components_4.Styles.Theme.ThemeVars;
+    const PostAudience = [
+        {
+            title: 'Public',
+            icon: 'globe-americas',
+            desc: 'Anyone on or off Nostr',
+            value: 'public'
+        },
+        {
+            title: 'Members',
+            icon: 'user-friends',
+            desc: 'Members of the community',
+            value: 'members'
+        }
+    ];
     let ScomPostComposer = class ScomPostComposer extends components_4.Module {
         constructor(parent, options) {
             super(parent, options);
@@ -276,6 +290,8 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.emojiGroupsData = new Map();
             this.gifCateInitState = 0;
             this.emojiInitState = 0;
+            this._isPostAudienceShown = false;
+            this.audience = PostAudience[1];
             this.onRecentClear = this.onRecentClear.bind(this);
             this.onEmojiColorSelected = this.onEmojiColorSelected.bind(this);
             this.onUpload = this.onUpload.bind(this);
@@ -334,6 +350,9 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         set apiBaseUrl(value) {
             this._apiBaseUrl = value;
         }
+        get postAudience() {
+            return this.audience?.value;
+        }
         get isQuote() {
             return this.type === 'quoted';
         }
@@ -376,6 +395,16 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             if (this.iconMediaMobile) {
                 this.iconMediaMobile.visible = this.iconMediaMobile.enabled = !value;
             }
+        }
+        get isPostAudienceShown() {
+            return this._isPostAudienceShown;
+        }
+        set isPostAudienceShown(value) {
+            this._isPostAudienceShown = value;
+            if (this.btnPostAudience)
+                this.btnPostAudience.visible = value;
+            if (!value && this.mdPostAudience?.visible)
+                this.mdPostAudience.visible = false;
         }
         removeShow(name) {
             if (this[name])
@@ -999,6 +1028,9 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             }
             return true;
         }
+        showPostAudienceModal() {
+            this.onShowModal('mdPostAudience');
+        }
         // position={'absolute'} top={0} height={'100vh'} zIndex={999}
         init() {
             super.init();
@@ -1019,6 +1051,10 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.mobile = mobile;
             this.avatar = this.getAttribute('avatar', true);
             this.isAttachmentDisabled = this.getAttribute('isAttachmentDisabled', true, false);
+            const isPostAudienceShown = this.getAttribute('isPostAudienceShown', true);
+            if (isPostAudienceShown != null) {
+                this._isPostAudienceShown = isPostAudienceShown;
+            }
             if (mobile) {
                 this.renderMobilePostComposer();
             }
@@ -1038,7 +1074,28 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             if (this.onCancel)
                 await this.onCancel();
         }
+        handlePostAudienceClick(audience) {
+            this.audience = audience;
+            this.btnPostAudience.caption = audience.title;
+            this.btnPostAudience.icon.name = audience.icon;
+            this.onCloseModal('mdPostAudience');
+        }
+        renderPostAudiences() {
+            const panel = this.$render("i-stack", { direction: "vertical" });
+            for (let audience of PostAudience) {
+                panel.appendChild(this.$render("i-stack", { direction: "horizontal", alignItems: "center", width: "100%", padding: { top: '0.75rem', bottom: '0.75rem', left: '1rem', right: '1rem' }, background: { color: 'transparent' }, border: { radius: '0.125rem' }, gap: "0.75rem", cursor: "pointer", hover: {
+                        fontColor: Theme.text.primary,
+                        backgroundColor: Theme.action.hoverBackground
+                    }, onClick: () => this.handlePostAudienceClick(audience) },
+                    this.$render("i-icon", { name: audience.icon, width: '0.75rem', height: '0.75rem', display: 'inline-flex', fill: Theme.text.primary }),
+                    this.$render("i-stack", { direction: "vertical", height: "100%", minWidth: 0, justifyContent: "space-between", lineHeight: "1.125rem" },
+                        this.$render("i-label", { caption: audience.title || "", font: { size: '0.9375rem', weight: 700 }, textOverflow: "ellipsis", overflow: "hidden" }),
+                        this.$render("i-label", { caption: audience.desc || "", font: { size: '0.75rem', weight: 400, color: Theme.text.secondary }, lineHeight: '1rem', textOverflow: "ellipsis", overflow: "hidden" }))));
+            }
+            return panel;
+        }
         renderMobilePostComposer() {
+            const pnlPostAudiences = this.renderPostAudiences();
             const elm = this.$render("i-panel", { cursor: 'default' },
                 this.$render("i-hstack", { justifyContent: 'space-between', alignItems: 'center', padding: { left: '0.5rem', right: '0.5rem' }, position: 'fixed', top: 0, zIndex: 10, background: { color: '#000' }, width: '100%', border: { bottom: { width: '.5px', style: 'solid', color: Theme.divider } }, height: 50, mediaQueries: [
                         {
@@ -1062,7 +1119,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                     this.$render("i-panel", { grid: { area: 'editor' }, maxHeight: '45rem', overflow: { x: 'hidden', y: 'auto' } },
                         this.$render("i-markdown-editor", { id: "mdEditor", width: "100%", viewer: false, hideModeSwitch: true, mode: "wysiwyg", toolbarItems: [], font: { size: '1.25rem', color: Theme.text.primary }, lineHeight: 1.5, padding: { top: 12, bottom: 12, left: 0, right: 0 }, background: { color: 'transparent' }, height: "auto", minHeight: 0, overflow: 'hidden', overflowWrap: "break-word", onChanged: this.onEditorChanged.bind(this), cursor: 'text', border: { style: 'none' }, visible: true }),
                         this.$render("i-scom-editor", { id: "postEditor", width: "100%", font: { size: '1.25rem', color: Theme.text.primary }, cursor: 'text', visible: false, onChanged: this.onEditorChanged.bind(this) })),
-                    this.$render("i-hstack", { id: "pnlBorder", horizontalAlignment: "space-between", grid: { area: 'reply' }, padding: { top: '0.625rem' } },
+                    this.$render("i-hstack", { id: "pnlBorder", horizontalAlignment: "space-between", grid: { area: 'reply' }, padding: { top: '0.625rem', right: '0.5rem' } },
                         this.$render("i-hstack", { id: "pnlIcons", gap: "4px", verticalAlignment: "center", visible: false },
                             this.$render("i-icon", { id: "iconMediaMobile", name: "image", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Media', placement: 'bottom' }, visible: !this.isAttachmentDisabled, enabled: !this.isAttachmentDisabled, onClick: this.onUpload.bind(this) }),
                             this.$render("i-icon", { name: "images", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'GIF', placement: 'bottom' }, onClick: this.onShowGifModal }),
@@ -1087,7 +1144,10 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                                                     right: '0.25rem',
                                                     bottom: '0.25rem'
                                                 } }))))),
-                            this.$render("i-switch", { id: "typeSwitch", height: 28, display: "inline-flex", grid: { verticalAlignment: 'center' }, tooltip: { content: 'Change editor', placement: 'bottom' }, uncheckedTrackColor: Theme.divider, checkedTrackColor: Theme.colors.primary.main, onChanged: this.onTypeChanged.bind(this) })))),
+                            this.$render("i-switch", { id: "typeSwitch", height: 28, display: "inline-flex", grid: { verticalAlignment: 'center' }, tooltip: { content: 'Change editor', placement: 'bottom' }, uncheckedTrackColor: Theme.divider, checkedTrackColor: Theme.colors.primary.main, onChanged: this.onTypeChanged.bind(this) })),
+                        this.$render("i-panel", null,
+                            this.$render("i-button", { id: "btnPostAudience", height: 32, padding: { left: '1rem', right: '1rem' }, background: { color: Theme.colors.secondary.main }, font: { color: Theme.colors.secondary.contrastText, bold: true }, border: { radius: '0.375rem' }, caption: this.audience.title, icon: { width: 14, height: 14, name: this.audience.icon, fill: Theme.colors.secondary.contrastText }, rightIcon: { width: 14, height: 14, name: 'angle-down', fill: Theme.colors.secondary.contrastText }, visible: this.isPostAudienceShown, onClick: this.showPostAudienceModal.bind(this) }),
+                            this.$render("i-modal", { id: "mdPostAudience", maxWidth: '15rem', minWidth: '12.25rem', maxHeight: '27.5rem', popupPlacement: 'bottomRight', showBackdrop: false, border: { radius: '0.5rem' }, boxShadow: "rgba(255, 255, 255, 0.2) 0px 0px 15px, rgba(255, 255, 255, 0.15) 0px 0px 3px 1px", padding: { top: 0, bottom: 0, left: 0, right: 0 }, overflow: { y: 'hidden' }, visible: false }, pnlPostAudiences)))),
                 this.$render("i-modal", { id: "mdPostActions", visible: false, maxWidth: '15rem', minWidth: '12.25rem', popupPlacement: 'bottomRight', showBackdrop: false, border: { radius: '0.25rem', width: '1px', style: 'solid', color: Theme.divider }, padding: { top: '0.5rem', left: '0.5rem', right: '0.5rem', bottom: '0.5rem' }, mediaQueries: [
                         {
                             maxWidth: '767px',
@@ -1164,6 +1224,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.pnlPostComposer.append(elm);
         }
         renderPostComposer() {
+            const pnlPostAudiences = this.renderPostAudiences();
             this.pnlPostComposer.append(this.$render("i-panel", { padding: { bottom: '0.75rem', top: '0.75rem' }, cursor: 'default' },
                 this.$render("i-hstack", { id: "pnlReplyTo", visible: false, gap: "0.5rem", verticalAlignment: "center", padding: { top: '0.25rem', bottom: '0.75rem', left: '3.25rem' } },
                     this.$render("i-label", { caption: "Replying to", font: { size: '1rem', color: Theme.text.secondary } }),
@@ -1204,7 +1265,11 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                             this.$render("i-panel", null,
                                 this.$render("i-icon", { name: "file", width: 28, height: 28, fill: Theme.colors.primary.main, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Select File', placement: 'bottom' }, onClick: this.showStorage })),
                             this.$render("i-switch", { id: "typeSwitch", height: 28, display: "inline-flex", grid: { verticalAlignment: 'center' }, tooltip: { content: 'Change editor', placement: 'bottom' }, uncheckedTrackColor: Theme.divider, checkedTrackColor: Theme.colors.primary.main, onChanged: this.onTypeChanged.bind(this) })),
-                        this.$render("i-button", { id: "btnReply", height: 36, padding: { left: '1rem', right: '1rem' }, background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText, bold: true }, border: { radius: '30px' }, enabled: false, margin: { left: 'auto' }, caption: "Post", onClick: this.onReply.bind(this) }))),
+                        this.$render("i-stack", { direction: "horizontal", width: "100%", alignItems: "center", justifyContent: "end", gap: "0.5rem" },
+                            this.$render("i-panel", null,
+                                this.$render("i-button", { id: "btnPostAudience", height: 32, padding: { left: '1rem', right: '1rem' }, background: { color: Theme.colors.secondary.main }, font: { color: Theme.colors.secondary.contrastText, bold: true }, border: { radius: '0.375rem' }, caption: this.audience.title, icon: { width: 14, height: 14, name: this.audience.icon, fill: Theme.colors.secondary.contrastText }, rightIcon: { width: 14, height: 14, name: 'angle-down', fill: Theme.colors.secondary.contrastText }, visible: this.isPostAudienceShown, onClick: this.showPostAudienceModal.bind(this) }),
+                                this.$render("i-modal", { id: "mdPostAudience", maxWidth: '15rem', minWidth: '12.25rem', maxHeight: '27.5rem', popupPlacement: 'bottomRight', showBackdrop: false, border: { radius: '0.5rem' }, boxShadow: "rgba(255, 255, 255, 0.2) 0px 0px 15px, rgba(255, 255, 255, 0.15) 0px 0px 3px 1px", padding: { top: 0, bottom: 0, left: 0, right: 0 }, overflow: { y: 'hidden' }, visible: false }, pnlPostAudiences)),
+                            this.$render("i-button", { id: "btnReply", height: 36, padding: { left: '1rem', right: '1rem' }, background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText, bold: true }, border: { radius: '30px' }, enabled: false, caption: "Post", onClick: this.onReply.bind(this) })))),
                 this.$render("i-modal", { id: "mdGif", border: { radius: '1rem' }, maxWidth: '600px', maxHeight: '90vh', overflow: { y: 'auto' }, padding: { top: 0, right: 0, left: 0, bottom: 0 }, mediaQueries: [
                         {
                             maxWidth: '767px',

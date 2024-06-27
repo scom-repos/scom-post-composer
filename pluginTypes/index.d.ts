@@ -129,6 +129,7 @@ declare module "@scom/scom-post-composer" {
         autoFocus?: boolean;
         isAttachmentDisabled?: boolean;
         apiBaseUrl?: string;
+        isPostAudienceShown?: boolean;
     }
     global {
         namespace JSX {
@@ -141,8 +142,10 @@ declare module "@scom/scom-post-composer" {
         private pnlPostComposer;
         private mdEmoji;
         private mdGif;
+        private mdPostAudience;
         private lbReplyTo;
         private btnReply;
+        private btnPostAudience;
         private pnlReplyTo;
         private gridReply;
         private imgReplier;
@@ -195,6 +198,8 @@ declare module "@scom/scom-post-composer" {
         private gifCateInitState;
         private emojiInitState;
         private _apiBaseUrl;
+        private _isPostAudienceShown;
+        private audience;
         onChanged: onChangedCallback;
         onSubmit: onSubmitCallback;
         onCancel: () => void;
@@ -215,6 +220,7 @@ declare module "@scom/scom-post-composer" {
         set isReplyToShown(value: boolean);
         get apiBaseUrl(): string;
         set apiBaseUrl(value: string);
+        get postAudience(): string;
         private get isQuote();
         private get hasRecentEmojis();
         private get emojiColors();
@@ -226,6 +232,8 @@ declare module "@scom/scom-post-composer" {
         get updatedValue(): any;
         get isAttachmentDisabled(): boolean;
         set isAttachmentDisabled(value: boolean);
+        get isPostAudienceShown(): boolean;
+        set isPostAudienceShown(value: boolean);
         private removeShow;
         private onShowModal2;
         private isRecent;
@@ -271,8 +279,11 @@ declare module "@scom/scom-post-composer" {
         private showStorage;
         private onTypeChanged;
         protected _handleClick(event: MouseEvent, stopPropagation?: boolean): boolean;
+        private showPostAudienceModal;
         init(): void;
         private handleMobileCloseComposer;
+        private handlePostAudienceClick;
+        private renderPostAudiences;
         private renderMobilePostComposer;
         private renderPostComposer;
         render(): any;
