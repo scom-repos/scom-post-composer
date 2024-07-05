@@ -521,7 +521,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 });
             }
             this.uploadForm.openModal({
-                title: 'Upload',
+                title: 'Insert Image',
                 width: 400,
             });
         }
@@ -633,11 +633,13 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.totalGifPage = 1;
             if (value) {
                 this.bottomObserver.unobserve(this.bottomElm);
-                this.iconGif.name = 'times';
+                this.pnlGifBack.visible = false;
+                this.pnlGifClose.visible = true;
             }
             else {
                 this.bottomObserver.observe(this.bottomElm);
-                this.iconGif.name = 'arrow-left';
+                this.pnlGifBack.visible = true;
+                this.pnlGifClose.visible = false;
             }
             this.gridGif.clearInnerHTML();
             this.renderedMap = {};
@@ -662,14 +664,14 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         onGifPlayChanged(target) {
             this.renderGifs(this.inputGif.value, target.checked);
         }
-        onIconGifClicked(icon) {
-            if (icon.name === 'times') {
-                this.onCloseModal('mdGif');
-            }
-            else {
-                this.pnlGif.visible = false;
-                this.gridGifCate.visible = true;
-            }
+        onBack() {
+            this.pnlGif.visible = false;
+            this.gridGifCate.visible = true;
+            this.pnlGifBack.visible = false;
+            this.pnlGifClose.visible = true;
+        }
+        onCloseGifModal() {
+            this.onCloseModal('mdGif');
         }
         async renderEmojis() {
             this.recentEmojis = {};
@@ -1181,12 +1183,14 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                         }
                     ], onOpen: this.onGifMdOpen.bind(this), onClose: this.onGifMdClose.bind(this) },
                     this.$render("i-vstack", null,
-                        this.$render("i-hstack", { verticalAlignment: "center", height: 53, margin: { top: 8, bottom: 8 }, padding: { right: '1rem', left: '1rem' }, position: "sticky", zIndex: 2, top: '0px', background: { color: Theme.background.modal } },
-                            this.$render("i-panel", { stack: { basis: '56px' } },
-                                this.$render("i-icon", { id: "iconGif", name: "times", cursor: 'pointer', width: 20, height: 20, fill: Theme.colors.secondary.main, onClick: this.onIconGifClicked.bind(this) })),
+                        this.$render("i-hstack", { verticalAlignment: "center", height: 53, margin: { top: 8, bottom: 8 }, padding: { right: '0.5rem', left: '0.5rem' }, position: "sticky", zIndex: 2, top: '0px', background: { color: Theme.background.modal } },
+                            this.$render("i-panel", { id: "pnlGifBack", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, cursor: 'pointer', onClick: this.onBack.bind(this), visible: false },
+                                this.$render("i-icon", { name: "arrow-left", width: 20, height: 20, fill: Theme.colors.secondary.main })),
                             this.$render("i-hstack", { verticalAlignment: "center", padding: { left: '0.75rem', right: '0.75rem' }, border: { radius: '9999px', width: '1px', style: 'solid', color: Theme.divider }, minHeight: 40, width: '100%', background: { color: Theme.input.background }, gap: "4px" },
                                 this.$render("i-icon", { width: 16, height: 16, name: 'search', fill: Theme.text.secondary }),
-                                this.$render("i-input", { id: "inputGif", placeholder: 'Search for Gifs', width: '100%', height: '100%', captionWidth: '0px', border: { style: 'none' }, showClearButton: true, onClearClick: () => this.onToggleMainGif(true), onKeyUp: (target) => this.onGifSearch(target.value) }))),
+                                this.$render("i-input", { id: "inputGif", placeholder: 'Search for Gifs', width: '100%', height: '100%', captionWidth: '0px', border: { style: 'none' }, showClearButton: true, onClearClick: () => this.onToggleMainGif(true), onKeyUp: (target) => this.onGifSearch(target.value) })),
+                            this.$render("i-panel", { id: "pnlGifClose", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, cursor: 'pointer', onClick: this.onCloseGifModal.bind(this) },
+                                this.$render("i-icon", { name: "times", width: 20, height: 20, fill: Theme.colors.secondary.main }))),
                         this.$render("i-panel", { id: "gifCateLoading", height: 600 },
                             this.$render("i-stack", { direction: "vertical", height: "100%", width: "100%", class: "i-loading-overlay", background: { color: Theme.background.modal } },
                                 this.$render("i-stack", { direction: "vertical", class: "i-loading-spinner", alignItems: "center", justifyContent: "center" },
@@ -1286,12 +1290,14 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                         }
                     ], onOpen: this.onGifMdOpen.bind(this), onClose: this.onGifMdClose.bind(this) },
                     this.$render("i-vstack", null,
-                        this.$render("i-hstack", { verticalAlignment: "center", height: 53, margin: { top: 8, bottom: 8 }, padding: { right: '1rem', left: '1rem' }, position: "sticky", zIndex: 2, top: '0px', background: { color: Theme.background.modal } },
-                            this.$render("i-panel", { stack: { basis: '56px' } },
-                                this.$render("i-icon", { id: "iconGif", name: "times", cursor: 'pointer', width: 20, height: 20, fill: Theme.colors.secondary.main, onClick: this.onIconGifClicked.bind(this) })),
+                        this.$render("i-hstack", { verticalAlignment: "center", height: 53, margin: { top: 8, bottom: 8 }, padding: { right: '0.5rem', left: '0.5rem' }, position: "sticky", zIndex: 2, top: '0px', background: { color: Theme.background.modal } },
+                            this.$render("i-panel", { id: "pnlGifBack", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, cursor: 'pointer', onClick: this.onBack.bind(this), visible: false },
+                                this.$render("i-icon", { name: "arrow-left", width: 20, height: 20, fill: Theme.colors.secondary.main })),
                             this.$render("i-hstack", { verticalAlignment: "center", padding: { left: '0.75rem', right: '0.75rem' }, border: { radius: '9999px', width: '1px', style: 'solid', color: Theme.divider }, minHeight: 40, width: '100%', background: { color: Theme.input.background }, gap: "4px" },
                                 this.$render("i-icon", { width: 16, height: 16, name: 'search', fill: Theme.text.secondary }),
-                                this.$render("i-input", { id: "inputGif", placeholder: 'Search for Gifs', width: '100%', height: '100%', captionWidth: '0px', border: { style: 'none' }, showClearButton: true, onClearClick: () => this.onToggleMainGif(true), onKeyUp: (target) => this.onGifSearch(target.value) }))),
+                                this.$render("i-input", { id: "inputGif", placeholder: 'Search for Gifs', width: '100%', height: '100%', captionWidth: '0px', border: { style: 'none' }, showClearButton: true, onClearClick: () => this.onToggleMainGif(true), onKeyUp: (target) => this.onGifSearch(target.value) })),
+                            this.$render("i-panel", { id: "pnlGifClose", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, cursor: 'pointer', onClick: this.onCloseGifModal.bind(this) },
+                                this.$render("i-icon", { name: "times", width: 20, height: 20, fill: Theme.colors.secondary.main }))),
                         this.$render("i-panel", { id: "gifCateLoading", height: 600 },
                             this.$render("i-stack", { direction: "vertical", height: "100%", width: "100%", class: "i-loading-overlay", background: { color: Theme.background.modal } },
                                 this.$render("i-stack", { direction: "vertical", class: "i-loading-spinner", alignItems: "center", justifyContent: "center" },

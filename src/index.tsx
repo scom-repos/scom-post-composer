@@ -125,7 +125,8 @@ export class ScomPostComposer extends Module {
     private gridGif: CardLayout;
     private gridGifCate: CardLayout;
     private pnlGif: Panel;
-    private iconGif: Icon;
+    private pnlGifBack: Panel;
+    private pnlGifClose: Panel;
     private inputGif: Input;
     private bottomElm: Panel;
     private gridEmojiCate: GridLayout;
@@ -455,7 +456,7 @@ export class ScomPostComposer extends Module {
             });
         }
         this.uploadForm.openModal({
-            title: 'Upload',
+            title: 'Insert Image',
             width: 400,
         })
     }
@@ -601,10 +602,12 @@ export class ScomPostComposer extends Module {
         this.totalGifPage = 1;
         if (value) {
             this.bottomObserver.unobserve(this.bottomElm);
-            this.iconGif.name = 'times';
+            this.pnlGifBack.visible = false;
+            this.pnlGifClose.visible = true;
         } else {
             this.bottomObserver.observe(this.bottomElm);
-            this.iconGif.name = 'arrow-left';
+            this.pnlGifBack.visible = true;
+            this.pnlGifClose.visible = false;
         }
         this.gridGif.clearInnerHTML();
         this.renderedMap = {};
@@ -641,13 +644,15 @@ export class ScomPostComposer extends Module {
         this.renderGifs(this.inputGif.value, target.checked);
     }
 
-    private onIconGifClicked(icon: Icon) {
-        if (icon.name === 'times') {
-            this.onCloseModal('mdGif');
-        } else {
-            this.pnlGif.visible = false;
-            this.gridGifCate.visible = true;
-        }
+    private onBack() {
+        this.pnlGif.visible = false;
+        this.gridGifCate.visible = true;
+        this.pnlGifBack.visible = false;
+        this.pnlGifClose.visible = true;
+    }
+
+    private onCloseGifModal() {
+        this.onCloseModal('mdGif');
     }
 
     private async renderEmojis() {
@@ -1580,18 +1585,21 @@ export class ScomPostComposer extends Module {
                         verticalAlignment="center"
                         height={53}
                         margin={{top: 8, bottom: 8}}
-                        padding={{right: '1rem', left: '1rem'}}
+                        padding={{right: '0.5rem', left: '0.5rem'}}
                         position="sticky"
                         zIndex={2} top={'0px'}
                         background={{color: Theme.background.modal}}
                     >
-                        <i-panel stack={{basis: '56px'}}>
+                        <i-panel
+                            id="pnlGifBack"
+                            padding={{ top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }}
+                            cursor='pointer'
+                            onClick={this.onBack.bind(this)}
+                            visible={false}
+                        >
                             <i-icon
-                                id="iconGif"
-                                name="times"
-                                cursor='pointer'
+                                name="arrow-left"
                                 width={20} height={20} fill={Theme.colors.secondary.main}
-                                onClick={this.onIconGifClicked.bind(this)}
                             ></i-icon>
                         </i-panel>
                         <i-hstack
@@ -1615,6 +1623,17 @@ export class ScomPostComposer extends Module {
                                 onKeyUp={(target: Input) => this.onGifSearch(target.value)}
                             ></i-input>
                         </i-hstack>
+                        <i-panel
+                            id="pnlGifClose"
+                            padding={{ top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }}
+                            cursor='pointer'
+                            onClick={this.onCloseGifModal.bind(this)}
+                        >
+                            <i-icon
+                                name="times"
+                                width={20} height={20} fill={Theme.colors.secondary.main}
+                            ></i-icon>
+                        </i-panel>
                     </i-hstack>
                     <i-panel id="gifCateLoading" height={600}>
                         <i-stack
@@ -2028,18 +2047,21 @@ export class ScomPostComposer extends Module {
                         verticalAlignment="center"
                         height={53}
                         margin={{top: 8, bottom: 8}}
-                        padding={{right: '1rem', left: '1rem'}}
+                        padding={{right: '0.5rem', left: '0.5rem'}}
                         position="sticky"
                         zIndex={2} top={'0px'}
                         background={{color: Theme.background.modal}}
                     >
-                        <i-panel stack={{basis: '56px'}}>
+                        <i-panel
+                            id="pnlGifBack"
+                            padding={{ top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }}
+                            cursor='pointer'
+                            onClick={this.onBack.bind(this)}
+                            visible={false}
+                        >
                             <i-icon
-                                id="iconGif"
-                                name="times"
-                                cursor='pointer'
+                                name="arrow-left"
                                 width={20} height={20} fill={Theme.colors.secondary.main}
-                                onClick={this.onIconGifClicked.bind(this)}
                             ></i-icon>
                         </i-panel>
                         <i-hstack
@@ -2063,6 +2085,17 @@ export class ScomPostComposer extends Module {
                                 onKeyUp={(target: Input) => this.onGifSearch(target.value)}
                             ></i-input>
                         </i-hstack>
+                        <i-panel
+                            id="pnlGifClose"
+                            padding={{ top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }}
+                            cursor='pointer'
+                            onClick={this.onCloseGifModal.bind(this)}
+                        >
+                            <i-icon
+                                name="times"
+                                width={20} height={20} fill={Theme.colors.secondary.main}
+                            ></i-icon>
+                        </i-panel>
                     </i-hstack>
                     <i-panel id="gifCateLoading" height={600}>
                         <i-stack

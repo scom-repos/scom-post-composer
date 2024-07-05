@@ -155,7 +155,8 @@ declare module "@scom/scom-post-composer" {
         private gridGif;
         private gridGifCate;
         private pnlGif;
-        private iconGif;
+        private pnlGifBack;
+        private pnlGifClose;
         private inputGif;
         private bottomElm;
         private gridEmojiCate;
@@ -259,7 +260,8 @@ declare module "@scom/scom-post-composer" {
         private onToggleMainGif;
         private renderGifs;
         private onGifPlayChanged;
-        private onIconGifClicked;
+        private onBack;
+        private onCloseGifModal;
         private renderEmojis;
         private initEmojiGroup;
         private initEmojis;
