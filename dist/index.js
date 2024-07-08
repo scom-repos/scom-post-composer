@@ -7,8 +7,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 define("@scom/scom-post-composer/global/index.ts", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.searchEmojis = exports.fetchEmojis = exports.colorsMapper = exports.emojiCategories = exports.fetchReactionGifs = exports.fetchGifs = void 0;
-    ///<amd-module name='@scom/scom-post-composer/global/index.ts'/> 
+    exports.widgets = exports.chartWidgets = exports.searchEmojis = exports.fetchEmojis = exports.colorsMapper = exports.emojiCategories = exports.getWidgetEmbedUrl = exports.fetchReactionGifs = exports.fetchGifs = void 0;
     const fetchGifs = async (params) => {
         if (!params.offset)
             params.offset = 0;
@@ -41,6 +40,22 @@ define("@scom/scom-post-composer/global/index.ts", ["require", "exports"], funct
         }
     };
     exports.fetchReactionGifs = fetchReactionGifs;
+    const WIDGET_URL = 'https://widget.noto.fan';
+    const getWidgetEmbedUrl = (module, data) => {
+        if (module) {
+            const widgetData = {
+                module: {
+                    name: module
+                },
+                properties: { ...data },
+            };
+            const encodedWidgetDataString = encodeURIComponent(window.btoa(JSON.stringify(widgetData)));
+            const moduleName = module.slice(1);
+            return `${WIDGET_URL}/#!/${moduleName}/${encodedWidgetDataString}`;
+        }
+        return '';
+    };
+    exports.getWidgetEmbedUrl = getWidgetEmbedUrl;
     exports.emojiCategories = [
         {
             name: 'Recent',
@@ -149,6 +164,51 @@ define("@scom/scom-post-composer/global/index.ts", ["require", "exports"], funct
         return result;
     };
     exports.searchEmojis = searchEmojis;
+    exports.chartWidgets = ['@scom/scom-pie-chart', '@scom/scom-line-chart', '@scom/scom-bar-chart', '@scom/scom-area-chart', '@scom/scom-mixed-chart', '@scom/scom-scatter-chart', '@scom/scom-counter'];
+    exports.widgets = [
+        {
+            name: exports.chartWidgets,
+            icon: 'chart-line',
+            title: 'Chart',
+            description: 'Insert a chart widget'
+        },
+        {
+            name: '@scom/scom-swap',
+            icon: 'exchange-alt',
+            title: 'Swap',
+            description: 'Insert a swap widget'
+        },
+        {
+            name: '@scom/scom-staking',
+            icon: 'hand-holding-usd',
+            title: 'Staking',
+            description: 'Insert a staking widget'
+        },
+        {
+            name: '@scom/scom-xchain-widget',
+            icon: 'exchange-alt',
+            title: 'Xchain',
+            description: 'Insert an xchain widget'
+        },
+        {
+            name: '@scom/scom-voting',
+            icon: 'vote-yea',
+            title: 'Voting',
+            description: 'Insert a voting widget'
+        },
+        {
+            name: '@scom/scom-nft-minter',
+            icon: 'gavel',
+            title: 'NFT Minter',
+            description: 'Insert a NFT minter widget'
+        },
+        {
+            name: '@scom/oswap-nft-widget',
+            icon: 'campground',
+            title: 'Oswap NFT',
+            description: 'Insert an Oswap NFT widget'
+        }
+    ];
 });
 define("@scom/scom-post-composer/assets.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_1) {
     "use strict";
@@ -215,16 +275,10 @@ define("@scom/scom-post-composer/components/form.tsx", ["require", "exports", "@
     ], ScomPostComposerUpload);
     exports.ScomPostComposerUpload = ScomPostComposerUpload;
 });
-define("@scom/scom-post-composer/components/index.ts", ["require", "exports", "@scom/scom-post-composer/components/form.tsx"], function (require, exports, form_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.ScomPostComposerUpload = void 0;
-    Object.defineProperty(exports, "ScomPostComposerUpload", { enumerable: true, get: function () { return form_1.ScomPostComposerUpload; } });
-});
 define("@scom/scom-post-composer/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.modalStyle = void 0;
+    exports.formStyle = exports.modalStyle = void 0;
     exports.modalStyle = components_3.Styles.style({
         $nest: {
             '.modal > div:nth-child(2)': {
@@ -240,12 +294,196 @@ define("@scom/scom-post-composer/index.css.ts", ["require", "exports", "@ijstech
             }
         }
     });
+    exports.formStyle = components_3.Styles.style({
+        $nest: {
+            'i-scom-token-input > i-hstack > i-vstack': {
+                margin: '0 !important'
+            }
+        }
+    });
 });
-define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components", "@scom/scom-post-composer/global/index.ts", "@scom/scom-post-composer/assets.ts", "@scom/scom-post-composer/components/index.ts", "@scom/scom-post-composer/index.css.ts", "@scom/scom-storage"], function (require, exports, components_4, index_1, assets_1, index_2, index_css_1, scom_storage_1) {
+define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-post-composer/global/index.ts", "@scom/scom-post-composer/index.css.ts"], function (require, exports, components_4, global_1, index_css_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ScomPostComposerWidget = void 0;
+    const Theme = components_4.Styles.Theme.ThemeVars;
+    let ScomPostComposerWidget = class ScomPostComposerWidget extends components_4.Module {
+        static async create(options, parent) {
+            let self = new this(parent, options);
+            await self.ready();
+            return self;
+        }
+        handleCloseButtonClick() {
+            if (this.onCloseButtonClick)
+                this.onCloseButtonClick();
+        }
+        init() {
+            super.init();
+            this.onTypeChanged = this.onTypeChanged.bind(this);
+            this.onConfirm = this.getAttribute('onConfirm', true) || this.onConfirm;
+            this.onCloseButtonClick = this.getAttribute('onCloseButtonClick', true) || this.onCloseButtonClick;
+            this.onRefresh = this.getAttribute('onRefresh', true) || this.onRefresh;
+            this.renderWidgets();
+        }
+        show() {
+            this.back();
+        }
+        renderWidgets() {
+            this.pnlWidgets.clearInnerHTML();
+            for (let widget of global_1.widgets) {
+                this.pnlWidgets.appendChild(this.$render("i-stack", { direction: "horizontal", width: "100%", padding: { top: '0.75rem', bottom: '0.75rem', left: '1rem', right: '1rem' }, border: { radius: '0.375rem' }, alignItems: "center", justifyContent: "space-between", hover: {
+                        backgroundColor: Theme.action.activeBackground
+                    }, cursor: "pointer", onClick: () => this.selectWidget(widget) },
+                    this.$render("i-stack", { direction: "horizontal", alignItems: "center", gap: "1rem" },
+                        this.$render("i-icon", { width: "1rem", height: "1rem", name: widget.icon }),
+                        this.$render("i-stack", { direction: "vertical", gap: "0.25rem" },
+                            this.$render("i-label", { caption: widget.title, font: { size: '0.875rem', weight: 500 } }),
+                            this.$render("i-label", { caption: widget.description, font: { size: '0.75rem', weight: 400 } })))));
+            }
+        }
+        back() {
+            this.lblTitle.caption = 'Widgets';
+            this.iconBack.visible = false;
+            this.iconClose.visible = true;
+            this.pnlWidgets.visible = true;
+            this.pnlForm.visible = false;
+            this.pnlLoading.visible = false;
+            this.actionForm.visible = false;
+        }
+        async renderForm(module) {
+            this.pnlCustomForm.clearInnerHTML();
+            this.pnlCustomForm.visible = false;
+            if (Array.isArray(module)) {
+                const items = module.map(type => ({ value: type, label: type.split('-')[1] }));
+                this.pnlCustomForm.appendChild(this.$render("i-stack", { direction: "vertical", width: "100%", gap: "0.625rem" },
+                    this.$render("i-label", { caption: "Type" }),
+                    this.$render("i-combo-box", { id: "cbType", items: items, width: '100%', height: '2.625rem', onChanged: this.onTypeChanged })));
+                this.pnlCustomForm.visible = true;
+            }
+            else {
+                await this.loadWidgetConfig(module);
+            }
+        }
+        getActions(elm, isChart) {
+            const configs = elm.getConfigurators() || [];
+            let configurator, action;
+            if (isChart) {
+                configurator = configs.find((conf) => conf.target === 'Builders');
+                action = configurator?.getActions && configurator.getActions().find((action) => action.name === 'Data');
+            }
+            else {
+                configurator = configs.find((conf) => conf.target === 'Editor');
+                action = configurator.getActions()?.[0];
+            }
+            return action;
+        }
+        async loadWidgetConfig(module) {
+            const elm = await components_4.application.createElement(module);
+            if (elm?.getConfigurators) {
+                const isChart = global_1.chartWidgets.includes(module);
+                const action = this.getActions(elm, isChart);
+                if (action) {
+                    if (action.customUI) {
+                        this.customForm = await action.customUI.render({}, this.onSave.bind(this));
+                        this.pnlCustomForm.append(this.customForm);
+                        this.pnlCustomForm.visible = true;
+                    }
+                    else {
+                        this.actionForm.uiSchema = action.userInputUISchema;
+                        this.actionForm.jsonSchema = action.userInputDataSchema;
+                        this.actionForm.formOptions = {
+                            columnWidth: '100%',
+                            columnsPerRow: 1,
+                            confirmButtonOptions: {
+                                caption: 'Confirm',
+                                backgroundColor: Theme.colors.primary.main,
+                                fontColor: Theme.colors.primary.contrastText,
+                                padding: { top: '0.5rem', bottom: '0.5rem', right: '1rem', left: '1rem' },
+                                border: { radius: '0.5rem' },
+                                hide: false,
+                                onClick: async () => {
+                                    const data = await this.actionForm.getFormData();
+                                    const url = (0, global_1.getWidgetEmbedUrl)(module, data);
+                                    if (this.onConfirm)
+                                        this.onConfirm(url);
+                                }
+                            },
+                            customControls: action.customControls,
+                            dateTimeFormat: {
+                                date: 'YYYY-MM-DD',
+                                time: 'HH:mm:ss',
+                                dateTime: 'MM/DD/YYYY HH:mm'
+                            }
+                        };
+                        this.actionForm.renderForm();
+                        this.actionForm.clearFormData();
+                        this.actionForm.visible = true;
+                    }
+                }
+            }
+        }
+        async onTypeChanged(target) {
+            const name = target.selectedItem.value;
+            if (this.customForm)
+                this.customForm.remove();
+            await this.loadWidgetConfig(name);
+            if (this.onRefresh)
+                this.onRefresh();
+        }
+        onSave(result, data) {
+            // data.title = this.inputTitle.value || '';
+            if (this.cbType) {
+                data.name = this.cbType.selectedItem.value;
+            }
+            const url = (0, global_1.getWidgetEmbedUrl)(data.name, data);
+            if (this.onConfirm)
+                this.onConfirm(url);
+        }
+        async selectWidget(widget) {
+            this.lblTitle.caption = widget.title;
+            this.iconBack.visible = true;
+            this.iconClose.visible = false;
+            this.pnlWidgets.visible = false;
+            this.pnlForm.visible = true;
+            this.pnlLoading.visible = true;
+            await this.renderForm(widget.name);
+            this.pnlLoading.visible = false;
+            if (this.onRefresh)
+                this.onRefresh();
+        }
+        render() {
+            return (this.$render("i-stack", { direction: "vertical", padding: { top: "1rem", bottom: "1rem", left: "1rem", right: "1rem" }, gap: "1rem" },
+                this.$render("i-stack", { direction: "horizontal", alignItems: "center", justifyContent: "space-between", padding: { left: '0.5rem', right: '0.5rem' }, gap: "0.5rem" },
+                    this.$render("i-stack", { direction: "horizontal", alignItems: "center", gap: "0.5rem" },
+                        this.$render("i-icon", { id: "iconBack", width: "1rem", height: "1rem", name: "arrow-left", fill: Theme.colors.primary.main, onClick: this.back, cursor: "pointer", visible: false }),
+                        this.$render("i-label", { id: "lblTitle", caption: "Widgets", font: { size: '1.125rem', color: Theme.colors.primary.main } })),
+                    this.$render("i-icon", { id: "iconClose", width: "1rem", height: "1rem", name: "times", fill: Theme.colors.primary.main, onClick: this.handleCloseButtonClick, cursor: "pointer" })),
+                this.$render("i-stack", { id: "pnlWidgets", direction: "vertical", gap: "0.5rem" }),
+                this.$render("i-panel", { id: "pnlForm", visible: false },
+                    this.$render("i-form", { id: "actionForm", visible: false, class: index_css_1.formStyle }),
+                    this.$render("i-stack", { id: "pnlCustomForm", direction: "vertical", visible: false }),
+                    this.$render("i-stack", { id: "pnlLoading", direction: "vertical", position: "relative", height: "100%", width: "100%", minHeight: 100, class: "i-loading-overlay", visible: false },
+                        this.$render("i-stack", { direction: "vertical", class: "i-loading-spinner", alignItems: "center", justifyContent: "center" },
+                            this.$render("i-icon", { class: "i-loading-spinner_icon", name: "spinner", width: 24, height: 24, fill: Theme.colors.primary.main }))))));
+        }
+    };
+    ScomPostComposerWidget = __decorate([
+        (0, components_4.customElements)('i-scom-post-composer-widgets')
+    ], ScomPostComposerWidget);
+    exports.ScomPostComposerWidget = ScomPostComposerWidget;
+});
+define("@scom/scom-post-composer/components/index.ts", ["require", "exports", "@scom/scom-post-composer/components/form.tsx", "@scom/scom-post-composer/components/widgets.tsx"], function (require, exports, form_1, widgets_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ScomPostComposerWidget = exports.ScomPostComposerUpload = void 0;
+    Object.defineProperty(exports, "ScomPostComposerUpload", { enumerable: true, get: function () { return form_1.ScomPostComposerUpload; } });
+    Object.defineProperty(exports, "ScomPostComposerWidget", { enumerable: true, get: function () { return widgets_1.ScomPostComposerWidget; } });
+});
+define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components", "@scom/scom-post-composer/global/index.ts", "@scom/scom-post-composer/assets.ts", "@scom/scom-post-composer/components/index.ts", "@scom/scom-post-composer/index.css.ts", "@scom/scom-storage"], function (require, exports, components_5, index_1, assets_1, index_2, index_css_2, scom_storage_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomPostComposer = void 0;
-    const Theme = components_4.Styles.Theme.ThemeVars;
+    const Theme = components_5.Styles.Theme.ThemeVars;
     const PostAudience = [
         {
             title: 'Public',
@@ -260,7 +498,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             value: 'members'
         }
     ];
-    let ScomPostComposer = class ScomPostComposer extends components_4.Module {
+    let ScomPostComposer = class ScomPostComposer extends components_5.Module {
         constructor(parent, options) {
             super(parent, options);
             this.currentGifPage = 0;
@@ -298,6 +536,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.onGifPlayChanged = this.onGifPlayChanged.bind(this);
             this.showStorage = this.showStorage.bind(this);
             this.onShowGifModal = this.onShowGifModal.bind(this);
+            this.onShowWidgets = this.onShowWidgets.bind(this);
         }
         static async create(options, parent) {
             let self = new this(parent, options);
@@ -371,7 +610,6 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         set value(content) {
             this._data.value = content;
             this.mdEditor.value = content;
-            this.postEditor.setValue(content);
         }
         get avatar() {
             return this._avatar;
@@ -382,7 +620,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 this.imgReplier.url = this._avatar;
         }
         get updatedValue() {
-            return this.typeSwitch.checked ? this.postEditor.value : this.mdEditor.getMarkdownValue();
+            return this.mdEditor.getMarkdownValue();
         }
         get isAttachmentDisabled() {
             return this._isAttachmentDisabled;
@@ -423,10 +661,6 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         isRecent(category) {
             return category.value === 'recent';
         }
-        disableMarkdownEditor() {
-            console.log('[scom-post-composer] disableMarkdownEditor');
-            this.typeSwitch.visible = false;
-        }
         setData(value) {
             this.clear();
             this._data = value;
@@ -438,7 +672,6 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.updateGrid();
         }
         clear() {
-            this.typeSwitch.checked = false;
             this.resetEditor();
             this.pnlReplyTo.visible = false;
             this.lbReplyTo.caption = '';
@@ -455,16 +688,8 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.emojiGroupsData = new Map();
         }
         resetEditor() {
-            if (this.postEditor) {
-                this.postEditor.setValue('');
-                this.postEditor.visible = this.typeSwitch.checked;
-                if (!this.postEditor.visible) {
-                    this.postEditor.onHide();
-                }
-            }
             if (this.mdEditor) {
                 this.mdEditor.value = '';
-                this.mdEditor.visible = !this.typeSwitch.checked;
             }
         }
         clearObservers() {
@@ -521,7 +746,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 });
             }
             this.uploadForm.openModal({
-                title: 'Upload',
+                title: 'Insert Image',
                 width: 400,
             });
         }
@@ -633,11 +858,13 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.totalGifPage = 1;
             if (value) {
                 this.bottomObserver.unobserve(this.bottomElm);
-                this.iconGif.name = 'times';
+                this.pnlGifBack.visible = false;
+                this.pnlGifClose.visible = true;
             }
             else {
                 this.bottomObserver.observe(this.bottomElm);
-                this.iconGif.name = 'arrow-left';
+                this.pnlGifBack.visible = true;
+                this.pnlGifClose.visible = false;
             }
             this.gridGif.clearInnerHTML();
             this.renderedMap = {};
@@ -662,14 +889,14 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         onGifPlayChanged(target) {
             this.renderGifs(this.inputGif.value, target.checked);
         }
-        onIconGifClicked(icon) {
-            if (icon.name === 'times') {
-                this.onCloseModal('mdGif');
-            }
-            else {
-                this.pnlGif.visible = false;
-                this.gridGifCate.visible = true;
-            }
+        onBack() {
+            this.pnlGif.visible = false;
+            this.gridGifCate.visible = true;
+            this.pnlGifBack.visible = false;
+            this.pnlGifClose.visible = true;
+        }
+        onCloseGifModal() {
+            this.onCloseModal('mdGif');
         }
         async renderEmojis() {
             this.recentEmojis = {};
@@ -781,7 +1008,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                     tooltip: 'The link has been copied successfully',
                     onClick: (e) => {
                         if (typeof this.currentPostData !== 'undefined') {
-                            components_4.application.copyToClipboard(`${window.location.origin}/#!/e/${this.currentPostData.id}`);
+                            components_5.application.copyToClipboard(`${window.location.origin}/#!/e/${this.currentPostData.id}`);
                         }
                         this.mdPostActions.visible = false;
                     }
@@ -791,7 +1018,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                     icon: { name: 'copy' },
                     tooltip: 'The text has been copied successfully',
                     onClick: (e) => {
-                        components_4.application.copyToClipboard(this.currentPostData['eventData']?.content);
+                        components_5.application.copyToClipboard(this.currentPostData['eventData']?.content);
                         this.mdPostActions.visible = false;
                     }
                 },
@@ -801,7 +1028,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                     tooltip: 'The ID has been copied successfully',
                     onClick: (e) => {
                         if (typeof this.currentPostData !== 'undefined') {
-                            components_4.application.copyToClipboard(this.currentPostData.id);
+                            components_5.application.copyToClipboard(this.currentPostData.id);
                         }
                         this.mdPostActions.visible = false;
                     }
@@ -812,7 +1039,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                     tooltip: 'The raw data has been copied successfully',
                     onClick: (e) => {
                         if (typeof this.currentPostData !== 'undefined') {
-                            components_4.application.copyToClipboard(JSON.stringify(this.currentPostData['eventData']));
+                            components_5.application.copyToClipboard(JSON.stringify(this.currentPostData['eventData']));
                         }
                         this.mdPostActions.visible = false;
                     }
@@ -827,7 +1054,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                     tooltip: 'The public key has been copied successfully',
                     onClick: (e) => {
                         if (typeof this.currentPostData !== 'undefined') {
-                            components_4.application.copyToClipboard(this.currentPostData.author.npub || '');
+                            components_5.application.copyToClipboard(this.currentPostData.author.npub || '');
                         }
                         this.mdPostActions.visible = false;
                     }
@@ -981,19 +1208,14 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 this.storageEl = scom_storage_1.ScomStorage.getInstance();
                 this.storageEl.onOpen = (path) => {
                     this.storageEl.closeModal();
-                    if (this.typeSwitch.checked) {
-                        this.postEditor.insertFile(path);
+                    const imageTypes = ['jpg', 'jpeg', 'png', 'gif', 'svg'];
+                    const ext = path.split('.').pop();
+                    if (imageTypes.includes(ext)) {
+                        this.mdEditor.value = this.updatedValue + '\n\n' + `![${path.split('/').pop()}](<${path}>)` + '\n\n';
                     }
                     else {
-                        const imageTypes = ['jpg', 'jpeg', 'png', 'gif', 'svg'];
-                        const ext = path.split('.').pop();
-                        if (imageTypes.includes(ext)) {
-                            this.mdEditor.value = this.updatedValue + '\n\n' + `![${path.split('/').pop()}](<${path}>)` + '\n\n';
-                        }
-                        else {
-                            const linkMd = `[${path}](<${path}>)`;
-                            this.mdEditor.value = this.updatedValue + '\n\n' + linkMd + '\n\n';
-                        }
+                        const linkMd = `[${path}](<${path}>)`;
+                        this.mdEditor.value = this.updatedValue + '\n\n' + linkMd + '\n\n';
                     }
                 };
                 this.storageEl.onCancel = () => this.storageEl.closeModal();
@@ -1005,20 +1227,30 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 overflow: 'hidden',
                 zIndex: 1000,
                 closeIcon: { width: '1rem', height: '1rem', name: 'times', fill: Theme.text.primary, margin: { bottom: '0.5rem' } },
-                class: index_css_1.modalStyle
+                class: index_css_2.modalStyle
             });
         }
-        onTypeChanged(target) {
-            this.postEditor.setValue(this._data.value);
-            this.mdEditor.value = this._data.value;
-            this.postEditor.visible = target.checked;
-            this.mdEditor.visible = !target.checked;
-            if (!this.postEditor.visible) {
-                this.postEditor.onHide();
+        async onShowWidgets() {
+            if (!this.widgetModule) {
+                this.widgetModule = await index_2.ScomPostComposerWidget.create({
+                    onConfirm: (url) => {
+                        if (url)
+                            this.mdEditor.value = this.updatedValue + '\n\n' + url + '\n\n';
+                        this.widgetModule.closeModal();
+                    },
+                    onCloseButtonClick: () => {
+                        this.widgetModule.closeModal();
+                    }
+                });
             }
-            else {
-                this.postEditor.focus();
-            }
+            const modal = this.widgetModule.openModal({
+                width: '35rem',
+                padding: { top: 0, bottom: 0, left: 0, right: 0 },
+                closeOnBackdropClick: true,
+                closeIcon: null
+            });
+            this.widgetModule.onRefresh = () => modal.refresh();
+            this.widgetModule.show();
         }
         _handleClick(event, stopPropagation) {
             this.pnlIcons.visible = true;
@@ -1117,14 +1349,13 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                     ], padding: { left: '0.75rem' } },
                     this.$render("i-image", { id: "imgReplier", grid: { area: 'avatar' }, width: '2.75rem', height: '2.75rem', display: "block", background: { color: Theme.background.main }, border: { radius: '50%' }, overflow: 'hidden', margin: { top: '0.75rem' }, objectFit: 'cover', url: this._avatar, fallbackUrl: assets_1.default.fullPath('img/default_avatar.png') }),
                     this.$render("i-panel", { grid: { area: 'editor' }, maxHeight: '45rem', overflow: { x: 'hidden', y: 'auto' } },
-                        this.$render("i-markdown-editor", { id: "mdEditor", width: "100%", viewer: false, hideModeSwitch: true, mode: "wysiwyg", toolbarItems: [], font: { size: '1.25rem', color: Theme.text.primary }, lineHeight: 1.5, padding: { top: 12, bottom: 12, left: 0, right: 0 }, background: { color: 'transparent' }, height: "auto", minHeight: 0, overflow: 'hidden', overflowWrap: "break-word", onChanged: this.onEditorChanged.bind(this), cursor: 'text', border: { style: 'none' }, visible: true }),
-                        this.$render("i-scom-editor", { id: "postEditor", width: "100%", font: { size: '1.25rem', color: Theme.text.primary }, cursor: 'text', visible: false, onChanged: this.onEditorChanged.bind(this) })),
+                        this.$render("i-markdown-editor", { id: "mdEditor", width: "100%", viewer: false, hideModeSwitch: true, mode: "wysiwyg", toolbarItems: [], font: { size: '1.25rem', color: Theme.text.primary }, lineHeight: 1.5, padding: { top: 12, bottom: 12, left: 0, right: 0 }, background: { color: 'transparent' }, height: "auto", minHeight: 0, overflow: 'hidden', overflowWrap: "break-word", onChanged: this.onEditorChanged.bind(this), cursor: 'text', border: { style: 'none' }, visible: true })),
                     this.$render("i-hstack", { id: "pnlBorder", horizontalAlignment: "space-between", grid: { area: 'reply' }, padding: { top: '0.625rem', right: '0.5rem' } },
                         this.$render("i-hstack", { id: "pnlIcons", gap: "4px", verticalAlignment: "center", visible: false },
-                            this.$render("i-icon", { id: "iconMediaMobile", name: "image", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Media', placement: 'bottom' }, visible: !this.isAttachmentDisabled, enabled: !this.isAttachmentDisabled, onClick: this.onUpload.bind(this) }),
-                            this.$render("i-icon", { name: "images", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'GIF', placement: 'bottom' }, onClick: this.onShowGifModal }),
+                            this.$render("i-icon", { id: "iconMediaMobile", name: "image", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Media', placement: 'bottom' }, visible: !this.isAttachmentDisabled, enabled: !this.isAttachmentDisabled, cursor: "pointer", onClick: this.onUpload.bind(this) }),
+                            this.$render("i-icon", { name: "images", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'GIF', placement: 'bottom' }, cursor: "pointer", onClick: this.onShowGifModal }),
                             this.$render("i-panel", null,
-                                this.$render("i-icon", { name: "smile", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Emoji', placement: 'bottom' }, onClick: () => this.onShowModal('mdEmoji') }),
+                                this.$render("i-icon", { name: "smile", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Emoji', placement: 'bottom' }, cursor: "pointer", onClick: () => this.onShowModal('mdEmoji') }),
                                 this.$render("i-modal", { id: "mdEmoji", maxWidth: '100%', minWidth: 320, popupPlacement: 'bottomRight', showBackdrop: false, border: { radius: '1rem' }, boxShadow: 'rgba(101, 119, 134, 0.2) 0px 0px 15px, rgba(101, 119, 134, 0.15) 0px 0px 3px 1px', padding: { top: 0, left: 0, right: 0, bottom: 0 }, closeOnScrollChildFixed: true, onOpen: this.onEmojiMdOpen.bind(this), visible: false },
                                     this.$render("i-vstack", { position: 'relative', padding: { left: '0.25rem', right: '0.25rem' } },
                                         this.$render("i-hstack", { verticalAlignment: "center", border: { radius: '9999px', width: '1px', style: 'solid', color: Theme.divider }, minHeight: 40, width: '100%', background: { color: Theme.input.background }, padding: { left: '0.75rem', right: '0.75rem' }, margin: { top: '0.25rem', bottom: '0.25rem' }, gap: "4px" },
@@ -1144,7 +1375,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                                                     right: '0.25rem',
                                                     bottom: '0.25rem'
                                                 } }))))),
-                            this.$render("i-switch", { id: "typeSwitch", height: 28, display: "inline-flex", grid: { verticalAlignment: 'center' }, tooltip: { content: 'Change editor', placement: 'bottom' }, uncheckedTrackColor: Theme.divider, checkedTrackColor: Theme.colors.primary.main, onChanged: this.onTypeChanged.bind(this) })),
+                            this.$render("i-icon", { width: 28, height: 28, name: "shapes", fill: Theme.colors.primary.main, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Widgets', placement: 'bottom' }, cursor: "pointer", onClick: this.onShowWidgets })),
                         this.$render("i-panel", null,
                             this.$render("i-button", { id: "btnPostAudience", height: 32, padding: { left: '1rem', right: '1rem' }, background: { color: Theme.colors.secondary.main }, font: { color: Theme.colors.secondary.contrastText, bold: true }, border: { radius: '0.375rem' }, caption: this.audience.title, icon: { width: 14, height: 14, name: this.audience.icon, fill: Theme.colors.secondary.contrastText }, rightIcon: { width: 14, height: 14, name: 'angle-down', fill: Theme.colors.secondary.contrastText }, visible: this.isPostAudienceShown, onClick: this.showPostAudienceModal.bind(this) }),
                             this.$render("i-modal", { id: "mdPostAudience", maxWidth: '15rem', minWidth: '12.25rem', maxHeight: '27.5rem', popupPlacement: 'bottomRight', showBackdrop: false, border: { radius: '0.5rem' }, boxShadow: "rgba(255, 255, 255, 0.2) 0px 0px 15px, rgba(255, 255, 255, 0.15) 0px 0px 3px 1px", padding: { top: 0, bottom: 0, left: 0, right: 0 }, overflow: { y: 'hidden' }, visible: false }, pnlPostAudiences)))),
@@ -1181,12 +1412,14 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                         }
                     ], onOpen: this.onGifMdOpen.bind(this), onClose: this.onGifMdClose.bind(this) },
                     this.$render("i-vstack", null,
-                        this.$render("i-hstack", { verticalAlignment: "center", height: 53, margin: { top: 8, bottom: 8 }, padding: { right: '1rem', left: '1rem' }, position: "sticky", zIndex: 2, top: '0px', background: { color: Theme.background.modal } },
-                            this.$render("i-panel", { stack: { basis: '56px' } },
-                                this.$render("i-icon", { id: "iconGif", name: "times", cursor: 'pointer', width: 20, height: 20, fill: Theme.colors.secondary.main, onClick: this.onIconGifClicked.bind(this) })),
+                        this.$render("i-hstack", { verticalAlignment: "center", height: 53, margin: { top: 8, bottom: 8 }, padding: { right: '0.5rem', left: '0.5rem' }, position: "sticky", zIndex: 2, top: '0px', background: { color: Theme.background.modal } },
+                            this.$render("i-panel", { id: "pnlGifBack", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, cursor: 'pointer', onClick: this.onBack.bind(this), visible: false },
+                                this.$render("i-icon", { name: "arrow-left", width: 20, height: 20, fill: Theme.colors.secondary.main })),
                             this.$render("i-hstack", { verticalAlignment: "center", padding: { left: '0.75rem', right: '0.75rem' }, border: { radius: '9999px', width: '1px', style: 'solid', color: Theme.divider }, minHeight: 40, width: '100%', background: { color: Theme.input.background }, gap: "4px" },
                                 this.$render("i-icon", { width: 16, height: 16, name: 'search', fill: Theme.text.secondary }),
-                                this.$render("i-input", { id: "inputGif", placeholder: 'Search for Gifs', width: '100%', height: '100%', captionWidth: '0px', border: { style: 'none' }, showClearButton: true, onClearClick: () => this.onToggleMainGif(true), onKeyUp: (target) => this.onGifSearch(target.value) }))),
+                                this.$render("i-input", { id: "inputGif", placeholder: 'Search for Gifs', width: '100%', height: '100%', captionWidth: '0px', border: { style: 'none' }, showClearButton: true, onClearClick: () => this.onToggleMainGif(true), onKeyUp: (target) => this.onGifSearch(target.value) })),
+                            this.$render("i-panel", { id: "pnlGifClose", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, cursor: 'pointer', onClick: this.onCloseGifModal.bind(this) },
+                                this.$render("i-icon", { name: "times", width: 20, height: 20, fill: Theme.colors.secondary.main }))),
                         this.$render("i-panel", { id: "gifCateLoading", height: 600 },
                             this.$render("i-stack", { direction: "vertical", height: "100%", width: "100%", class: "i-loading-overlay", background: { color: Theme.background.modal } },
                                 this.$render("i-stack", { direction: "vertical", class: "i-loading-spinner", alignItems: "center", justifyContent: "center" },
@@ -1235,14 +1468,13 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                     ] },
                     this.$render("i-image", { id: "imgReplier", grid: { area: 'avatar' }, width: '2.75rem', height: '2.75rem', display: "block", background: { color: Theme.background.main }, border: { radius: '50%' }, overflow: 'hidden', margin: { top: '0.75rem' }, objectFit: 'cover', url: this._avatar, fallbackUrl: assets_1.default.fullPath('img/default_avatar.png') }),
                     this.$render("i-panel", { grid: { area: 'editor' }, maxHeight: '45rem', overflow: { x: 'hidden', y: 'auto' } },
-                        this.$render("i-markdown-editor", { id: "mdEditor", width: "100%", viewer: false, hideModeSwitch: true, mode: "wysiwyg", toolbarItems: [], font: { size: '1.25rem', color: Theme.text.primary }, lineHeight: 1.5, padding: { top: 12, bottom: 12, left: 0, right: 0 }, background: { color: 'transparent' }, height: "auto", minHeight: 0, overflow: 'hidden', overflowWrap: "break-word", onChanged: this.onEditorChanged.bind(this), cursor: 'text', border: { style: 'none' }, visible: true }),
-                        this.$render("i-scom-editor", { id: "postEditor", width: "100%", font: { size: '1.25rem', color: Theme.text.primary }, cursor: 'text', visible: false, onChanged: this.onEditorChanged.bind(this) })),
+                        this.$render("i-markdown-editor", { id: "mdEditor", width: "100%", viewer: false, hideModeSwitch: true, mode: "wysiwyg", toolbarItems: [], font: { size: '1.25rem', color: Theme.text.primary }, lineHeight: 1.5, padding: { top: 12, bottom: 12, left: 0, right: 0 }, background: { color: 'transparent' }, height: "auto", minHeight: 0, overflow: 'hidden', overflowWrap: "break-word", onChanged: this.onEditorChanged.bind(this), cursor: 'text', border: { style: 'none' }, visible: true })),
                     this.$render("i-hstack", { id: "pnlBorder", horizontalAlignment: "space-between", grid: { area: 'reply' }, padding: { top: '0.625rem' } },
                         this.$render("i-hstack", { id: "pnlIcons", gap: "4px", verticalAlignment: "center", visible: false },
-                            this.$render("i-icon", { id: "iconMediaMobile", name: "image", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Media', placement: 'bottom' }, visible: !this.isAttachmentDisabled, enabled: !this.isAttachmentDisabled, onClick: this.onUpload.bind(this) }),
-                            this.$render("i-icon", { name: "images", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'GIF', placement: 'bottom' }, onClick: this.onShowGifModal }),
+                            this.$render("i-icon", { id: "iconMediaMobile", name: "image", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Media', placement: 'bottom' }, visible: !this.isAttachmentDisabled, enabled: !this.isAttachmentDisabled, cursor: "pointer", onClick: this.onUpload.bind(this) }),
+                            this.$render("i-icon", { name: "images", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'GIF', placement: 'bottom' }, cursor: "pointer", onClick: this.onShowGifModal }),
                             this.$render("i-panel", null,
-                                this.$render("i-icon", { name: "smile", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Emoji', placement: 'bottom' }, onClick: () => this.onShowModal('mdEmoji') }),
+                                this.$render("i-icon", { name: "smile", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Emoji', placement: 'bottom' }, cursor: "pointer", onClick: () => this.onShowModal('mdEmoji') }),
                                 this.$render("i-modal", { id: "mdEmoji", maxWidth: '100%', minWidth: 320, popupPlacement: 'bottomRight', showBackdrop: false, border: { radius: '1rem' }, boxShadow: 'rgba(101, 119, 134, 0.2) 0px 0px 15px, rgba(101, 119, 134, 0.15) 0px 0px 3px 1px', padding: { top: 0, left: 0, right: 0, bottom: 0 }, closeOnScrollChildFixed: true, onOpen: this.onEmojiMdOpen.bind(this), visible: false },
                                     this.$render("i-vstack", { position: 'relative', padding: { left: '0.25rem', right: '0.25rem' } },
                                         this.$render("i-hstack", { verticalAlignment: "center", border: { radius: '9999px', width: '1px', style: 'solid', color: Theme.divider }, minHeight: 40, width: '100%', background: { color: Theme.input.background }, padding: { left: '0.75rem', right: '0.75rem' }, margin: { top: '0.25rem', bottom: '0.25rem' }, gap: "4px" },
@@ -1263,8 +1495,8 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                                                     bottom: '0.25rem'
                                                 } }))))),
                             this.$render("i-panel", null,
-                                this.$render("i-icon", { name: "file", width: 28, height: 28, fill: Theme.colors.primary.main, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Select File', placement: 'bottom' }, onClick: this.showStorage })),
-                            this.$render("i-switch", { id: "typeSwitch", height: 28, display: "inline-flex", grid: { verticalAlignment: 'center' }, tooltip: { content: 'Change editor', placement: 'bottom' }, uncheckedTrackColor: Theme.divider, checkedTrackColor: Theme.colors.primary.main, onChanged: this.onTypeChanged.bind(this) })),
+                                this.$render("i-icon", { name: "file", width: 28, height: 28, fill: Theme.colors.primary.main, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Select File', placement: 'bottom' }, cursor: "pointer", onClick: this.showStorage })),
+                            this.$render("i-icon", { width: 28, height: 28, name: "shapes", fill: Theme.colors.primary.main, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Widgets', placement: 'bottom' }, cursor: "pointer", onClick: this.onShowWidgets })),
                         this.$render("i-stack", { direction: "horizontal", width: "100%", alignItems: "center", justifyContent: "end", gap: "0.5rem" },
                             this.$render("i-panel", null,
                                 this.$render("i-button", { id: "btnPostAudience", height: 32, padding: { left: '1rem', right: '1rem' }, background: { color: Theme.colors.secondary.main }, font: { color: Theme.colors.secondary.contrastText, bold: true }, border: { radius: '0.375rem' }, caption: this.audience.title, icon: { width: 14, height: 14, name: this.audience.icon, fill: Theme.colors.secondary.contrastText }, rightIcon: { width: 14, height: 14, name: 'angle-down', fill: Theme.colors.secondary.contrastText }, visible: this.isPostAudienceShown, onClick: this.showPostAudienceModal.bind(this) }),
@@ -1286,12 +1518,14 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                         }
                     ], onOpen: this.onGifMdOpen.bind(this), onClose: this.onGifMdClose.bind(this) },
                     this.$render("i-vstack", null,
-                        this.$render("i-hstack", { verticalAlignment: "center", height: 53, margin: { top: 8, bottom: 8 }, padding: { right: '1rem', left: '1rem' }, position: "sticky", zIndex: 2, top: '0px', background: { color: Theme.background.modal } },
-                            this.$render("i-panel", { stack: { basis: '56px' } },
-                                this.$render("i-icon", { id: "iconGif", name: "times", cursor: 'pointer', width: 20, height: 20, fill: Theme.colors.secondary.main, onClick: this.onIconGifClicked.bind(this) })),
+                        this.$render("i-hstack", { verticalAlignment: "center", height: 53, margin: { top: 8, bottom: 8 }, padding: { right: '0.5rem', left: '0.5rem' }, position: "sticky", zIndex: 2, top: '0px', background: { color: Theme.background.modal } },
+                            this.$render("i-panel", { id: "pnlGifBack", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, cursor: 'pointer', onClick: this.onBack.bind(this), visible: false },
+                                this.$render("i-icon", { name: "arrow-left", width: 20, height: 20, fill: Theme.colors.secondary.main })),
                             this.$render("i-hstack", { verticalAlignment: "center", padding: { left: '0.75rem', right: '0.75rem' }, border: { radius: '9999px', width: '1px', style: 'solid', color: Theme.divider }, minHeight: 40, width: '100%', background: { color: Theme.input.background }, gap: "4px" },
                                 this.$render("i-icon", { width: 16, height: 16, name: 'search', fill: Theme.text.secondary }),
-                                this.$render("i-input", { id: "inputGif", placeholder: 'Search for Gifs', width: '100%', height: '100%', captionWidth: '0px', border: { style: 'none' }, showClearButton: true, onClearClick: () => this.onToggleMainGif(true), onKeyUp: (target) => this.onGifSearch(target.value) }))),
+                                this.$render("i-input", { id: "inputGif", placeholder: 'Search for Gifs', width: '100%', height: '100%', captionWidth: '0px', border: { style: 'none' }, showClearButton: true, onClearClick: () => this.onToggleMainGif(true), onKeyUp: (target) => this.onGifSearch(target.value) })),
+                            this.$render("i-panel", { id: "pnlGifClose", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, cursor: 'pointer', onClick: this.onCloseGifModal.bind(this) },
+                                this.$render("i-icon", { name: "times", width: 20, height: 20, fill: Theme.colors.secondary.main }))),
                         this.$render("i-panel", { id: "gifCateLoading", height: 600 },
                             this.$render("i-stack", { direction: "vertical", height: "100%", width: "100%", class: "i-loading-overlay", background: { color: Theme.background.modal } },
                                 this.$render("i-stack", { direction: "vertical", class: "i-loading-spinner", alignItems: "center", justifyContent: "center" },
@@ -1332,7 +1566,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         }
     };
     ScomPostComposer = __decorate([
-        (0, components_4.customElements)('i-scom-post-composer')
+        (0, components_5.customElements)('i-scom-post-composer')
     ], ScomPostComposer);
     exports.ScomPostComposer = ScomPostComposer;
 });

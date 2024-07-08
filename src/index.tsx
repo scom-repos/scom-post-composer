@@ -31,8 +31,7 @@ import {
     searchEmojis
 } from './global/index';
 import assets from './assets';
-import {ScomEditor} from '@scom/scom-editor';
-import {ScomPostComposerUpload} from './components/index';
+import {ScomPostComposerUpload, ScomPostComposerWidget} from './components/index';
 import { modalStyle } from './index.css';
 import {ScomStorage} from '@scom/scom-storage';
 
@@ -125,7 +124,8 @@ export class ScomPostComposer extends Module {
     private gridGif: CardLayout;
     private gridGifCate: CardLayout;
     private pnlGif: Panel;
-    private iconGif: Icon;
+    private pnlGifBack: Panel;
+    private pnlGifClose: Panel;
     private inputGif: Input;
     private bottomElm: Panel;
     private gridEmojiCate: GridLayout;
@@ -140,15 +140,14 @@ export class ScomPostComposer extends Module {
     // private pnlMedias: VStack;
     private selectedColor: Panel;
     private recent: Panel;
-    private postEditor: ScomEditor;
     private mdEditor: MarkdownEditor;
-    private typeSwitch: Switch;
     private uploadForm: ScomPostComposerUpload;
     private iconMedia: Icon;
     private iconMediaMobile: Icon;
     private pnlActions: VStack;
     private mdPostActions: Modal;
     private storageEl: ScomStorage;
+    private widgetModule: ScomPostComposerWidget;
 
     private _focusedPost: IPost;
     private _data: IReplyInput;
@@ -200,6 +199,7 @@ export class ScomPostComposer extends Module {
         this.onGifPlayChanged = this.onGifPlayChanged.bind(this);
         this.showStorage = this.showStorage.bind(this);
         this.onShowGifModal = this.onShowGifModal.bind(this);
+        this.onShowWidgets = this.onShowWidgets.bind(this);
     }
 
     static async create(options?: ScomPostComposerElement, parent?: Container) {
@@ -296,7 +296,6 @@ export class ScomPostComposer extends Module {
     set value(content: string) {
         this._data.value = content;
         this.mdEditor.value = content;
-        this.postEditor.setValue(content);
     }
 
     get avatar() {
@@ -309,7 +308,7 @@ export class ScomPostComposer extends Module {
     }
 
     get updatedValue() {
-        return this.typeSwitch.checked ? this.postEditor.value : this.mdEditor.getMarkdownValue();
+        return this.mdEditor.getMarkdownValue();
     }
 
     get isAttachmentDisabled() {
@@ -355,11 +354,6 @@ export class ScomPostComposer extends Module {
         return category.value === 'recent';
     }
 
-    public disableMarkdownEditor() {
-        console.log('[scom-post-composer] disableMarkdownEditor')
-        this.typeSwitch.visible = false;
-    }
-
     setData(value: IReplyInput) {
         this.clear();
         this._data = value;
@@ -370,7 +364,6 @@ export class ScomPostComposer extends Module {
     }
 
     clear() {
-        this.typeSwitch.checked = false;
         this.resetEditor();
         this.pnlReplyTo.visible = false;
         this.lbReplyTo.caption = '';
@@ -388,16 +381,8 @@ export class ScomPostComposer extends Module {
     }
 
     private resetEditor() {
-        if (this.postEditor) {
-            this.postEditor.setValue('');
-            this.postEditor.visible = this.typeSwitch.checked;
-            if (!this.postEditor.visible) {
-                this.postEditor.onHide();
-            }
-        }
         if (this.mdEditor) {
             this.mdEditor.value = '';
-            this.mdEditor.visible = !this.typeSwitch.checked;
         }
     }
 
@@ -455,7 +440,7 @@ export class ScomPostComposer extends Module {
             });
         }
         this.uploadForm.openModal({
-            title: 'Upload',
+            title: 'Insert Image',
             width: 400,
         })
     }
@@ -601,10 +586,12 @@ export class ScomPostComposer extends Module {
         this.totalGifPage = 1;
         if (value) {
             this.bottomObserver.unobserve(this.bottomElm);
-            this.iconGif.name = 'times';
+            this.pnlGifBack.visible = false;
+            this.pnlGifClose.visible = true;
         } else {
             this.bottomObserver.observe(this.bottomElm);
-            this.iconGif.name = 'arrow-left';
+            this.pnlGifBack.visible = true;
+            this.pnlGifClose.visible = false;
         }
         this.gridGif.clearInnerHTML();
         this.renderedMap = {};
@@ -641,13 +628,15 @@ export class ScomPostComposer extends Module {
         this.renderGifs(this.inputGif.value, target.checked);
     }
 
-    private onIconGifClicked(icon: Icon) {
-        if (icon.name === 'times') {
-            this.onCloseModal('mdGif');
-        } else {
-            this.pnlGif.visible = false;
-            this.gridGifCate.visible = true;
-        }
+    private onBack() {
+        this.pnlGif.visible = false;
+        this.gridGifCate.visible = true;
+        this.pnlGifBack.visible = false;
+        this.pnlGifClose.visible = true;
+    }
+
+    private onCloseGifModal() {
+        this.onCloseModal('mdGif');
     }
 
     private async renderEmojis() {
@@ -1090,17 +1079,13 @@ export class ScomPostComposer extends Module {
             this.storageEl = ScomStorage.getInstance();
             this.storageEl.onOpen = (path: string) => {
                 this.storageEl.closeModal();
-                if (this.typeSwitch.checked) {
-                    this.postEditor.insertFile(path);
+                const imageTypes = ['jpg', 'jpeg', 'png', 'gif', 'svg'];
+                const ext = path.split('.').pop();
+                if (imageTypes.includes(ext)) {
+                    this.mdEditor.value = this.updatedValue + '\n\n' + `![${path.split('/').pop()}](<${path}>)` + '\n\n';
                 } else {
-                    const imageTypes = ['jpg', 'jpeg', 'png', 'gif', 'svg'];
-                    const ext = path.split('.').pop();
-                    if (imageTypes.includes(ext)) {
-                        this.mdEditor.value = this.updatedValue + '\n\n' + `![${path.split('/').pop()}](<${path}>)` + '\n\n';
-                    } else {
-                        const linkMd = `[${path}](<${path}>)`;
-                        this.mdEditor.value = this.updatedValue + '\n\n' + linkMd + '\n\n';
-                    }
+                    const linkMd = `[${path}](<${path}>)`;
+                    this.mdEditor.value = this.updatedValue + '\n\n' + linkMd + '\n\n';
                 }
             }
             this.storageEl.onCancel = () => this.storageEl.closeModal();
@@ -1116,16 +1101,27 @@ export class ScomPostComposer extends Module {
         })
     }
 
-    private onTypeChanged(target: Switch) {
-        this.postEditor.setValue(this._data.value);
-        this.mdEditor.value = this._data.value;
-        this.postEditor.visible = target.checked;
-        this.mdEditor.visible = !target.checked;
-        if (!this.postEditor.visible) {
-            this.postEditor.onHide();
-        } else {
-            this.postEditor.focus();
+    private async onShowWidgets() {
+        if (!this.widgetModule) {
+            this.widgetModule = await ScomPostComposerWidget.create({
+                onConfirm: (url: string) => {
+                    if (url)
+                        this.mdEditor.value = this.updatedValue + '\n\n' + url + '\n\n';
+                    this.widgetModule.closeModal();
+                },
+                onCloseButtonClick: () => {
+                    this.widgetModule.closeModal();
+                }
+            });
         }
+        const modal = this.widgetModule.openModal({
+            width: '35rem',
+            padding: { top: 0, bottom: 0, left: 0, right: 0 },
+            closeOnBackdropClick: true,
+            closeIcon: null
+        });
+        this.widgetModule.onRefresh = () => modal.refresh();
+        this.widgetModule.show();
     }
 
     protected _handleClick(event: MouseEvent, stopPropagation?: boolean): boolean {
@@ -1345,14 +1341,6 @@ export class ScomPostComposer extends Module {
                         border={{style: 'none'}}
                         visible={true}
                     ></i-markdown-editor>
-                    <i-scom-editor
-                        id="postEditor"
-                        width="100%"
-                        font={{size: '1.25rem', color: Theme.text.primary}}
-                        cursor='text'
-                        visible={false}
-                        onChanged={this.onEditorChanged.bind(this)}
-                    ></i-scom-editor>
                     {/* <i-vstack id="pnlMedias" /> */}
                 </i-panel>
 
@@ -1376,6 +1364,7 @@ export class ScomPostComposer extends Module {
                             tooltip={{content: 'Media', placement: 'bottom'}}
                             visible={!this.isAttachmentDisabled}
                             enabled={!this.isAttachmentDisabled}
+                            cursor="pointer"
                             onClick={this.onUpload.bind(this)}
                         ></i-icon>
                         <i-icon
@@ -1383,6 +1372,7 @@ export class ScomPostComposer extends Module {
                             border={{radius: '50%'}}
                             padding={{top: 5, bottom: 5, left: 5, right: 5}}
                             tooltip={{content: 'GIF', placement: 'bottom'}}
+                            cursor="pointer"
                             onClick={this.onShowGifModal}
                         ></i-icon>
                         <i-panel>
@@ -1391,6 +1381,7 @@ export class ScomPostComposer extends Module {
                                 border={{radius: '50%'}}
                                 padding={{top: 5, bottom: 5, left: 5, right: 5}}
                                 tooltip={{content: 'Emoji', placement: 'bottom'}}
+                                cursor="pointer"
                                 onClick={() => this.onShowModal('mdEmoji')}
                             ></i-icon>
                             <i-modal
@@ -1476,16 +1467,16 @@ export class ScomPostComposer extends Module {
                                 </i-vstack>
                             </i-modal>
                         </i-panel>
-                        <i-switch
-                            id="typeSwitch"
+                        <i-icon
+                            width={28}
                             height={28}
-                            display="inline-flex"
-                            grid={{verticalAlignment: 'center'}}
-                            tooltip={{content: 'Change editor', placement: 'bottom'}}
-                            uncheckedTrackColor={Theme.divider}
-                            checkedTrackColor={Theme.colors.primary.main}
-                            onChanged={this.onTypeChanged.bind(this)}
-                        ></i-switch>
+                            name="shapes"
+                            fill={Theme.colors.primary.main}
+                            padding={{top: 5, bottom: 5, left: 5, right: 5}}
+                            tooltip={{content: 'Widgets', placement: 'bottom'}}
+                            cursor="pointer"
+                            onClick={this.onShowWidgets}
+                        ></i-icon>
                     </i-hstack>
                     <i-panel>
                         <i-button
@@ -1580,18 +1571,21 @@ export class ScomPostComposer extends Module {
                         verticalAlignment="center"
                         height={53}
                         margin={{top: 8, bottom: 8}}
-                        padding={{right: '1rem', left: '1rem'}}
+                        padding={{right: '0.5rem', left: '0.5rem'}}
                         position="sticky"
                         zIndex={2} top={'0px'}
                         background={{color: Theme.background.modal}}
                     >
-                        <i-panel stack={{basis: '56px'}}>
+                        <i-panel
+                            id="pnlGifBack"
+                            padding={{ top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }}
+                            cursor='pointer'
+                            onClick={this.onBack.bind(this)}
+                            visible={false}
+                        >
                             <i-icon
-                                id="iconGif"
-                                name="times"
-                                cursor='pointer'
+                                name="arrow-left"
                                 width={20} height={20} fill={Theme.colors.secondary.main}
-                                onClick={this.onIconGifClicked.bind(this)}
                             ></i-icon>
                         </i-panel>
                         <i-hstack
@@ -1615,6 +1609,17 @@ export class ScomPostComposer extends Module {
                                 onKeyUp={(target: Input) => this.onGifSearch(target.value)}
                             ></i-input>
                         </i-hstack>
+                        <i-panel
+                            id="pnlGifClose"
+                            padding={{ top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }}
+                            cursor='pointer'
+                            onClick={this.onCloseGifModal.bind(this)}
+                        >
+                            <i-icon
+                                name="times"
+                                width={20} height={20} fill={Theme.colors.secondary.main}
+                            ></i-icon>
+                        </i-panel>
                     </i-hstack>
                     <i-panel id="gifCateLoading" height={600}>
                         <i-stack
@@ -1802,15 +1807,6 @@ export class ScomPostComposer extends Module {
                         border={{style: 'none'}}
                         visible={true}
                     ></i-markdown-editor>
-                    <i-scom-editor
-                        id="postEditor"
-                        width="100%"
-                        font={{size: '1.25rem', color: Theme.text.primary}}
-                        cursor='text'
-                        visible={false}
-                        onChanged={this.onEditorChanged.bind(this)}
-                    ></i-scom-editor>
-                    {/* <i-vstack id="pnlMedias" /> */}
                 </i-panel>
 
                 {/* comment */}
@@ -1833,6 +1829,7 @@ export class ScomPostComposer extends Module {
                             tooltip={{content: 'Media', placement: 'bottom'}}
                             visible={!this.isAttachmentDisabled}
                             enabled={!this.isAttachmentDisabled}
+                            cursor="pointer"
                             onClick={this.onUpload.bind(this)}
                         ></i-icon>
                         <i-icon
@@ -1840,6 +1837,7 @@ export class ScomPostComposer extends Module {
                             border={{radius: '50%'}}
                             padding={{top: 5, bottom: 5, left: 5, right: 5}}
                             tooltip={{content: 'GIF', placement: 'bottom'}}
+                            cursor="pointer"
                             onClick={this.onShowGifModal}
                         ></i-icon>
                         <i-panel>
@@ -1848,6 +1846,7 @@ export class ScomPostComposer extends Module {
                                 border={{radius: '50%'}}
                                 padding={{top: 5, bottom: 5, left: 5, right: 5}}
                                 tooltip={{content: 'Emoji', placement: 'bottom'}}
+                                cursor="pointer"
                                 onClick={() => this.onShowModal('mdEmoji')}
                             ></i-icon>
                             <i-modal
@@ -1938,19 +1937,20 @@ export class ScomPostComposer extends Module {
                                 name="file" width={28} height={28} fill={Theme.colors.primary.main}
                                 padding={{top: 5, bottom: 5, left: 5, right: 5}}
                                 tooltip={{content: 'Select File', placement: 'bottom'}}
+                                cursor="pointer"
                                 onClick={this.showStorage}
                             ></i-icon>
                         </i-panel>
-                        <i-switch
-                            id="typeSwitch"
+                        <i-icon
+                            width={28}
                             height={28}
-                            display="inline-flex"
-                            grid={{verticalAlignment: 'center'}}
-                            tooltip={{content: 'Change editor', placement: 'bottom'}}
-                            uncheckedTrackColor={Theme.divider}
-                            checkedTrackColor={Theme.colors.primary.main}
-                            onChanged={this.onTypeChanged.bind(this)}
-                        ></i-switch>
+                            name="shapes"
+                            fill={Theme.colors.primary.main}
+                            padding={{top: 5, bottom: 5, left: 5, right: 5}}
+                            tooltip={{content: 'Widgets', placement: 'bottom'}}
+                            cursor="pointer"
+                            onClick={this.onShowWidgets}
+                        ></i-icon>
                     </i-hstack>
                     <i-stack direction="horizontal" width="100%" alignItems="center" justifyContent="end" gap="0.5rem">
                         <i-panel>
@@ -2028,18 +2028,21 @@ export class ScomPostComposer extends Module {
                         verticalAlignment="center"
                         height={53}
                         margin={{top: 8, bottom: 8}}
-                        padding={{right: '1rem', left: '1rem'}}
+                        padding={{right: '0.5rem', left: '0.5rem'}}
                         position="sticky"
                         zIndex={2} top={'0px'}
                         background={{color: Theme.background.modal}}
                     >
-                        <i-panel stack={{basis: '56px'}}>
+                        <i-panel
+                            id="pnlGifBack"
+                            padding={{ top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }}
+                            cursor='pointer'
+                            onClick={this.onBack.bind(this)}
+                            visible={false}
+                        >
                             <i-icon
-                                id="iconGif"
-                                name="times"
-                                cursor='pointer'
+                                name="arrow-left"
                                 width={20} height={20} fill={Theme.colors.secondary.main}
-                                onClick={this.onIconGifClicked.bind(this)}
                             ></i-icon>
                         </i-panel>
                         <i-hstack
@@ -2063,6 +2066,17 @@ export class ScomPostComposer extends Module {
                                 onKeyUp={(target: Input) => this.onGifSearch(target.value)}
                             ></i-input>
                         </i-hstack>
+                        <i-panel
+                            id="pnlGifClose"
+                            padding={{ top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }}
+                            cursor='pointer'
+                            onClick={this.onCloseGifModal.bind(this)}
+                        >
+                            <i-icon
+                                name="times"
+                                width={20} height={20} fill={Theme.colors.secondary.main}
+                            ></i-icon>
+                        </i-panel>
                     </i-hstack>
                     <i-panel id="gifCateLoading" height={600}>
                         <i-stack

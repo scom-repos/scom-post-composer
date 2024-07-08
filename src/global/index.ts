@@ -1,3 +1,5 @@
+import { IconName } from "@ijstech/components";
+
 export const fetchGifs = async (params: any) => {
   if (!params.offset) params.offset = 0;
   if (!params.limit) params.limit = 40;
@@ -26,6 +28,22 @@ export const fetchReactionGifs = async () => {
   }
 }
 
+const WIDGET_URL = 'https://widget.noto.fan';
+export const getWidgetEmbedUrl = (module: string, data: any) => {
+  if (module) {
+    const widgetData = {
+      module: {
+        name: module
+      },
+      properties: { ...data },
+    };
+    const encodedWidgetDataString = encodeURIComponent(window.btoa(JSON.stringify(widgetData)));
+    const moduleName = module.slice(1);
+    return `${WIDGET_URL}/#!/${moduleName}/${encodedWidgetDataString}`;
+  }
+  return '';
+}
+
 export interface IEmojiCategory {
   name: string;
   value: string;
@@ -39,6 +57,13 @@ export interface IEmoji {
   group: string;
   htmlCode: string[];
   unicode: string[];
+}
+
+export interface IWidget {
+  name: string | string[];
+  icon: IconName;
+  title: string;
+  description: string;
 }
 
 export const emojiCategories = [
@@ -148,3 +173,50 @@ export const searchEmojis = (q: string, mapper: Map<string, any>) => {
   }
   return result;
 }
+
+export const chartWidgets: string[] = ['@scom/scom-pie-chart', '@scom/scom-line-chart', '@scom/scom-bar-chart', '@scom/scom-area-chart', '@scom/scom-mixed-chart', '@scom/scom-scatter-chart', '@scom/scom-counter'];
+
+export const widgets: IWidget[] = [
+  {
+    name: chartWidgets,
+    icon: 'chart-line',
+    title: 'Chart',
+    description: 'Insert a chart widget'
+  },
+  {
+    name: '@scom/scom-swap',
+    icon: 'exchange-alt',
+    title: 'Swap',
+    description: 'Insert a swap widget'
+  },
+  {
+    name: '@scom/scom-staking',
+    icon: 'hand-holding-usd',
+    title: 'Staking',
+    description: 'Insert a staking widget'
+  },
+  {
+    name: '@scom/scom-xchain-widget',
+    icon: 'exchange-alt',
+    title: 'Xchain',
+    description: 'Insert an xchain widget'
+  },
+  {
+    name: '@scom/scom-voting',
+    icon: 'vote-yea',
+    title: 'Voting',
+    description: 'Insert a voting widget'
+  },
+  {
+    name: '@scom/scom-nft-minter',
+    icon: 'gavel',
+    title: 'NFT Minter',
+    description: 'Insert a NFT minter widget'
+  },
+  {
+    name: '@scom/oswap-nft-widget',
+    icon: 'campground',
+    title: 'Oswap NFT',
+    description: 'Insert an Oswap NFT widget'
+  }
+]

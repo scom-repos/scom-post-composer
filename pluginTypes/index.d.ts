@@ -1,7 +1,9 @@
 /// <amd-module name="@scom/scom-post-composer/global/index.ts" />
 declare module "@scom/scom-post-composer/global/index.ts" {
+    import { IconName } from "@ijstech/components";
     export const fetchGifs: (params: any) => Promise<any>;
     export const fetchReactionGifs: () => Promise<any>;
+    export const getWidgetEmbedUrl: (module: string, data: any) => string;
     export interface IEmojiCategory {
         name: string;
         value: string;
@@ -14,6 +16,12 @@ declare module "@scom/scom-post-composer/global/index.ts" {
         group: string;
         htmlCode: string[];
         unicode: string[];
+    }
+    export interface IWidget {
+        name: string | string[];
+        icon: IconName;
+        title: string;
+        description: string;
     }
     export const emojiCategories: {
         name: string;
@@ -49,6 +57,8 @@ declare module "@scom/scom-post-composer/global/index.ts" {
     };
     export const fetchEmojis: (params: any) => Promise<any>;
     export const searchEmojis: (q: string, mapper: Map<string, any>) => any;
+    export const chartWidgets: string[];
+    export const widgets: IWidget[];
 }
 /// <amd-module name="@scom/scom-post-composer/assets.ts" />
 declare module "@scom/scom-post-composer/assets.ts" {
@@ -91,13 +101,59 @@ declare module "@scom/scom-post-composer/components/form.tsx" {
         render(): any;
     }
 }
-/// <amd-module name="@scom/scom-post-composer/components/index.ts" />
-declare module "@scom/scom-post-composer/components/index.ts" {
-    export { ScomPostComposerUpload } from "@scom/scom-post-composer/components/form.tsx";
-}
 /// <amd-module name="@scom/scom-post-composer/index.css.ts" />
 declare module "@scom/scom-post-composer/index.css.ts" {
     export const modalStyle: string;
+    export const formStyle: string;
+}
+/// <amd-module name="@scom/scom-post-composer/components/widgets.tsx" />
+declare module "@scom/scom-post-composer/components/widgets.tsx" {
+    import { ControlElement, Module, Container } from '@ijstech/components';
+    interface ScomPostComposerWidgetsElement extends ControlElement {
+        onConfirm?: (url: string) => void;
+        onCloseButtonClick?: () => void;
+        onRefresh?: () => void;
+    }
+    global {
+        namespace JSX {
+            interface IntrinsicElements {
+                ['i-scom-post-composer-widgets']: ControlElement;
+            }
+        }
+    }
+    export class ScomPostComposerWidget extends Module {
+        private lblTitle;
+        private iconBack;
+        private iconClose;
+        private pnlWidgets;
+        private pnlForm;
+        private pnlLoading;
+        private actionForm;
+        private pnlCustomForm;
+        private cbType;
+        private customForm;
+        onConfirm: (url: string) => void;
+        onCloseButtonClick: () => void;
+        onRefresh: () => void;
+        static create(options?: ScomPostComposerWidgetsElement, parent?: Container): Promise<ScomPostComposerWidget>;
+        private handleCloseButtonClick;
+        init(): void;
+        show(): void;
+        private renderWidgets;
+        private back;
+        private renderForm;
+        private getActions;
+        private loadWidgetConfig;
+        private onTypeChanged;
+        private onSave;
+        private selectWidget;
+        render(): any;
+    }
+}
+/// <amd-module name="@scom/scom-post-composer/components/index.ts" />
+declare module "@scom/scom-post-composer/components/index.ts" {
+    export { ScomPostComposerUpload } from "@scom/scom-post-composer/components/form.tsx";
+    export { ScomPostComposerWidget } from "@scom/scom-post-composer/components/widgets.tsx";
 }
 /// <amd-module name="@scom/scom-post-composer" />
 declare module "@scom/scom-post-composer" {
@@ -155,7 +211,8 @@ declare module "@scom/scom-post-composer" {
         private gridGif;
         private gridGifCate;
         private pnlGif;
-        private iconGif;
+        private pnlGifBack;
+        private pnlGifClose;
         private inputGif;
         private bottomElm;
         private gridEmojiCate;
@@ -169,15 +226,14 @@ declare module "@scom/scom-post-composer" {
         private pnlFocusedPost;
         private selectedColor;
         private recent;
-        private postEditor;
         private mdEditor;
-        private typeSwitch;
         private uploadForm;
         private iconMedia;
         private iconMediaMobile;
         private pnlActions;
         private mdPostActions;
         private storageEl;
+        private widgetModule;
         private _focusedPost;
         private _data;
         private currentGifPage;
@@ -237,7 +293,6 @@ declare module "@scom/scom-post-composer" {
         private removeShow;
         private onShowModal2;
         private isRecent;
-        disableMarkdownEditor(): void;
         setData(value: IReplyInput): void;
         clear(): void;
         private resetEditor;
@@ -259,7 +314,8 @@ declare module "@scom/scom-post-composer" {
         private onToggleMainGif;
         private renderGifs;
         private onGifPlayChanged;
-        private onIconGifClicked;
+        private onBack;
+        private onCloseGifModal;
         private renderEmojis;
         private initEmojiGroup;
         private initEmojis;
@@ -277,7 +333,7 @@ declare module "@scom/scom-post-composer" {
         private onEmojiSearch;
         private onEmojiMdOpen;
         private showStorage;
-        private onTypeChanged;
+        private onShowWidgets;
         protected _handleClick(event: MouseEvent, stopPropagation?: boolean): boolean;
         private showPostAudienceModal;
         init(): void;

@@ -18,7 +18,7 @@
         "@ijstech/components": "^0.1.29",
         "@scom/scom-editor": "^0.1.1",
         "@scom/scom-post": "^0.1.0",
-        "@scom/scom-storage": "file:./repos/scom-storage"
+        "@scom/scom-storage": "^0.1.3"
     },
     "devDependencies": {
         "@ijstech/cli": "^0.1.26",
