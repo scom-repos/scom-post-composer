@@ -1115,12 +1115,18 @@ export class ScomPostComposer extends Module {
             });
         }
         const modal = this.widgetModule.openModal({
-            width: '35rem',
+            width: '90%',
+            maxWidth: '50rem',
             padding: { top: 0, bottom: 0, left: 0, right: 0 },
             closeOnBackdropClick: true,
             closeIcon: null
         });
-        this.widgetModule.onRefresh = () => modal.refresh();
+        this.widgetModule.onRefresh = (maxWidth: string) => {
+            modal.maxWidth = maxWidth;
+            const wrapper: HTMLElement = modal.querySelector('.modal');
+            if (wrapper) wrapper.style.maxWidth = maxWidth;
+            modal.refresh();
+        }
         this.widgetModule.show();
     }
 
