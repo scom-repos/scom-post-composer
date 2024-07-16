@@ -346,14 +346,19 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
             this.iconBack.visible = false;
             this.iconClose.visible = true;
             this.pnlWidgets.visible = true;
-            this.pnlForm.visible = false;
+            this.pnlConfig.visible = false;
             this.pnlLoading.visible = false;
             this.actionForm.visible = false;
+            if (this.onRefresh)
+                this.onRefresh('50rem');
         }
         async renderForm(module) {
+            this.pnlWidgetWrapper.clearInnerHTML();
+            this.pnlWidgetWrapper.visible = false;
             this.pnlCustomForm.clearInnerHTML();
             this.pnlCustomForm.visible = false;
             if (Array.isArray(module)) {
+                this.pnlConfig.templateColumns = ['100%'];
                 const items = module.map(type => ({ value: type, label: type.split('-')[1] }));
                 this.pnlCustomForm.appendChild(this.$render("i-stack", { direction: "vertical", width: "100%", gap: "0.625rem" },
                     this.$render("i-label", { caption: "Type" }),
@@ -361,6 +366,7 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
                 this.pnlCustomForm.visible = true;
             }
             else {
+                this.pnlConfig.templateColumns = innerWidth > 768 ? ['50%', '50%'] : ['100%'];
                 await this.loadWidgetConfig(module);
             }
         }
@@ -378,13 +384,22 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
             return action;
         }
         async loadWidgetConfig(module) {
+            this.pnlWidgetWrapper.visible = false;
             const elm = await components_4.application.createElement(module);
+            this.pnlWidgetWrapper.clearInnerHTML();
+            this.pnlWidgetWrapper.visible = true;
+            this.pnlWidgetWrapper.appendChild(elm);
             if (elm?.getConfigurators) {
                 const isChart = global_1.chartWidgets.includes(module);
                 const action = this.getActions(elm, isChart);
+                const builder = elm.getConfigurators().find((conf) => conf.target === 'Builders');
+                const hasBuilder = builder && typeof builder.setData === 'function';
                 if (action) {
                     if (action.customUI) {
-                        this.customForm = await action.customUI.render({}, this.onSave.bind(this));
+                        if (hasBuilder) {
+                            builder.setData({});
+                        }
+                        this.customForm = await action.customUI.render(hasBuilder ? { ...elm.getData() } : {}, this.onSave.bind(this));
                         this.pnlCustomForm.append(this.customForm);
                         this.pnlCustomForm.visible = true;
                     }
@@ -408,6 +423,13 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
                                         this.onConfirm(url);
                                 }
                             },
+                            onChange: async () => {
+                                const data = await this.actionForm.getFormData();
+                                const validationResult = this.actionForm.validate(data, this.actionForm.jsonSchema, { changing: false });
+                                if (validationResult.valid && hasBuilder) {
+                                    elm.setData(data);
+                                }
+                            },
                             customControls: action.customControls,
                             dateTimeFormat: {
                                 date: 'YYYY-MM-DD',
@@ -418,17 +440,26 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
                         this.actionForm.renderForm();
                         this.actionForm.clearFormData();
                         this.actionForm.visible = true;
+                        // Set default data
+                        setTimeout(() => {
+                            if (hasBuilder) {
+                                builder.setData({});
+                                const data = elm.getData();
+                                this.actionForm.setFormData({ ...data });
+                            }
+                        });
                     }
                 }
             }
         }
         async onTypeChanged(target) {
+            this.pnlConfig.templateColumns = innerWidth > 768 ? ['50%', '50%'] : ['100%'];
             const name = target.selectedItem.value;
             if (this.customForm)
                 this.customForm.remove();
             await this.loadWidgetConfig(name);
             if (this.onRefresh)
-                this.onRefresh();
+                this.onRefresh('90rem');
         }
         onSave(result, data) {
             // data.title = this.inputTitle.value || '';
@@ -444,12 +475,12 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
             this.iconBack.visible = true;
             this.iconClose.visible = false;
             this.pnlWidgets.visible = false;
-            this.pnlForm.visible = true;
+            this.pnlConfig.visible = true;
             this.pnlLoading.visible = true;
             await this.renderForm(widget.name);
             this.pnlLoading.visible = false;
             if (this.onRefresh)
-                this.onRefresh();
+                this.onRefresh(Array.isArray(widget.name) ? '50rem' : '90rem');
         }
         render() {
             return (this.$render("i-stack", { direction: "vertical", padding: { top: "1rem", bottom: "1rem", left: "1rem", right: "1rem" }, gap: "1rem" },
@@ -459,12 +490,21 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
                         this.$render("i-label", { id: "lblTitle", caption: "Widgets", font: { size: '1.125rem', color: Theme.colors.primary.main } })),
                     this.$render("i-icon", { id: "iconClose", width: "1rem", height: "1rem", name: "times", fill: Theme.colors.primary.main, onClick: this.handleCloseButtonClick, cursor: "pointer" })),
                 this.$render("i-stack", { id: "pnlWidgets", direction: "vertical", gap: "0.5rem" }),
-                this.$render("i-panel", { id: "pnlForm", visible: false },
-                    this.$render("i-form", { id: "actionForm", visible: false, class: index_css_1.formStyle }),
-                    this.$render("i-stack", { id: "pnlCustomForm", direction: "vertical", visible: false }),
-                    this.$render("i-stack", { id: "pnlLoading", direction: "vertical", position: "relative", height: "100%", width: "100%", minHeight: 100, class: "i-loading-overlay", visible: false },
-                        this.$render("i-stack", { direction: "vertical", class: "i-loading-spinner", alignItems: "center", justifyContent: "center" },
-                            this.$render("i-icon", { class: "i-loading-spinner_icon", name: "spinner", width: 24, height: 24, fill: Theme.colors.primary.main }))))));
+                this.$render("i-grid-layout", { id: "pnlConfig", visible: false, gap: { column: '0.5rem' }, templateColumns: ['50%', '50%'], mediaQueries: [
+                        {
+                            maxWidth: '768px',
+                            properties: {
+                                templateColumns: ['100%']
+                            }
+                        }
+                    ] },
+                    this.$render("i-panel", { id: "pnlWidgetWrapper" }),
+                    this.$render("i-panel", null,
+                        this.$render("i-form", { id: "actionForm", visible: false, class: index_css_1.formStyle }),
+                        this.$render("i-stack", { id: "pnlCustomForm", direction: "vertical", visible: false }),
+                        this.$render("i-stack", { id: "pnlLoading", direction: "vertical", position: "relative", height: "100%", width: "100%", minHeight: 100, class: "i-loading-overlay", visible: false },
+                            this.$render("i-stack", { direction: "vertical", class: "i-loading-spinner", alignItems: "center", justifyContent: "center" },
+                                this.$render("i-icon", { class: "i-loading-spinner_icon", name: "spinner", width: 24, height: 24, fill: Theme.colors.primary.main })))))));
         }
     };
     ScomPostComposerWidget = __decorate([
@@ -1244,12 +1284,19 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 });
             }
             const modal = this.widgetModule.openModal({
-                width: '35rem',
+                width: '90%',
+                maxWidth: '50rem',
                 padding: { top: 0, bottom: 0, left: 0, right: 0 },
                 closeOnBackdropClick: true,
                 closeIcon: null
             });
-            this.widgetModule.onRefresh = () => modal.refresh();
+            this.widgetModule.onRefresh = (maxWidth) => {
+                modal.maxWidth = maxWidth;
+                const wrapper = modal.querySelector('.modal');
+                if (wrapper)
+                    wrapper.style.maxWidth = maxWidth;
+                modal.refresh();
+            };
             this.widgetModule.show();
         }
         _handleClick(event, stopPropagation) {

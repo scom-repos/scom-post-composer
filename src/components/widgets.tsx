@@ -12,6 +12,7 @@ import {
     application,
     ComboBox,
     IComboItem,
+    GridLayout,
 } from '@ijstech/components';
 import { chartWidgets, getWidgetEmbedUrl, IWidget, widgets } from '../global';
 import { formStyle } from '../index.css';
@@ -21,7 +22,7 @@ const Theme = Styles.Theme.ThemeVars;
 interface ScomPostComposerWidgetsElement extends ControlElement {
     onConfirm?: (url: string) => void;
     onCloseButtonClick?: () => void;
-    onRefresh?: () => void;
+    onRefresh?: (maxWidth: string) => void;
 }
 
 declare global {
@@ -38,7 +39,8 @@ export class ScomPostComposerWidget extends Module {
     private iconBack: Icon;
     private iconClose: Icon;
     private pnlWidgets: StackLayout;
-    private pnlForm: Panel;
+    private pnlConfig: GridLayout;
+    private pnlWidgetWrapper: Panel;
     private pnlLoading: StackLayout;
     private actionForm: Form;
     private pnlCustomForm: StackLayout;
@@ -47,7 +49,7 @@ export class ScomPostComposerWidget extends Module {
 
     onConfirm: (url: string) => void;
     onCloseButtonClick: () => void;
-    onRefresh: () => void;
+    onRefresh: (maxWidth: string) => void;
 
     static async create(options?: ScomPostComposerWidgetsElement, parent?: Container) {
         let self = new this(parent, options);
@@ -106,30 +108,35 @@ export class ScomPostComposerWidget extends Module {
         this.iconBack.visible = false;
         this.iconClose.visible = true;
         this.pnlWidgets.visible = true;
-        this.pnlForm.visible = false;
+        this.pnlConfig.visible = false;
         this.pnlLoading.visible = false;
         this.actionForm.visible = false;
+        if (this.onRefresh) this.onRefresh('50rem');
     }
 
     private async renderForm(module: string | string[]) {
+        this.pnlWidgetWrapper.clearInnerHTML();
+        this.pnlWidgetWrapper.visible = false;
         this.pnlCustomForm.clearInnerHTML();
         this.pnlCustomForm.visible = false;
         if (Array.isArray(module)) {
-            const items = module.map(type => ({ value: type, label: type.split('-')[1]}));
+            this.pnlConfig.templateColumns = ['100%'];
+            const items = module.map(type => ({ value: type, label: type.split('-')[1] }));
             this.pnlCustomForm.appendChild(
                 <i-stack direction="vertical" width="100%" gap="0.625rem">
-                  <i-label caption="Type"></i-label>
-                  <i-combo-box
-                    id="cbType"
-                    items={items}
-                    width={'100%'}
-                    height={'2.625rem'}
-                    onChanged={this.onTypeChanged}
-                  ></i-combo-box>
+                    <i-label caption="Type"></i-label>
+                    <i-combo-box
+                        id="cbType"
+                        items={items}
+                        width={'100%'}
+                        height={'2.625rem'}
+                        onChanged={this.onTypeChanged}
+                    ></i-combo-box>
                 </i-stack>
             );
             this.pnlCustomForm.visible = true;
         } else {
+            this.pnlConfig.templateColumns = innerWidth > 768 ? ['50%', '50%'] : ['100%'];
             await this.loadWidgetConfig(module);
         }
     }
@@ -146,15 +153,24 @@ export class ScomPostComposerWidget extends Module {
         }
         return action;
     }
-    
+
     private async loadWidgetConfig(module: string) {
+        this.pnlWidgetWrapper.visible = false;
         const elm: any = await application.createElement(module);
+        this.pnlWidgetWrapper.clearInnerHTML();
+        this.pnlWidgetWrapper.visible = true;
+        this.pnlWidgetWrapper.appendChild(elm);
         if (elm?.getConfigurators) {
             const isChart = chartWidgets.includes(module);
             const action = this.getActions(elm, isChart);
+            const builder = elm.getConfigurators().find((conf: any) => conf.target === 'Builders');
+            const hasBuilder = builder && typeof builder.setData === 'function';
             if (action) {
                 if (action.customUI) {
-                    this.customForm = await action.customUI.render({}, this.onSave.bind(this));
+                    if (hasBuilder) {
+                        builder.setData({});
+                    }
+                    this.customForm = await action.customUI.render(hasBuilder ? {...elm.getData()} : {}, this.onSave.bind(this));
                     this.pnlCustomForm.append(this.customForm);
                     this.pnlCustomForm.visible = true;
                 } else {
@@ -164,38 +180,55 @@ export class ScomPostComposerWidget extends Module {
                         columnWidth: '100%',
                         columnsPerRow: 1,
                         confirmButtonOptions: {
-                        caption: 'Confirm',
-                        backgroundColor: Theme.colors.primary.main,
-                        fontColor: Theme.colors.primary.contrastText,
-                        padding: {top: '0.5rem', bottom: '0.5rem', right: '1rem', left: '1rem'},
-                        border: {radius: '0.5rem'},
-                        hide: false,
-                        onClick: async () => {
+                            caption: 'Confirm',
+                            backgroundColor: Theme.colors.primary.main,
+                            fontColor: Theme.colors.primary.contrastText,
+                            padding: { top: '0.5rem', bottom: '0.5rem', right: '1rem', left: '1rem' },
+                            border: { radius: '0.5rem' },
+                            hide: false,
+                            onClick: async () => {
+                                const data = await this.actionForm.getFormData();
+                                const url = getWidgetEmbedUrl(module, data);
+                                if (this.onConfirm) this.onConfirm(url);
+                            }
+                        },
+                        onChange: async () => {
                             const data = await this.actionForm.getFormData();
-                            const url = getWidgetEmbedUrl(module, data);
-                            if (this.onConfirm) this.onConfirm(url);
-                        }
+                            const validationResult = this.actionForm.validate(data, this.actionForm.jsonSchema, { changing: false });
+                            if (validationResult.valid && hasBuilder) {
+                                elm.setData(data);
+                            }
                         },
                         customControls: action.customControls,
                         dateTimeFormat: {
-                        date: 'YYYY-MM-DD',
-                        time: 'HH:mm:ss',
-                        dateTime: 'MM/DD/YYYY HH:mm'
+                            date: 'YYYY-MM-DD',
+                            time: 'HH:mm:ss',
+                            dateTime: 'MM/DD/YYYY HH:mm'
                         }
                     };
                     this.actionForm.renderForm();
                     this.actionForm.clearFormData();
                     this.actionForm.visible = true;
+
+                    // Set default data
+                    setTimeout(() => {
+                        if (hasBuilder) {
+                            builder.setData({});
+                            const data = elm.getData();
+                            this.actionForm.setFormData({ ...data });
+                        }
+                    })
                 }
             }
         }
     }
 
     private async onTypeChanged(target: ComboBox) {
+        this.pnlConfig.templateColumns = innerWidth > 768 ? ['50%', '50%'] : ['100%'];
         const name = (target.selectedItem as IComboItem).value;
         if (this.customForm) this.customForm.remove();
         await this.loadWidgetConfig(name);
-        if (this.onRefresh) this.onRefresh();
+        if (this.onRefresh) this.onRefresh('90rem');
     }
 
     private onSave(result: boolean, data: any) {
@@ -212,11 +245,11 @@ export class ScomPostComposerWidget extends Module {
         this.iconBack.visible = true;
         this.iconClose.visible = false;
         this.pnlWidgets.visible = false;
-        this.pnlForm.visible = true;
+        this.pnlConfig.visible = true;
         this.pnlLoading.visible = true;
         await this.renderForm(widget.name);
         this.pnlLoading.visible = false;
-        if (this.onRefresh) this.onRefresh();
+        if (this.onRefresh) this.onRefresh(Array.isArray(widget.name) ? '50rem' : '90rem');
     }
 
     render() {
@@ -238,7 +271,7 @@ export class ScomPostComposerWidget extends Module {
                             id="iconBack"
                             width="1rem"
                             height="1rem"
-                            name="arrow-left" 
+                            name="arrow-left"
                             fill={Theme.colors.primary.main}
                             onClick={this.back}
                             cursor="pointer"
@@ -257,30 +290,46 @@ export class ScomPostComposerWidget extends Module {
                     ></i-icon>
                 </i-stack>
                 <i-stack id="pnlWidgets" direction="vertical" gap="0.5rem"></i-stack>
-                <i-panel id="pnlForm" visible={false}>
-                    <i-form id="actionForm" visible={false} class={formStyle}></i-form>
-                    <i-stack id="pnlCustomForm" direction="vertical" visible={false}></i-stack>
-                    <i-stack
-                        id="pnlLoading"
-                        direction="vertical"
-                        position="relative"
-                        height="100%" width="100%"
-                        minHeight={100}
-                        class="i-loading-overlay"
-                        visible={false}
-                    >
-                        <i-stack direction="vertical" class="i-loading-spinner" alignItems="center"
-                            justifyContent="center">
-                            <i-icon
-                                class="i-loading-spinner_icon"
-                                name="spinner"
-                                width={24}
-                                height={24}
-                                fill={Theme.colors.primary.main}
-                            />
+                <i-grid-layout
+                    id="pnlConfig"
+                    visible={false}
+                    gap={{ column: '0.5rem' }}
+                    templateColumns={['50%', '50%']}
+                    mediaQueries={[
+                        {
+                            maxWidth: '768px',
+                            properties: {
+                                templateColumns: ['100%']
+                            }
+                        }
+                    ]}
+                >
+                    <i-panel id="pnlWidgetWrapper" />
+                    <i-panel>
+                        <i-form id="actionForm" visible={false} class={formStyle}></i-form>
+                        <i-stack id="pnlCustomForm" direction="vertical" visible={false}></i-stack>
+                        <i-stack
+                            id="pnlLoading"
+                            direction="vertical"
+                            position="relative"
+                            height="100%" width="100%"
+                            minHeight={100}
+                            class="i-loading-overlay"
+                            visible={false}
+                        >
+                            <i-stack direction="vertical" class="i-loading-spinner" alignItems="center"
+                                justifyContent="center">
+                                <i-icon
+                                    class="i-loading-spinner_icon"
+                                    name="spinner"
+                                    width={24}
+                                    height={24}
+                                    fill={Theme.colors.primary.main}
+                                />
+                            </i-stack>
                         </i-stack>
-                    </i-stack>
-                </i-panel>
+                    </i-panel>
+                </i-grid-layout>
             </i-stack>
         )
     }

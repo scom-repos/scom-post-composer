@@ -112,7 +112,7 @@ declare module "@scom/scom-post-composer/components/widgets.tsx" {
     interface ScomPostComposerWidgetsElement extends ControlElement {
         onConfirm?: (url: string) => void;
         onCloseButtonClick?: () => void;
-        onRefresh?: () => void;
+        onRefresh?: (maxWidth: string) => void;
     }
     global {
         namespace JSX {
@@ -126,7 +126,8 @@ declare module "@scom/scom-post-composer/components/widgets.tsx" {
         private iconBack;
         private iconClose;
         private pnlWidgets;
-        private pnlForm;
+        private pnlConfig;
+        private pnlWidgetWrapper;
         private pnlLoading;
         private actionForm;
         private pnlCustomForm;
@@ -134,7 +135,7 @@ declare module "@scom/scom-post-composer/components/widgets.tsx" {
         private customForm;
         onConfirm: (url: string) => void;
         onCloseButtonClick: () => void;
-        onRefresh: () => void;
+        onRefresh: (maxWidth: string) => void;
         static create(options?: ScomPostComposerWidgetsElement, parent?: Container): Promise<ScomPostComposerWidget>;
         private handleCloseButtonClick;
         init(): void;
