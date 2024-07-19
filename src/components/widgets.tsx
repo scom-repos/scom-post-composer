@@ -14,13 +14,14 @@ import {
     IComboItem,
     GridLayout,
 } from '@ijstech/components';
-import { chartWidgets, getWidgetEmbedUrl, IWidget, widgets } from '../global';
+import { chartWidgets, extractWidgetUrl, getWidgetEmbedUrl, IWidget, widgets } from '../global';
 import { formStyle } from '../index.css';
 
 const Theme = Styles.Theme.ThemeVars;
 
 interface ScomPostComposerWidgetsElement extends ControlElement {
     onConfirm?: (url: string) => void;
+    onUpdate?: (oldUrl: string, newUrl: string) => void;
     onCloseButtonClick?: () => void;
     onRefresh?: (maxWidth: string) => void;
 }
@@ -46,8 +47,10 @@ export class ScomPostComposerWidget extends Module {
     private pnlCustomForm: StackLayout;
     private cbType: ComboBox;
     private customForm: any;
+    private currentUrl: string;
 
     onConfirm: (url: string) => void;
+    onUpdate: (oldUrl: string, newUrl: string) => void;
     onCloseButtonClick: () => void;
     onRefresh: (maxWidth: string) => void;
 
@@ -65,13 +68,18 @@ export class ScomPostComposerWidget extends Module {
         super.init();
         this.onTypeChanged = this.onTypeChanged.bind(this);
         this.onConfirm = this.getAttribute('onConfirm', true) || this.onConfirm;
+        this.onUpdate = this.getAttribute('onUpdate', true) || this.onUpdate;
         this.onCloseButtonClick = this.getAttribute('onCloseButtonClick', true) || this.onCloseButtonClick;
         this.onRefresh = this.getAttribute('onRefresh', true) || this.onRefresh;
         this.renderWidgets();
     }
 
-    show() {
-        this.back();
+    show(url?: string) {
+        if (url) {
+            this.renderConfig(url);
+        } else {
+            this.back();
+        }
     }
 
     private renderWidgets() {
@@ -114,11 +122,20 @@ export class ScomPostComposerWidget extends Module {
         if (this.onRefresh) this.onRefresh('50rem');
     }
 
-    private async renderForm(module: string | string[]) {
+    private renderConfig(url: string) {
+        let widgetData = extractWidgetUrl(url);
+        const { moduleName, data } = widgetData;
+        this.selectWidget({ title: 'Config', name: moduleName }, { data, url });
+        this.iconBack.visible = false;
+        this.iconClose.visible = true;
+    }
+
+    private async renderForm(module: string | string[], widgetData?: { data: any, url: string }) {
         this.pnlWidgetWrapper.clearInnerHTML();
         this.pnlWidgetWrapper.visible = false;
         this.pnlCustomForm.clearInnerHTML();
         this.pnlCustomForm.visible = false;
+        this.actionForm.visible = false;
         if (Array.isArray(module)) {
             this.pnlConfig.templateColumns = ['100%'];
             const items = module.map(type => ({ value: type, label: type.split('-')[1] }));
@@ -137,7 +154,7 @@ export class ScomPostComposerWidget extends Module {
             this.pnlCustomForm.visible = true;
         } else {
             this.pnlConfig.templateColumns = innerWidth > 768 ? ['50%', '50%'] : ['100%'];
-            await this.loadWidgetConfig(module);
+            await this.loadWidgetConfig(module, widgetData);
         }
     }
 
@@ -154,7 +171,9 @@ export class ScomPostComposerWidget extends Module {
         return action;
     }
 
-    private async loadWidgetConfig(module: string) {
+    private async loadWidgetConfig(module: string, widgetData?: { data: any, url: string }) {
+        const { data, url } = widgetData || {};
+        this.currentUrl = url;
         this.pnlWidgetWrapper.visible = false;
         const elm: any = await application.createElement(module);
         this.pnlWidgetWrapper.clearInnerHTML();
@@ -168,9 +187,9 @@ export class ScomPostComposerWidget extends Module {
             if (action) {
                 if (action.customUI) {
                     if (hasBuilder) {
-                        builder.setData({});
+                        builder.setData(data || {});
                     }
-                    this.customForm = await action.customUI.render(hasBuilder ? {...elm.getData()} : {}, this.onSave.bind(this));
+                    this.customForm = await action.customUI.render(hasBuilder ? { ...elm.getData() } : {}, this.onSave.bind(this));
                     this.pnlCustomForm.append(this.customForm);
                     this.pnlCustomForm.visible = true;
                 } else {
@@ -187,16 +206,48 @@ export class ScomPostComposerWidget extends Module {
                             border: { radius: '0.5rem' },
                             hide: false,
                             onClick: async () => {
-                                const data = await this.actionForm.getFormData();
-                                const url = getWidgetEmbedUrl(module, data);
-                                if (this.onConfirm) this.onConfirm(url);
+                                const formData = await this.actionForm.getFormData();
+                                const widgetUrl = getWidgetEmbedUrl(module, formData);
+                                if (url && this.onUpdate) {
+                                    if (this.onUpdate) this.onUpdate(url, widgetUrl);
+                                } else if (this.onConfirm) {
+                                    this.onConfirm(widgetUrl);
+                                }
                             }
                         },
                         onChange: async () => {
-                            const data = await this.actionForm.getFormData();
-                            const validationResult = this.actionForm.validate(data, this.actionForm.jsonSchema, { changing: false });
-                            if (validationResult.valid && hasBuilder) {
-                                elm.setData(data);
+                            const formData = await this.actionForm.getFormData();
+                            if (typeof elm.setTag === 'function' && formData) {
+                                const oldTag = typeof elm.getTag === 'function' ? await elm.getTag() : {};
+                                const oldDark = this.getThemeValues(oldTag?.dark);
+                                const oldLight = this.getThemeValues(oldTag?.light);
+                                const { dark, light } = formData;
+                                let tag = {};
+                                const darkTheme = this.getThemeValues(dark);
+                                const lightTheme = this.getThemeValues(light);
+                                let isTagChanged = false;
+                                if (darkTheme) {
+                                    tag['dark'] = darkTheme;
+                                    isTagChanged = this.compareThemes(oldDark, darkTheme);
+                                }
+                                if (lightTheme) {
+                                    tag['light'] = lightTheme;
+                                    if (!isTagChanged) {
+                                        isTagChanged = this.compareThemes(oldLight, lightTheme);
+                                    }
+                                }
+                                if (Object.keys(tag).length) {
+                                    elm.setTag(tag);
+                                }
+                                if (isTagChanged) return;
+                            }
+                            const validationResult = this.actionForm.validate(formData, this.actionForm.jsonSchema, { changing: false });
+                            if (validationResult.valid) {
+                                if (hasBuilder) {
+                                    builder.setData(formData);
+                                } else if (typeof elm.setData === 'function') {
+                                    elm.setData(formData);
+                                }
                             }
                         },
                         customControls: action.customControls,
@@ -211,16 +262,55 @@ export class ScomPostComposerWidget extends Module {
                     this.actionForm.visible = true;
 
                     // Set default data
-                    setTimeout(() => {
-                        if (hasBuilder) {
-                            builder.setData({});
-                            const data = elm.getData();
+                    setTimeout(async () => {
+                        if (data) {
                             this.actionForm.setFormData({ ...data });
+                            const { dark, light, tag } = data;
+                            let widgetTag = {};
+                            const darkTheme = this.getThemeValues(dark);
+                            const lightTheme = this.getThemeValues(light);
+                            if (darkTheme) {
+                                widgetTag['dark'] = darkTheme;
+                            }
+                            if (lightTheme) {
+                                widgetTag['light'] = lightTheme;
+                            }
+                            widgetTag = { ...widgetTag, ...tag };
+                            if (typeof elm.setTag === 'function' && Object.keys(widgetTag).length) {
+                                elm.setTag(widgetTag);
+                            }
+                            if (hasBuilder) {
+                                builder.setData(data);
+                            } else if (typeof elm.setData === 'function') {
+                                elm.setData(data);
+                            }
+                        } else if (hasBuilder) {
+                            builder.setData({});
+                            const elmData = await elm.getData();
+                            this.actionForm.setFormData({ ...elmData });
                         }
                     })
                 }
             }
         }
+    }
+
+    private getThemeValues(theme: any) {
+        if (!theme || typeof theme !== 'object') return null;
+        let values = {};
+        for (let prop in theme) {
+            if (theme[prop]) values[prop] = theme[prop];
+        }
+        return Object.keys(values).length ? values : null;
+    }
+
+    private compareThemes(oldValues: any, newValues: any) {
+        for (let prop in newValues) {
+            if (!oldValues.hasOwnProperty(prop) || newValues[prop] !== oldValues[prop]) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private async onTypeChanged(target: ComboBox) {
@@ -237,17 +327,21 @@ export class ScomPostComposerWidget extends Module {
             data.name = (this.cbType.selectedItem as IComboItem).value;
         }
         const url = getWidgetEmbedUrl(data.name, data);
-        if (this.onConfirm) this.onConfirm(url);
+        if (this.currentUrl) {
+            if (this.onUpdate) this.onUpdate(this.currentUrl, url);
+        } else if (this.onConfirm) {
+            this.onConfirm(url);
+        }
     }
 
-    private async selectWidget(widget: IWidget) {
+    private async selectWidget(widget: IWidget, widgetData?: { data: any, url: string }) {
         this.lblTitle.caption = widget.title;
         this.iconBack.visible = true;
         this.iconClose.visible = false;
         this.pnlWidgets.visible = false;
         this.pnlConfig.visible = true;
         this.pnlLoading.visible = true;
-        await this.renderForm(widget.name);
+        await this.renderForm(widget.name, widgetData);
         this.pnlLoading.visible = false;
         if (this.onRefresh) this.onRefresh(Array.isArray(widget.name) ? '50rem' : '90rem');
     }

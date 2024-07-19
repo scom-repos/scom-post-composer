@@ -17,7 +17,8 @@ import {
     Icon,
     VStack,
     Control,
-    Switch, application, IPFS, StackLayout, IconName
+    Switch, application, IPFS, StackLayout, IconName,
+    Alert
 } from '@ijstech/components';
 import {IPost, IPostData} from '@scom/scom-post';
 import {
@@ -28,11 +29,13 @@ import {
     IEmojiCategory,
     colorsMapper,
     IEmoji,
-    searchEmojis
+    searchEmojis,
+    extractWidgetUrl,
+    getEmbedElement
 } from './global/index';
 import assets from './assets';
 import {ScomPostComposerUpload, ScomPostComposerWidget} from './components/index';
-import { modalStyle } from './index.css';
+import { widgetPreviewStyle, modalStyle } from './index.css';
 import {ScomStorage} from '@scom/scom-storage';
 
 const Theme = Styles.Theme.ThemeVars;
@@ -148,6 +151,7 @@ export class ScomPostComposer extends Module {
     private mdPostActions: Modal;
     private storageEl: ScomStorage;
     private widgetModule: ScomPostComposerWidget;
+    private mdAlert: Alert;
 
     private _focusedPost: IPost;
     private _data: IReplyInput;
@@ -200,6 +204,7 @@ export class ScomPostComposer extends Module {
         this.showStorage = this.showStorage.bind(this);
         this.onShowGifModal = this.onShowGifModal.bind(this);
         this.onShowWidgets = this.onShowWidgets.bind(this);
+        this.onShowDeleteWidget = this.onShowDeleteWidget.bind(this);
     }
 
     static async create(options?: ScomPostComposerElement, parent?: Container) {
@@ -426,7 +431,8 @@ export class ScomPostComposer extends Module {
     private onReply() {
         if (this.onSubmit) {
             this._data.value = this.updatedValue;
-            this.onSubmit(this._data.value, [...this.newReply]);
+            const extractedText = this._data.value.replace(/\$\$widget0\s+(.*?)\$\$/g, '$1');
+            this.onSubmit(extractedText, [...this.newReply]);
         }
         this.resetEditor();
         // this.pnlMedias.clearInnerHTML();
@@ -1102,12 +1108,18 @@ export class ScomPostComposer extends Module {
         this.storageEl.onShow();
     }
 
-    private async onShowWidgets() {
+    private async onShowWidgets(widget?: { widgetUrl: string, icon: Icon }) {
         if (!this.widgetModule) {
             this.widgetModule = await ScomPostComposerWidget.create({
                 onConfirm: (url: string) => {
                     if (url)
                         this.mdEditor.value = this.updatedValue + '\n\n' + url + '\n\n';
+                    this.widgetModule.closeModal();
+                },
+                onUpdate: (oldUrl: string, newUrl: string) => {
+                    if (newUrl) {
+                        this.mdEditor.value = this.updatedValue.replace(`$$widget0 ${oldUrl}$$`, newUrl);
+                    }
                     this.widgetModule.closeModal();
                 },
                 onCloseButtonClick: () => {
@@ -1128,7 +1140,83 @@ export class ScomPostComposer extends Module {
             if (wrapper) wrapper.style.maxWidth = maxWidth;
             modal.refresh();
         }
-        this.widgetModule.show();
+        if (widget) {
+            const { icon, widgetUrl } = widget;
+            this.widgetModule.onUpdate = (oldUrl: string, newUrl: string) => {
+                if (newUrl) {
+                    const editor = icon.closest('i-markdown-editor#mdEditor') as MarkdownEditor;
+                    if (!editor) return;
+                    const value = editor.getMarkdownValue();
+                    editor.value = value.replace(`$$widget0 ${oldUrl}$$`, newUrl);
+                }
+                this.widgetModule.closeModal();
+            }
+            this.widgetModule.show(widgetUrl);
+        } else {
+            this.widgetModule.show();
+        }
+    }
+
+    private onShowDeleteWidget(widget: string, icon: Icon) {
+        const editor = icon.closest('i-markdown-editor#mdEditor') as MarkdownEditor;
+        if (!editor) return;
+        const alert = editor.closest('i-scom-post-composer')?.querySelector('i-alert') as Alert;
+        if (!alert) {
+            const value = editor.getMarkdownValue();
+            editor.value = value.replace(`$$widget0 ${widget}$$`, '');
+        } else {
+            alert.onConfirm = () => {
+                const value = editor.getMarkdownValue();
+                editor.value = value.replace(`$$widget0 ${widget}$$`, '');
+            }
+            alert.showModal();
+        }
+    }
+
+    private renderWidget(url: string) {
+        let widgetData = extractWidgetUrl(url);
+        const pnl = new Panel(undefined, { width: '100%' });
+        pnl.classList.add(widgetPreviewStyle);
+        const hStack = new HStack(pnl, {
+            width: '100%',
+            gap: '0.75rem',
+            verticalAlignment: 'center',
+            horizontalAlignment: 'end',
+            margin: { bottom: '0.5rem'},
+            padding: { left: '0.75rem', right: '0.75rem' }
+        });
+        const iconConfig = new Icon(hStack, {
+            name: 'cog',
+            fill: Theme.text.primary,
+            width: '1rem',
+            height: '1rem',
+            cursor: 'pointer',
+            tooltip: { content: 'Config' }
+        });
+        iconConfig.onClick = () => { this.onShowWidgets({ widgetUrl: url, icon: iconConfig }) };
+
+        const iconDelete = new Icon(hStack, {
+            name: 'trash',
+            fill: '#e45a5a',
+            width: '1rem',
+            height: '1rem',
+            cursor: 'pointer',
+            tooltip: { content: 'Delete' }
+        });
+        iconDelete.onClick = () => { this.onShowDeleteWidget(url, iconDelete) };
+
+        getEmbedElement({
+            module: widgetData.moduleName,
+            data: {
+                properties: {
+                    ...widgetData.data
+                },
+                tag: {
+                    width: '100%'
+                }
+            }
+        }, pnl);
+        return pnl;
     }
 
     protected _handleClick(event: MouseEvent, stopPropagation?: boolean): boolean {
@@ -1144,7 +1232,6 @@ export class ScomPostComposer extends Module {
         this.onShowModal('mdPostAudience');
     }
 
-    // position={'absolute'} top={0} height={'100vh'} zIndex={999}
     init() {
         super.init();
         this.onChanged = this.getAttribute('onChanged', true) || this.onChanged;
@@ -1181,6 +1268,21 @@ export class ScomPostComposer extends Module {
             this.mdEditor.setFocus();
         // }
         // this.updateFocusedPost();
+
+        const self = this;
+        this.mdEditor.widgetRules = [
+            {
+                rule: /https?:\/\/widget\.\S+\/scom\/\S+\/\S+/g,
+                toDOM(text) {
+                    try {
+                        const widget = self.renderWidget(text);
+                        return widget;
+                    } catch {
+                        return text;
+                    }
+                },
+            },
+        ]
     }
 
     private async handleMobileCloseComposer() {
@@ -1482,7 +1584,7 @@ export class ScomPostComposer extends Module {
                             padding={{top: 5, bottom: 5, left: 5, right: 5}}
                             tooltip={{content: 'Widgets', placement: 'bottom'}}
                             cursor="pointer"
-                            onClick={this.onShowWidgets}
+                            onClick={() => this.onShowWidgets()}
                         ></i-icon>
                     </i-hstack>
                     <i-panel>
@@ -1956,7 +2058,7 @@ export class ScomPostComposer extends Module {
                             padding={{top: 5, bottom: 5, left: 5, right: 5}}
                             tooltip={{content: 'Widgets', placement: 'bottom'}}
                             cursor="pointer"
-                            onClick={this.onShowWidgets}
+                            onClick={() => this.onShowWidgets()}
                         ></i-icon>
                     </i-hstack>
                     <i-stack direction="horizontal" width="100%" alignItems="center" justifyContent="end" gap="0.5rem">
@@ -2202,7 +2304,14 @@ export class ScomPostComposer extends Module {
 
     render() {
         return (
-            <i-panel id={'pnlPostComposer'}></i-panel>
+            <i-panel id={'pnlPostComposer'}>
+                <i-alert
+                    id="mdAlert"
+                    status="confirm"
+                    title="Are you sure?"
+                    content="Do you really want to delete this widget?"
+                />
+            </i-panel>
         );
     }
 }
