@@ -1099,6 +1099,7 @@ export class ScomPostComposer extends Module {
             closeIcon: {width: '1rem', height: '1rem', name: 'times', fill: Theme.text.primary, margin: {bottom: '0.5rem'}},
             class: modalStyle
         })
+        this.storageEl.onShow();
     }
 
     private async onShowWidgets() {
