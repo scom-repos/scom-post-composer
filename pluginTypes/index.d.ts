@@ -1,9 +1,15 @@
 /// <amd-module name="@scom/scom-post-composer/global/index.ts" />
 declare module "@scom/scom-post-composer/global/index.ts" {
-    import { IconName } from "@ijstech/components";
+    import { Control, IconName } from "@ijstech/components";
     export const fetchGifs: (params: any) => Promise<any>;
     export const fetchReactionGifs: () => Promise<any>;
     export const getWidgetEmbedUrl: (module: string, data: any) => string;
+    export const extractWidgetUrl: (url: string) => {
+        moduleName: string;
+        modifiedTime: any;
+        data: any;
+    };
+    export const getEmbedElement: (postData: any, parent: Control) => Promise<any>;
     export interface IEmojiCategory {
         name: string;
         value: string;
@@ -19,9 +25,9 @@ declare module "@scom/scom-post-composer/global/index.ts" {
     }
     export interface IWidget {
         name: string | string[];
-        icon: IconName;
+        icon?: IconName;
         title: string;
-        description: string;
+        description?: string;
     }
     export const emojiCategories: {
         name: string;
@@ -105,12 +111,14 @@ declare module "@scom/scom-post-composer/components/form.tsx" {
 declare module "@scom/scom-post-composer/index.css.ts" {
     export const modalStyle: string;
     export const formStyle: string;
+    export const widgetPreviewStyle: string;
 }
 /// <amd-module name="@scom/scom-post-composer/components/widgets.tsx" />
 declare module "@scom/scom-post-composer/components/widgets.tsx" {
     import { ControlElement, Module, Container } from '@ijstech/components';
     interface ScomPostComposerWidgetsElement extends ControlElement {
         onConfirm?: (url: string) => void;
+        onUpdate?: (oldUrl: string, newUrl: string) => void;
         onCloseButtonClick?: () => void;
         onRefresh?: (maxWidth: string) => void;
     }
@@ -133,18 +141,23 @@ declare module "@scom/scom-post-composer/components/widgets.tsx" {
         private pnlCustomForm;
         private cbType;
         private customForm;
+        private currentUrl;
         onConfirm: (url: string) => void;
+        onUpdate: (oldUrl: string, newUrl: string) => void;
         onCloseButtonClick: () => void;
         onRefresh: (maxWidth: string) => void;
         static create(options?: ScomPostComposerWidgetsElement, parent?: Container): Promise<ScomPostComposerWidget>;
         private handleCloseButtonClick;
         init(): void;
-        show(): void;
+        show(url?: string): void;
         private renderWidgets;
         private back;
+        private renderConfig;
         private renderForm;
         private getActions;
         private loadWidgetConfig;
+        private getThemeValues;
+        private compareThemes;
         private onTypeChanged;
         private onSave;
         private selectWidget;
@@ -235,6 +248,7 @@ declare module "@scom/scom-post-composer" {
         private mdPostActions;
         private storageEl;
         private widgetModule;
+        private mdAlert;
         private _focusedPost;
         private _data;
         private currentGifPage;
@@ -335,6 +349,8 @@ declare module "@scom/scom-post-composer" {
         private onEmojiMdOpen;
         private showStorage;
         private onShowWidgets;
+        private onShowDeleteWidget;
+        private renderWidget;
         protected _handleClick(event: MouseEvent, stopPropagation?: boolean): boolean;
         private showPostAudienceModal;
         init(): void;

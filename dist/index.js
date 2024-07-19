@@ -4,10 +4,10 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-define("@scom/scom-post-composer/global/index.ts", ["require", "exports"], function (require, exports) {
+define("@scom/scom-post-composer/global/index.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.widgets = exports.chartWidgets = exports.searchEmojis = exports.fetchEmojis = exports.colorsMapper = exports.emojiCategories = exports.getWidgetEmbedUrl = exports.fetchReactionGifs = exports.fetchGifs = void 0;
+    exports.widgets = exports.chartWidgets = exports.searchEmojis = exports.fetchEmojis = exports.colorsMapper = exports.emojiCategories = exports.getEmbedElement = exports.extractWidgetUrl = exports.getWidgetEmbedUrl = exports.fetchReactionGifs = exports.fetchGifs = void 0;
     const fetchGifs = async (params) => {
         if (!params.offset)
             params.offset = 0;
@@ -48,6 +48,7 @@ define("@scom/scom-post-composer/global/index.ts", ["require", "exports"], funct
                     name: module
                 },
                 properties: { ...data },
+                modifiedTime: Date.now()
             };
             const encodedWidgetDataString = encodeURIComponent(window.btoa(JSON.stringify(widgetData)));
             const moduleName = module.slice(1);
@@ -56,6 +57,74 @@ define("@scom/scom-post-composer/global/index.ts", ["require", "exports"], funct
         return '';
     };
     exports.getWidgetEmbedUrl = getWidgetEmbedUrl;
+    const extractWidgetUrl = (url) => {
+        const rule = /https?:\/\/widget\.\S+\/scom\/\S+\/\S+/g;
+        let match = rule.exec(url);
+        let widgetUrl = match && match[0] || '';
+        if (!widgetUrl)
+            return null;
+        let arr = widgetUrl.split('/scom/');
+        let paths = arr[1].split('/');
+        const moduleName = `@scom/${paths[0]}`;
+        let data;
+        try {
+            const dataBase64 = decodeURIComponent(paths.slice(1).join('/'));
+            data = JSON.parse(atob(dataBase64));
+            if ('properties' in data) {
+                data = { ...data.properties };
+            }
+        }
+        catch (err) { }
+        return {
+            moduleName,
+            modifiedTime: data?.modifiedTime,
+            data: { ...data }
+        };
+    };
+    exports.extractWidgetUrl = extractWidgetUrl;
+    const getEmbedElement = async (postData, parent) => {
+        const { module, data } = postData;
+        if (parent.ready)
+            await parent.ready();
+        const elm = await components_1.application.createElement(module, true);
+        if (!elm)
+            throw new Error('not found');
+        elm.parent = parent;
+        const builderTarget = elm.getConfigurators ? elm.getConfigurators().find((conf) => conf.target === 'Builders' || conf.target === 'Editor') : null;
+        if (elm.ready)
+            await elm.ready();
+        elm.maxWidth = '100%';
+        elm.maxHeight = '100%';
+        if (builderTarget?.setData && data.properties) {
+            await builderTarget.setData(data.properties);
+        }
+        const { dark, light } = data.properties || {};
+        let tag = {};
+        const darkTheme = getThemeValues(dark);
+        const lightTheme = getThemeValues(light);
+        if (darkTheme) {
+            tag['dark'] = darkTheme;
+        }
+        if (lightTheme) {
+            tag['light'] = lightTheme;
+        }
+        tag = { ...tag, ...data.tag };
+        if (builderTarget?.setTag && Object.keys(tag).length) {
+            await builderTarget.setTag(tag);
+        }
+        return elm;
+    };
+    exports.getEmbedElement = getEmbedElement;
+    const getThemeValues = (theme) => {
+        if (!theme || typeof theme !== 'object')
+            return null;
+        let values = {};
+        for (let prop in theme) {
+            if (theme[prop])
+                values[prop] = theme[prop];
+        }
+        return Object.keys(values).length ? values : null;
+    };
     exports.emojiCategories = [
         {
             name: 'Recent',
@@ -210,10 +279,10 @@ define("@scom/scom-post-composer/global/index.ts", ["require", "exports"], funct
         }
     ];
 });
-define("@scom/scom-post-composer/assets.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_1) {
+define("@scom/scom-post-composer/assets.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const moduleDir = components_1.application.currentModuleDir;
+    const moduleDir = components_2.application.currentModuleDir;
     function fullPath(path) {
         return `${moduleDir}/${path}`;
     }
@@ -222,12 +291,12 @@ define("@scom/scom-post-composer/assets.ts", ["require", "exports", "@ijstech/co
         fullPath
     };
 });
-define("@scom/scom-post-composer/components/form.tsx", ["require", "exports", "@ijstech/components"], function (require, exports, components_2) {
+define("@scom/scom-post-composer/components/form.tsx", ["require", "exports", "@ijstech/components"], function (require, exports, components_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomPostComposerUpload = void 0;
-    const Theme = components_2.Styles.Theme.ThemeVars;
-    let ScomPostComposerUpload = class ScomPostComposerUpload extends components_2.Module {
+    const Theme = components_3.Styles.Theme.ThemeVars;
+    let ScomPostComposerUpload = class ScomPostComposerUpload extends components_3.Module {
         static async create(options, parent) {
             let self = new this(parent, options);
             await self.ready();
@@ -271,15 +340,15 @@ define("@scom/scom-post-composer/components/form.tsx", ["require", "exports", "@
         }
     };
     ScomPostComposerUpload = __decorate([
-        (0, components_2.customElements)('i-scom-post-composer-upload')
+        (0, components_3.customElements)('i-scom-post-composer-upload')
     ], ScomPostComposerUpload);
     exports.ScomPostComposerUpload = ScomPostComposerUpload;
 });
-define("@scom/scom-post-composer/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_3) {
+define("@scom/scom-post-composer/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_4) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.formStyle = exports.modalStyle = void 0;
-    exports.modalStyle = components_3.Styles.style({
+    exports.widgetPreviewStyle = exports.formStyle = exports.modalStyle = void 0;
+    exports.modalStyle = components_4.Styles.style({
         $nest: {
             '.modal > div:nth-child(2)': {
                 width: '100%',
@@ -294,20 +363,31 @@ define("@scom/scom-post-composer/index.css.ts", ["require", "exports", "@ijstech
             }
         }
     });
-    exports.formStyle = components_3.Styles.style({
+    exports.formStyle = components_4.Styles.style({
         $nest: {
             'i-scom-token-input > i-hstack > i-vstack': {
                 margin: '0 !important'
             }
         }
     });
+    exports.widgetPreviewStyle = components_4.Styles.style({
+        boxSizing: 'border-box !important',
+        $nest: {
+            '*': {
+                boxSizing: 'border-box !important'
+            },
+            'img': {
+                margin: 'inherit !important'
+            }
+        }
+    });
 });
-define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-post-composer/global/index.ts", "@scom/scom-post-composer/index.css.ts"], function (require, exports, components_4, global_1, index_css_1) {
+define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-post-composer/global/index.ts", "@scom/scom-post-composer/index.css.ts"], function (require, exports, components_5, global_1, index_css_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomPostComposerWidget = void 0;
-    const Theme = components_4.Styles.Theme.ThemeVars;
-    let ScomPostComposerWidget = class ScomPostComposerWidget extends components_4.Module {
+    const Theme = components_5.Styles.Theme.ThemeVars;
+    let ScomPostComposerWidget = class ScomPostComposerWidget extends components_5.Module {
         static async create(options, parent) {
             let self = new this(parent, options);
             await self.ready();
@@ -321,12 +401,18 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
             super.init();
             this.onTypeChanged = this.onTypeChanged.bind(this);
             this.onConfirm = this.getAttribute('onConfirm', true) || this.onConfirm;
+            this.onUpdate = this.getAttribute('onUpdate', true) || this.onUpdate;
             this.onCloseButtonClick = this.getAttribute('onCloseButtonClick', true) || this.onCloseButtonClick;
             this.onRefresh = this.getAttribute('onRefresh', true) || this.onRefresh;
             this.renderWidgets();
         }
-        show() {
-            this.back();
+        show(url) {
+            if (url) {
+                this.renderConfig(url);
+            }
+            else {
+                this.back();
+            }
         }
         renderWidgets() {
             this.pnlWidgets.clearInnerHTML();
@@ -352,11 +438,19 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
             if (this.onRefresh)
                 this.onRefresh('50rem');
         }
-        async renderForm(module) {
+        renderConfig(url) {
+            let widgetData = (0, global_1.extractWidgetUrl)(url);
+            const { moduleName, data } = widgetData;
+            this.selectWidget({ title: 'Config', name: moduleName }, { data, url });
+            this.iconBack.visible = false;
+            this.iconClose.visible = true;
+        }
+        async renderForm(module, widgetData) {
             this.pnlWidgetWrapper.clearInnerHTML();
             this.pnlWidgetWrapper.visible = false;
             this.pnlCustomForm.clearInnerHTML();
             this.pnlCustomForm.visible = false;
+            this.actionForm.visible = false;
             if (Array.isArray(module)) {
                 this.pnlConfig.templateColumns = ['100%'];
                 const items = module.map(type => ({ value: type, label: type.split('-')[1] }));
@@ -367,7 +461,7 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
             }
             else {
                 this.pnlConfig.templateColumns = innerWidth > 768 ? ['50%', '50%'] : ['100%'];
-                await this.loadWidgetConfig(module);
+                await this.loadWidgetConfig(module, widgetData);
             }
         }
         getActions(elm, isChart) {
@@ -383,9 +477,11 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
             }
             return action;
         }
-        async loadWidgetConfig(module) {
+        async loadWidgetConfig(module, widgetData) {
+            const { data, url } = widgetData || {};
+            this.currentUrl = url;
             this.pnlWidgetWrapper.visible = false;
-            const elm = await components_4.application.createElement(module);
+            const elm = await components_5.application.createElement(module);
             this.pnlWidgetWrapper.clearInnerHTML();
             this.pnlWidgetWrapper.visible = true;
             this.pnlWidgetWrapper.appendChild(elm);
@@ -397,7 +493,7 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
                 if (action) {
                     if (action.customUI) {
                         if (hasBuilder) {
-                            builder.setData({});
+                            builder.setData(data || {});
                         }
                         this.customForm = await action.customUI.render(hasBuilder ? { ...elm.getData() } : {}, this.onSave.bind(this));
                         this.pnlCustomForm.append(this.customForm);
@@ -417,17 +513,52 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
                                 border: { radius: '0.5rem' },
                                 hide: false,
                                 onClick: async () => {
-                                    const data = await this.actionForm.getFormData();
-                                    const url = (0, global_1.getWidgetEmbedUrl)(module, data);
-                                    if (this.onConfirm)
-                                        this.onConfirm(url);
+                                    const formData = await this.actionForm.getFormData();
+                                    const widgetUrl = (0, global_1.getWidgetEmbedUrl)(module, formData);
+                                    if (url && this.onUpdate) {
+                                        if (this.onUpdate)
+                                            this.onUpdate(url, widgetUrl);
+                                    }
+                                    else if (this.onConfirm) {
+                                        this.onConfirm(widgetUrl);
+                                    }
                                 }
                             },
                             onChange: async () => {
-                                const data = await this.actionForm.getFormData();
-                                const validationResult = this.actionForm.validate(data, this.actionForm.jsonSchema, { changing: false });
-                                if (validationResult.valid && hasBuilder) {
-                                    elm.setData(data);
+                                const formData = await this.actionForm.getFormData();
+                                if (typeof elm.setTag === 'function' && formData) {
+                                    const oldTag = typeof elm.getTag === 'function' ? await elm.getTag() : {};
+                                    const oldDark = this.getThemeValues(oldTag?.dark);
+                                    const oldLight = this.getThemeValues(oldTag?.light);
+                                    const { dark, light } = formData;
+                                    let tag = {};
+                                    const darkTheme = this.getThemeValues(dark);
+                                    const lightTheme = this.getThemeValues(light);
+                                    let isTagChanged = false;
+                                    if (darkTheme) {
+                                        tag['dark'] = darkTheme;
+                                        isTagChanged = this.compareThemes(oldDark, darkTheme);
+                                    }
+                                    if (lightTheme) {
+                                        tag['light'] = lightTheme;
+                                        if (!isTagChanged) {
+                                            isTagChanged = this.compareThemes(oldLight, lightTheme);
+                                        }
+                                    }
+                                    if (Object.keys(tag).length) {
+                                        elm.setTag(tag);
+                                    }
+                                    if (isTagChanged)
+                                        return;
+                                }
+                                const validationResult = this.actionForm.validate(formData, this.actionForm.jsonSchema, { changing: false });
+                                if (validationResult.valid) {
+                                    if (hasBuilder) {
+                                        builder.setData(formData);
+                                    }
+                                    else if (typeof elm.setData === 'function') {
+                                        elm.setData(formData);
+                                    }
                                 }
                             },
                             customControls: action.customControls,
@@ -441,16 +572,57 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
                         this.actionForm.clearFormData();
                         this.actionForm.visible = true;
                         // Set default data
-                        setTimeout(() => {
-                            if (hasBuilder) {
-                                builder.setData({});
-                                const data = elm.getData();
+                        setTimeout(async () => {
+                            if (data) {
                                 this.actionForm.setFormData({ ...data });
+                                const { dark, light, tag } = data;
+                                let widgetTag = {};
+                                const darkTheme = this.getThemeValues(dark);
+                                const lightTheme = this.getThemeValues(light);
+                                if (darkTheme) {
+                                    widgetTag['dark'] = darkTheme;
+                                }
+                                if (lightTheme) {
+                                    widgetTag['light'] = lightTheme;
+                                }
+                                widgetTag = { ...widgetTag, ...tag };
+                                if (typeof elm.setTag === 'function' && Object.keys(widgetTag).length) {
+                                    elm.setTag(widgetTag);
+                                }
+                                if (hasBuilder) {
+                                    builder.setData(data);
+                                }
+                                else if (typeof elm.setData === 'function') {
+                                    elm.setData(data);
+                                }
+                            }
+                            else if (hasBuilder) {
+                                builder.setData({});
+                                const elmData = await elm.getData();
+                                this.actionForm.setFormData({ ...elmData });
                             }
                         });
                     }
                 }
             }
+        }
+        getThemeValues(theme) {
+            if (!theme || typeof theme !== 'object')
+                return null;
+            let values = {};
+            for (let prop in theme) {
+                if (theme[prop])
+                    values[prop] = theme[prop];
+            }
+            return Object.keys(values).length ? values : null;
+        }
+        compareThemes(oldValues, newValues) {
+            for (let prop in newValues) {
+                if (!oldValues.hasOwnProperty(prop) || newValues[prop] !== oldValues[prop]) {
+                    return true;
+                }
+            }
+            return false;
         }
         async onTypeChanged(target) {
             this.pnlConfig.templateColumns = innerWidth > 768 ? ['50%', '50%'] : ['100%'];
@@ -467,17 +639,22 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
                 data.name = this.cbType.selectedItem.value;
             }
             const url = (0, global_1.getWidgetEmbedUrl)(data.name, data);
-            if (this.onConfirm)
+            if (this.currentUrl) {
+                if (this.onUpdate)
+                    this.onUpdate(this.currentUrl, url);
+            }
+            else if (this.onConfirm) {
                 this.onConfirm(url);
+            }
         }
-        async selectWidget(widget) {
+        async selectWidget(widget, widgetData) {
             this.lblTitle.caption = widget.title;
             this.iconBack.visible = true;
             this.iconClose.visible = false;
             this.pnlWidgets.visible = false;
             this.pnlConfig.visible = true;
             this.pnlLoading.visible = true;
-            await this.renderForm(widget.name);
+            await this.renderForm(widget.name, widgetData);
             this.pnlLoading.visible = false;
             if (this.onRefresh)
                 this.onRefresh(Array.isArray(widget.name) ? '50rem' : '90rem');
@@ -508,7 +685,7 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
         }
     };
     ScomPostComposerWidget = __decorate([
-        (0, components_4.customElements)('i-scom-post-composer-widgets')
+        (0, components_5.customElements)('i-scom-post-composer-widgets')
     ], ScomPostComposerWidget);
     exports.ScomPostComposerWidget = ScomPostComposerWidget;
 });
@@ -519,11 +696,11 @@ define("@scom/scom-post-composer/components/index.ts", ["require", "exports", "@
     Object.defineProperty(exports, "ScomPostComposerUpload", { enumerable: true, get: function () { return form_1.ScomPostComposerUpload; } });
     Object.defineProperty(exports, "ScomPostComposerWidget", { enumerable: true, get: function () { return widgets_1.ScomPostComposerWidget; } });
 });
-define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components", "@scom/scom-post-composer/global/index.ts", "@scom/scom-post-composer/assets.ts", "@scom/scom-post-composer/components/index.ts", "@scom/scom-post-composer/index.css.ts", "@scom/scom-storage"], function (require, exports, components_5, index_1, assets_1, index_2, index_css_2, scom_storage_1) {
+define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components", "@scom/scom-post-composer/global/index.ts", "@scom/scom-post-composer/assets.ts", "@scom/scom-post-composer/components/index.ts", "@scom/scom-post-composer/index.css.ts", "@scom/scom-storage"], function (require, exports, components_6, index_1, assets_1, index_2, index_css_2, scom_storage_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomPostComposer = void 0;
-    const Theme = components_5.Styles.Theme.ThemeVars;
+    const Theme = components_6.Styles.Theme.ThemeVars;
     const PostAudience = [
         {
             title: 'Public',
@@ -538,7 +715,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             value: 'members'
         }
     ];
-    let ScomPostComposer = class ScomPostComposer extends components_5.Module {
+    let ScomPostComposer = class ScomPostComposer extends components_6.Module {
         constructor(parent, options) {
             super(parent, options);
             this.currentGifPage = 0;
@@ -577,6 +754,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.showStorage = this.showStorage.bind(this);
             this.onShowGifModal = this.onShowGifModal.bind(this);
             this.onShowWidgets = this.onShowWidgets.bind(this);
+            this.onShowDeleteWidget = this.onShowDeleteWidget.bind(this);
         }
         static async create(options, parent) {
             let self = new this(parent, options);
@@ -773,7 +951,8 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         onReply() {
             if (this.onSubmit) {
                 this._data.value = this.updatedValue;
-                this.onSubmit(this._data.value, [...this.newReply]);
+                const extractedText = this._data.value.replace(/\$\$widget0\s+(.*?)\$\$/g, '$1');
+                this.onSubmit(extractedText, [...this.newReply]);
             }
             this.resetEditor();
             // this.pnlMedias.clearInnerHTML();
@@ -1048,7 +1227,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                     tooltip: 'The link has been copied successfully',
                     onClick: (e) => {
                         if (typeof this.currentPostData !== 'undefined') {
-                            components_5.application.copyToClipboard(`${window.location.origin}/#!/e/${this.currentPostData.id}`);
+                            components_6.application.copyToClipboard(`${window.location.origin}/#!/e/${this.currentPostData.id}`);
                         }
                         this.mdPostActions.visible = false;
                     }
@@ -1058,7 +1237,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                     icon: { name: 'copy' },
                     tooltip: 'The text has been copied successfully',
                     onClick: (e) => {
-                        components_5.application.copyToClipboard(this.currentPostData['eventData']?.content);
+                        components_6.application.copyToClipboard(this.currentPostData['eventData']?.content);
                         this.mdPostActions.visible = false;
                     }
                 },
@@ -1068,7 +1247,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                     tooltip: 'The ID has been copied successfully',
                     onClick: (e) => {
                         if (typeof this.currentPostData !== 'undefined') {
-                            components_5.application.copyToClipboard(this.currentPostData.id);
+                            components_6.application.copyToClipboard(this.currentPostData.id);
                         }
                         this.mdPostActions.visible = false;
                     }
@@ -1079,7 +1258,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                     tooltip: 'The raw data has been copied successfully',
                     onClick: (e) => {
                         if (typeof this.currentPostData !== 'undefined') {
-                            components_5.application.copyToClipboard(JSON.stringify(this.currentPostData['eventData']));
+                            components_6.application.copyToClipboard(JSON.stringify(this.currentPostData['eventData']));
                         }
                         this.mdPostActions.visible = false;
                     }
@@ -1094,7 +1273,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                     tooltip: 'The public key has been copied successfully',
                     onClick: (e) => {
                         if (typeof this.currentPostData !== 'undefined') {
-                            components_5.application.copyToClipboard(this.currentPostData.author.npub || '');
+                            components_6.application.copyToClipboard(this.currentPostData.author.npub || '');
                         }
                         this.mdPostActions.visible = false;
                     }
@@ -1271,12 +1450,18 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             });
             this.storageEl.onShow();
         }
-        async onShowWidgets() {
+        async onShowWidgets(widget) {
             if (!this.widgetModule) {
                 this.widgetModule = await index_2.ScomPostComposerWidget.create({
                     onConfirm: (url) => {
                         if (url)
                             this.mdEditor.value = this.updatedValue + '\n\n' + url + '\n\n';
+                        this.widgetModule.closeModal();
+                    },
+                    onUpdate: (oldUrl, newUrl) => {
+                        if (newUrl) {
+                            this.mdEditor.value = this.updatedValue.replace(`$$widget0 ${oldUrl}$$`, newUrl);
+                        }
                         this.widgetModule.closeModal();
                     },
                     onCloseButtonClick: () => {
@@ -1298,7 +1483,83 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                     wrapper.style.maxWidth = maxWidth;
                 modal.refresh();
             };
-            this.widgetModule.show();
+            if (widget) {
+                const { icon, widgetUrl } = widget;
+                this.widgetModule.onUpdate = (oldUrl, newUrl) => {
+                    if (newUrl) {
+                        const editor = icon.closest('i-markdown-editor#mdEditor');
+                        if (!editor)
+                            return;
+                        const value = editor.getMarkdownValue();
+                        editor.value = value.replace(`$$widget0 ${oldUrl}$$`, newUrl);
+                    }
+                    this.widgetModule.closeModal();
+                };
+                this.widgetModule.show(widgetUrl);
+            }
+            else {
+                this.widgetModule.show();
+            }
+        }
+        onShowDeleteWidget(widget, icon) {
+            const editor = icon.closest('i-markdown-editor#mdEditor');
+            if (!editor)
+                return;
+            const alert = editor.closest('i-scom-post-composer')?.querySelector('i-alert');
+            if (!alert) {
+                const value = editor.getMarkdownValue();
+                editor.value = value.replace(`$$widget0 ${widget}$$`, '');
+            }
+            else {
+                alert.onConfirm = () => {
+                    const value = editor.getMarkdownValue();
+                    editor.value = value.replace(`$$widget0 ${widget}$$`, '');
+                };
+                alert.showModal();
+            }
+        }
+        renderWidget(url) {
+            let widgetData = (0, index_1.extractWidgetUrl)(url);
+            const pnl = new components_6.Panel(undefined, { width: '100%' });
+            pnl.classList.add(index_css_2.widgetPreviewStyle);
+            const hStack = new components_6.HStack(pnl, {
+                width: '100%',
+                gap: '0.75rem',
+                verticalAlignment: 'center',
+                horizontalAlignment: 'end',
+                margin: { bottom: '0.5rem' },
+                padding: { left: '0.75rem', right: '0.75rem' }
+            });
+            const iconConfig = new components_6.Icon(hStack, {
+                name: 'cog',
+                fill: Theme.text.primary,
+                width: '1rem',
+                height: '1rem',
+                cursor: 'pointer',
+                tooltip: { content: 'Config' }
+            });
+            iconConfig.onClick = () => { this.onShowWidgets({ widgetUrl: url, icon: iconConfig }); };
+            const iconDelete = new components_6.Icon(hStack, {
+                name: 'trash',
+                fill: '#e45a5a',
+                width: '1rem',
+                height: '1rem',
+                cursor: 'pointer',
+                tooltip: { content: 'Delete' }
+            });
+            iconDelete.onClick = () => { this.onShowDeleteWidget(url, iconDelete); };
+            (0, index_1.getEmbedElement)({
+                module: widgetData.moduleName,
+                data: {
+                    properties: {
+                        ...widgetData.data
+                    },
+                    tag: {
+                        width: '100%'
+                    }
+                }
+            }, pnl);
+            return pnl;
         }
         _handleClick(event, stopPropagation) {
             this.pnlIcons.visible = true;
@@ -1311,7 +1572,6 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         showPostAudienceModal() {
             this.onShowModal('mdPostAudience');
         }
-        // position={'absolute'} top={0} height={'100vh'} zIndex={999}
         init() {
             super.init();
             this.onChanged = this.getAttribute('onChanged', true) || this.onChanged;
@@ -1349,6 +1609,21 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 this.mdEditor.setFocus();
             // }
             // this.updateFocusedPost();
+            const self = this;
+            this.mdEditor.widgetRules = [
+                {
+                    rule: /https?:\/\/widget\.\S+\/scom\/\S+\/\S+/g,
+                    toDOM(text) {
+                        try {
+                            const widget = self.renderWidget(text);
+                            return widget;
+                        }
+                        catch {
+                            return text;
+                        }
+                    },
+                },
+            ];
         }
         async handleMobileCloseComposer() {
             if (this.onCancel)
@@ -1423,7 +1698,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                                                     right: '0.25rem',
                                                     bottom: '0.25rem'
                                                 } }))))),
-                            this.$render("i-icon", { width: 28, height: 28, name: "shapes", fill: Theme.colors.primary.main, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Widgets', placement: 'bottom' }, cursor: "pointer", onClick: this.onShowWidgets })),
+                            this.$render("i-icon", { width: 28, height: 28, name: "shapes", fill: Theme.colors.primary.main, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Widgets', placement: 'bottom' }, cursor: "pointer", onClick: () => this.onShowWidgets() })),
                         this.$render("i-panel", null,
                             this.$render("i-button", { id: "btnPostAudience", height: 32, padding: { left: '1rem', right: '1rem' }, background: { color: Theme.colors.secondary.main }, font: { color: Theme.colors.secondary.contrastText, bold: true }, border: { radius: '0.375rem' }, caption: this.audience.title, icon: { width: 14, height: 14, name: this.audience.icon, fill: Theme.colors.secondary.contrastText }, rightIcon: { width: 14, height: 14, name: 'angle-down', fill: Theme.colors.secondary.contrastText }, visible: this.isPostAudienceShown, onClick: this.showPostAudienceModal.bind(this) }),
                             this.$render("i-modal", { id: "mdPostAudience", maxWidth: '15rem', minWidth: '12.25rem', maxHeight: '27.5rem', popupPlacement: 'bottomRight', showBackdrop: false, border: { radius: '0.5rem' }, boxShadow: "rgba(255, 255, 255, 0.2) 0px 0px 15px, rgba(255, 255, 255, 0.15) 0px 0px 3px 1px", padding: { top: 0, bottom: 0, left: 0, right: 0 }, overflow: { y: 'hidden' }, visible: false }, pnlPostAudiences)))),
@@ -1544,7 +1819,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                                                 } }))))),
                             this.$render("i-panel", null,
                                 this.$render("i-icon", { name: "file", width: 28, height: 28, fill: Theme.colors.primary.main, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Select File', placement: 'bottom' }, cursor: "pointer", onClick: this.showStorage })),
-                            this.$render("i-icon", { width: 28, height: 28, name: "shapes", fill: Theme.colors.primary.main, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Widgets', placement: 'bottom' }, cursor: "pointer", onClick: this.onShowWidgets })),
+                            this.$render("i-icon", { width: 28, height: 28, name: "shapes", fill: Theme.colors.primary.main, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Widgets', placement: 'bottom' }, cursor: "pointer", onClick: () => this.onShowWidgets() })),
                         this.$render("i-stack", { direction: "horizontal", width: "100%", alignItems: "center", justifyContent: "end", gap: "0.5rem" },
                             this.$render("i-panel", null,
                                 this.$render("i-button", { id: "btnPostAudience", height: 32, padding: { left: '1rem', right: '1rem' }, background: { color: Theme.colors.secondary.main }, font: { color: Theme.colors.secondary.contrastText, bold: true }, border: { radius: '0.375rem' }, caption: this.audience.title, icon: { width: 14, height: 14, name: this.audience.icon, fill: Theme.colors.secondary.contrastText }, rightIcon: { width: 14, height: 14, name: 'angle-down', fill: Theme.colors.secondary.contrastText }, visible: this.isPostAudienceShown, onClick: this.showPostAudienceModal.bind(this) }),
@@ -1610,11 +1885,12 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                             this.$render("i-icon", { name: "times", cursor: 'pointer', width: 20, height: 20, fill: Theme.colors.secondary.main, onClick: () => this.onCloseModal('mdWidgets') }))))));
         }
         render() {
-            return (this.$render("i-panel", { id: 'pnlPostComposer' }));
+            return (this.$render("i-panel", { id: 'pnlPostComposer' },
+                this.$render("i-alert", { id: "mdAlert", status: "confirm", title: "Are you sure?", content: "Do you really want to delete this widget?" })));
         }
     };
     ScomPostComposer = __decorate([
-        (0, components_5.customElements)('i-scom-post-composer')
+        (0, components_6.customElements)('i-scom-post-composer')
     ], ScomPostComposer);
     exports.ScomPostComposer = ScomPostComposer;
 });

@@ -23,3 +23,15 @@ export const formStyle = Styles.style({
     }
   }
 })
+
+export const widgetPreviewStyle = Styles.style({
+  boxSizing: 'border-box !important' as 'border-box',
+  $nest: {
+    '*': {
+      boxSizing: 'border-box !important' as 'border-box'
+    },
+    'img': {
+      margin: 'inherit !important'
+    }
+  }
+})

@@ -1,4 +1,4 @@
-import { IconName } from "@ijstech/components";
+import { application, Control, IconName } from "@ijstech/components";
 
 export const fetchGifs = async (params: any) => {
   if (!params.offset) params.offset = 0;
@@ -19,7 +19,7 @@ export const fetchReactionGifs = async () => {
   const params = {
     api_key: 'K0QfKNGrvsuY9nPKE1vn9lEGapWEY4eR'
   };
-  const queries = new URLSearchParams({...params}).toString();
+  const queries = new URLSearchParams({ ...params }).toString();
   try {
     const response = await fetch(`https://api.giphy.com/v1/gifs/categories/reactions?${queries}`);
     return await response.json();
@@ -36,12 +36,75 @@ export const getWidgetEmbedUrl = (module: string, data: any) => {
         name: module
       },
       properties: { ...data },
+      modifiedTime: Date.now()
     };
     const encodedWidgetDataString = encodeURIComponent(window.btoa(JSON.stringify(widgetData)));
     const moduleName = module.slice(1);
     return `${WIDGET_URL}/#!/${moduleName}/${encodedWidgetDataString}`;
   }
   return '';
+}
+
+export const extractWidgetUrl = (url: string) => {
+  const rule = /https?:\/\/widget\.\S+\/scom\/\S+\/\S+/g;
+  let match = rule.exec(url);
+  let widgetUrl = match && match[0] || '';
+  if (!widgetUrl) return null;
+  let arr = widgetUrl.split('/scom/');
+  let paths = arr[1].split('/');
+  const moduleName = `@scom/${paths[0]}`;
+  let data;
+  try {
+    const dataBase64 = decodeURIComponent(paths.slice(1).join('/'));
+    data = JSON.parse(atob(dataBase64));
+    if ('properties' in data) {
+      data = { ...data.properties };
+    }
+  } catch (err) { }
+  return {
+    moduleName,
+    modifiedTime: data?.modifiedTime,
+    data: { ...data }
+  }
+}
+
+export const getEmbedElement = async (postData: any, parent: Control) => {
+  const { module, data } = postData;
+  if (parent.ready) await parent.ready();
+  const elm = await application.createElement(module, true) as any;
+  if (!elm) throw new Error('not found');
+  elm.parent = parent;
+  const builderTarget = elm.getConfigurators ? elm.getConfigurators().find((conf: any) => conf.target === 'Builders' || conf.target === 'Editor') : null;
+  if (elm.ready) await elm.ready();
+  elm.maxWidth = '100%';
+  elm.maxHeight = '100%';
+  if (builderTarget?.setData && data.properties) {
+    await builderTarget.setData(data.properties);
+  }
+  const { dark, light } = data.properties || {};
+  let tag = {};
+  const darkTheme = getThemeValues(dark);
+  const lightTheme = getThemeValues(light);
+  if (darkTheme) {
+    tag['dark'] = darkTheme;
+  }
+  if (lightTheme) {
+    tag['light'] = lightTheme;
+  }
+  tag = { ...tag, ...data.tag };
+  if (builderTarget?.setTag && Object.keys(tag).length) {
+    await builderTarget.setTag(tag);
+  }
+  return elm;
+}
+
+const getThemeValues = (theme: any) => {
+  if (!theme || typeof theme !== 'object') return null;
+  let values = {};
+  for (let prop in theme) {
+    if (theme[prop]) values[prop] = theme[prop];
+  }
+  return Object.keys(values).length ? values : null;
 }
 
 export interface IEmojiCategory {
@@ -61,9 +124,9 @@ export interface IEmoji {
 
 export interface IWidget {
   name: string | string[];
-  icon: IconName;
+  icon?: IconName;
   title: string;
-  description: string;
+  description?: string;
 }
 
 export const emojiCategories = [
