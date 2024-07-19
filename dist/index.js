@@ -1269,6 +1269,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 closeIcon: { width: '1rem', height: '1rem', name: 'times', fill: Theme.text.primary, margin: { bottom: '0.5rem' } },
                 class: index_css_2.modalStyle
             });
+            this.storageEl.onShow();
         }
         async onShowWidgets() {
             if (!this.widgetModule) {
