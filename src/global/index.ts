@@ -240,6 +240,7 @@ export const searchEmojis = (q: string, mapper: Map<string, any>) => {
 export const chartWidgets: string[] = ['@scom/scom-pie-chart', '@scom/scom-line-chart', '@scom/scom-bar-chart', '@scom/scom-area-chart', '@scom/scom-mixed-chart', '@scom/scom-scatter-chart', '@scom/scom-counter'];
 
 export const widgets: IWidget[] = [
+  /**
   {
     name: chartWidgets,
     icon: 'chart-line',
@@ -269,17 +270,18 @@ export const widgets: IWidget[] = [
     icon: 'vote-yea',
     title: 'Voting',
     description: 'Insert a voting widget'
-  },
+  }, */
   {
     name: '@scom/scom-nft-minter',
     icon: 'gavel',
     title: 'NFT Minter',
     description: 'Insert a NFT minter widget'
   },
+  /** 
   {
     name: '@scom/oswap-nft-widget',
     icon: 'campground',
     title: 'Oswap NFT',
     description: 'Insert an Oswap NFT widget'
-  }
+  }*/
 ]

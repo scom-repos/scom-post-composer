@@ -235,48 +235,50 @@ define("@scom/scom-post-composer/global/index.ts", ["require", "exports", "@ijst
     exports.searchEmojis = searchEmojis;
     exports.chartWidgets = ['@scom/scom-pie-chart', '@scom/scom-line-chart', '@scom/scom-bar-chart', '@scom/scom-area-chart', '@scom/scom-mixed-chart', '@scom/scom-scatter-chart', '@scom/scom-counter'];
     exports.widgets = [
+        /**
         {
-            name: exports.chartWidgets,
-            icon: 'chart-line',
-            title: 'Chart',
-            description: 'Insert a chart widget'
+          name: chartWidgets,
+          icon: 'chart-line',
+          title: 'Chart',
+          description: 'Insert a chart widget'
         },
         {
-            name: '@scom/scom-swap',
-            icon: 'exchange-alt',
-            title: 'Swap',
-            description: 'Insert a swap widget'
+          name: '@scom/scom-swap',
+          icon: 'exchange-alt',
+          title: 'Swap',
+          description: 'Insert a swap widget'
         },
         {
-            name: '@scom/scom-staking',
-            icon: 'hand-holding-usd',
-            title: 'Staking',
-            description: 'Insert a staking widget'
+          name: '@scom/scom-staking',
+          icon: 'hand-holding-usd',
+          title: 'Staking',
+          description: 'Insert a staking widget'
         },
         {
-            name: '@scom/scom-xchain-widget',
-            icon: 'exchange-alt',
-            title: 'Xchain',
-            description: 'Insert an xchain widget'
+          name: '@scom/scom-xchain-widget',
+          icon: 'exchange-alt',
+          title: 'Xchain',
+          description: 'Insert an xchain widget'
         },
         {
-            name: '@scom/scom-voting',
-            icon: 'vote-yea',
-            title: 'Voting',
-            description: 'Insert a voting widget'
-        },
+          name: '@scom/scom-voting',
+          icon: 'vote-yea',
+          title: 'Voting',
+          description: 'Insert a voting widget'
+        }, */
         {
             name: '@scom/scom-nft-minter',
             icon: 'gavel',
             title: 'NFT Minter',
             description: 'Insert a NFT minter widget'
         },
+        /**
         {
-            name: '@scom/oswap-nft-widget',
-            icon: 'campground',
-            title: 'Oswap NFT',
-            description: 'Insert an Oswap NFT widget'
-        }
+          name: '@scom/oswap-nft-widget',
+          icon: 'campground',
+          title: 'Oswap NFT',
+          description: 'Insert an Oswap NFT widget'
+        }*/
     ];
 });
 define("@scom/scom-post-composer/assets.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_2) {
