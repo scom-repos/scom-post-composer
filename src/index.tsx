@@ -190,6 +190,8 @@ export class ScomPostComposer extends Module {
     private _apiBaseUrl: string;
     private _isPostAudienceShown: boolean = false;
     private audience: IPostAudience = PostAudience[1];
+    private manager: IPFS.FileManager;
+    private _hasQuota = false;
 
     public onChanged: onChangedCallback;
     public onSubmit: onSubmitCallback;
@@ -215,6 +217,14 @@ export class ScomPostComposer extends Module {
 
     setFocus() {
         this.mdEditor.setFocus();
+    }
+    
+    get hasQuota() {
+        return this._hasQuota;
+    }
+
+    set hasQuota(value: boolean) {
+        this._hasQuota = value;
     }
 
     get focusedPost() {
@@ -1081,6 +1091,10 @@ export class ScomPostComposer extends Module {
     }
 
     private showStorage() {
+        if (!this.hasQuota) {
+            this.onUpload();
+            return;
+        }
         if (!this.storageEl) {
             this.storageEl = ScomStorage.getInstance();
             this.storageEl.onOpen = (path: string) => {
