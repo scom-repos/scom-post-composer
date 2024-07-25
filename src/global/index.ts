@@ -274,14 +274,13 @@ export const widgets: IWidget[] = [
   {
     name: '@scom/scom-nft-minter',
     icon: 'gavel',
-    title: 'NFT Minter',
-    description: 'Insert a NFT minter widget'
+    title: 'Membership NFT',
+    description: 'Mint a membership NFT for gated communities'
   },
-  /** 
   {
     name: '@scom/oswap-nft-widget',
     icon: 'campground',
-    title: 'Oswap NFT',
-    description: 'Insert an Oswap NFT widget'
-  }*/
+    title: 'Oswap Troll NFT',
+    description: 'Mint a membership NFT for OpenSwap community'
+  }
 ]
