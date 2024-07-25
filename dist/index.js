@@ -749,6 +749,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.emojiInitState = 0;
             this._isPostAudienceShown = false;
             this.audience = PostAudience[1];
+            this._hasQuota = false;
             this.onRecentClear = this.onRecentClear.bind(this);
             this.onEmojiColorSelected = this.onEmojiColorSelected.bind(this);
             this.onUpload = this.onUpload.bind(this);
@@ -765,6 +766,12 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         }
         setFocus() {
             this.mdEditor.setFocus();
+        }
+        get hasQuota() {
+            return this._hasQuota;
+        }
+        set hasQuota(value) {
+            this._hasQuota = value;
         }
         get focusedPost() {
             return this._focusedPost;
@@ -1425,6 +1432,10 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             }
         }
         showStorage() {
+            if (!this.hasQuota) {
+                this.onUpload();
+                return;
+            }
             if (!this.storageEl) {
                 this.storageEl = scom_storage_1.ScomStorage.getInstance();
                 this.storageEl.onOpen = (path) => {

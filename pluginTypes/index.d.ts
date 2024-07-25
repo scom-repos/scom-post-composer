@@ -271,12 +271,16 @@ declare module "@scom/scom-post-composer" {
         private _apiBaseUrl;
         private _isPostAudienceShown;
         private audience;
+        private manager;
+        private _hasQuota;
         onChanged: onChangedCallback;
         onSubmit: onSubmitCallback;
         onCancel: () => void;
         constructor(parent?: Container, options?: any);
         static create(options?: ScomPostComposerElement, parent?: Container): Promise<ScomPostComposer>;
         setFocus(): void;
+        get hasQuota(): boolean;
+        set hasQuota(value: boolean);
         get focusedPost(): IPost;
         set focusedPost(value: IPost);
         get replyTo(): IPost;
