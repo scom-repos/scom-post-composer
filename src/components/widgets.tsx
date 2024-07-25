@@ -83,8 +83,10 @@ export class ScomPostComposerWidget extends Module {
     }
 
     private renderWidgets() {
+        const _widgets = widgets.filter(v => !v.disabled);
         this.pnlWidgets.clearInnerHTML();
-        for (let widget of widgets) {
+        for (let widget of _widgets) {
+            const icon = new Icon(undefined, { ...widget.icon, width: '1rem', height: '1rem' });
             this.pnlWidgets.appendChild(
                 <i-stack
                     direction="horizontal"
@@ -100,7 +102,7 @@ export class ScomPostComposerWidget extends Module {
                     onClick={() => this.selectWidget(widget)}
                 >
                     <i-stack direction="horizontal" alignItems="center" gap="1rem">
-                        <i-icon width="1rem" height="1rem" name={widget.icon}></i-icon>
+                        {icon}
                         <i-stack direction="vertical" gap="0.25rem">
                             <i-label caption={widget.title} font={{ size: '0.875rem', weight: 500 }}></i-label>
                             <i-label caption={widget.description} font={{ size: '0.75rem', weight: 400 }}></i-label>

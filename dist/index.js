@@ -4,7 +4,19 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-define("@scom/scom-post-composer/global/index.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_1) {
+define("@scom/scom-post-composer/assets.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    const moduleDir = components_1.application.currentModuleDir;
+    function fullPath(path) {
+        return `${moduleDir}/${path}`;
+    }
+    ;
+    exports.default = {
+        fullPath
+    };
+});
+define("@scom/scom-post-composer/global/index.ts", ["require", "exports", "@ijstech/components", "@scom/scom-post-composer/assets.ts"], function (require, exports, components_2, assets_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.widgets = exports.chartWidgets = exports.searchEmojis = exports.fetchEmojis = exports.colorsMapper = exports.emojiCategories = exports.getEmbedElement = exports.extractWidgetUrl = exports.getWidgetEmbedUrl = exports.fetchReactionGifs = exports.fetchGifs = void 0;
@@ -86,7 +98,7 @@ define("@scom/scom-post-composer/global/index.ts", ["require", "exports", "@ijst
         const { module, data } = postData;
         if (parent.ready)
             await parent.ready();
-        const elm = await components_1.application.createElement(module, true);
+        const elm = await components_2.application.createElement(module, true);
         if (!elm)
             throw new Error('not found');
         elm.parent = parent;
@@ -235,63 +247,72 @@ define("@scom/scom-post-composer/global/index.ts", ["require", "exports", "@ijst
     exports.searchEmojis = searchEmojis;
     exports.chartWidgets = ['@scom/scom-pie-chart', '@scom/scom-line-chart', '@scom/scom-bar-chart', '@scom/scom-area-chart', '@scom/scom-mixed-chart', '@scom/scom-scatter-chart', '@scom/scom-counter'];
     exports.widgets = [
-        /**
         {
-          name: chartWidgets,
-          icon: 'chart-line',
-          title: 'Chart',
-          description: 'Insert a chart widget'
+            name: exports.chartWidgets,
+            icon: { name: 'chart-line' },
+            title: 'Chart',
+            description: 'Insert a chart widget',
+            disabled: true
         },
         {
-          name: '@scom/scom-swap',
-          icon: 'exchange-alt',
-          title: 'Swap',
-          description: 'Insert a swap widget'
+            name: '@scom/scom-swap',
+            icon: { name: 'exchange-alt' },
+            title: 'Swap',
+            description: 'Insert a swap widget',
+            disabled: true
         },
         {
-          name: '@scom/scom-staking',
-          icon: 'hand-holding-usd',
-          title: 'Staking',
-          description: 'Insert a staking widget'
+            name: '@scom/scom-staking',
+            icon: { name: 'hand-holding-usd' },
+            title: 'Staking',
+            description: 'Insert a staking widget',
+            disabled: true
         },
         {
-          name: '@scom/scom-xchain-widget',
-          icon: 'exchange-alt',
-          title: 'Xchain',
-          description: 'Insert an xchain widget'
+            name: '@scom/scom-xchain-widget',
+            icon: { name: 'exchange-alt' },
+            title: 'Xchain',
+            description: 'Insert an xchain widget',
+            disabled: true
         },
         {
-          name: '@scom/scom-voting',
-          icon: 'vote-yea',
-          title: 'Voting',
-          description: 'Insert a voting widget'
-        }, */
+            name: '@scom/scom-voting',
+            icon: { name: 'vote-yea' },
+            title: 'Voting',
+            description: 'Insert a voting widget',
+            disabled: true
+        },
         {
             name: '@scom/scom-nft-minter',
-            icon: 'gavel',
-            title: 'NFT Minter',
-            description: 'Insert a NFT minter widget'
+            icon: { name: 'gavel' },
+            title: 'Membership NFT',
+            description: 'Mint a membership NFT for gated communities'
         },
-        /**
         {
-          name: '@scom/oswap-nft-widget',
-          icon: 'campground',
-          title: 'Oswap NFT',
-          description: 'Insert an Oswap NFT widget'
-        }*/
+            name: '@scom/oswap-nft-widget',
+            icon: { name: 'campground' },
+            title: 'Oswap Troll NFT',
+            description: 'Mint a membership NFT for OpenSwap community'
+        },
+        {
+            name: '@scom/scom-video',
+            icon: { name: 'video' },
+            title: 'Video',
+            description: 'Insert a video'
+        },
+        {
+            name: '@scom/scom-image',
+            icon: { name: 'image' },
+            title: 'Image',
+            description: 'Insert an image'
+        },
+        {
+            name: '@scom/scom-twitter-post',
+            icon: { image: { url: assets_1.default.fullPath('img/twitter.svg'), width: '100%', height: '100%', display: 'inline-block' } },
+            title: 'X',
+            description: 'Insert an X post'
+        }
     ];
-});
-define("@scom/scom-post-composer/assets.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_2) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    const moduleDir = components_2.application.currentModuleDir;
-    function fullPath(path) {
-        return `${moduleDir}/${path}`;
-    }
-    ;
-    exports.default = {
-        fullPath
-    };
 });
 define("@scom/scom-post-composer/components/form.tsx", ["require", "exports", "@ijstech/components"], function (require, exports, components_3) {
     "use strict";
@@ -417,13 +438,15 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
             }
         }
         renderWidgets() {
+            const _widgets = global_1.widgets.filter(v => !v.disabled);
             this.pnlWidgets.clearInnerHTML();
-            for (let widget of global_1.widgets) {
+            for (let widget of _widgets) {
+                const icon = new components_5.Icon(undefined, { ...widget.icon, width: '1rem', height: '1rem' });
                 this.pnlWidgets.appendChild(this.$render("i-stack", { direction: "horizontal", width: "100%", padding: { top: '0.75rem', bottom: '0.75rem', left: '1rem', right: '1rem' }, border: { radius: '0.375rem' }, alignItems: "center", justifyContent: "space-between", hover: {
                         backgroundColor: Theme.action.activeBackground
                     }, cursor: "pointer", onClick: () => this.selectWidget(widget) },
                     this.$render("i-stack", { direction: "horizontal", alignItems: "center", gap: "1rem" },
-                        this.$render("i-icon", { width: "1rem", height: "1rem", name: widget.icon }),
+                        icon,
                         this.$render("i-stack", { direction: "vertical", gap: "0.25rem" },
                             this.$render("i-label", { caption: widget.title, font: { size: '0.875rem', weight: 500 } }),
                             this.$render("i-label", { caption: widget.description, font: { size: '0.75rem', weight: 400 } })))));
@@ -698,7 +721,7 @@ define("@scom/scom-post-composer/components/index.ts", ["require", "exports", "@
     Object.defineProperty(exports, "ScomPostComposerUpload", { enumerable: true, get: function () { return form_1.ScomPostComposerUpload; } });
     Object.defineProperty(exports, "ScomPostComposerWidget", { enumerable: true, get: function () { return widgets_1.ScomPostComposerWidget; } });
 });
-define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components", "@scom/scom-post-composer/global/index.ts", "@scom/scom-post-composer/assets.ts", "@scom/scom-post-composer/components/index.ts", "@scom/scom-post-composer/index.css.ts", "@scom/scom-storage"], function (require, exports, components_6, index_1, assets_1, index_2, index_css_2, scom_storage_1) {
+define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components", "@scom/scom-post-composer/global/index.ts", "@scom/scom-post-composer/assets.ts", "@scom/scom-post-composer/components/index.ts", "@scom/scom-post-composer/index.css.ts", "@scom/scom-storage"], function (require, exports, components_6, index_1, assets_2, index_2, index_css_2, scom_storage_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomPostComposer = void 0;
@@ -835,7 +858,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             return this._avatar;
         }
         set avatar(value) {
-            this._avatar = value || assets_1.default.fullPath('img/default_avatar.png');
+            this._avatar = value || assets_2.default.fullPath('img/default_avatar.png');
             if (this.imgReplier)
                 this.imgReplier.url = this._avatar;
         }
@@ -1672,7 +1695,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                         ['avatar', 'editor'],
                         ['avatar', 'reply']
                     ], padding: { left: '0.75rem' } },
-                    this.$render("i-image", { id: "imgReplier", grid: { area: 'avatar' }, width: '2.75rem', height: '2.75rem', display: "block", background: { color: Theme.background.main }, border: { radius: '50%' }, overflow: 'hidden', margin: { top: '0.75rem' }, objectFit: 'cover', url: this._avatar, fallbackUrl: assets_1.default.fullPath('img/default_avatar.png') }),
+                    this.$render("i-image", { id: "imgReplier", grid: { area: 'avatar' }, width: '2.75rem', height: '2.75rem', display: "block", background: { color: Theme.background.main }, border: { radius: '50%' }, overflow: 'hidden', margin: { top: '0.75rem' }, objectFit: 'cover', url: this._avatar, fallbackUrl: assets_2.default.fullPath('img/default_avatar.png') }),
                     this.$render("i-panel", { grid: { area: 'editor' }, maxHeight: '45rem', overflow: { x: 'hidden', y: 'auto' } },
                         this.$render("i-markdown-editor", { id: "mdEditor", width: "100%", viewer: false, hideModeSwitch: true, mode: "wysiwyg", toolbarItems: [], font: { size: '1.25rem', color: Theme.text.primary }, lineHeight: 1.5, padding: { top: 12, bottom: 12, left: 0, right: 0 }, background: { color: 'transparent' }, height: "auto", minHeight: 0, overflow: 'hidden', overflowWrap: "break-word", onChanged: this.onEditorChanged.bind(this), cursor: 'text', border: { style: 'none' }, visible: true })),
                     this.$render("i-hstack", { id: "pnlBorder", horizontalAlignment: "space-between", grid: { area: 'reply' }, padding: { top: '0.625rem', right: '0.5rem' } },
@@ -1791,7 +1814,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                         ['avatar', 'editor'],
                         ['avatar', 'reply']
                     ] },
-                    this.$render("i-image", { id: "imgReplier", grid: { area: 'avatar' }, width: '2.75rem', height: '2.75rem', display: "block", background: { color: Theme.background.main }, border: { radius: '50%' }, overflow: 'hidden', margin: { top: '0.75rem' }, objectFit: 'cover', url: this._avatar, fallbackUrl: assets_1.default.fullPath('img/default_avatar.png') }),
+                    this.$render("i-image", { id: "imgReplier", grid: { area: 'avatar' }, width: '2.75rem', height: '2.75rem', display: "block", background: { color: Theme.background.main }, border: { radius: '50%' }, overflow: 'hidden', margin: { top: '0.75rem' }, objectFit: 'cover', url: this._avatar, fallbackUrl: assets_2.default.fullPath('img/default_avatar.png') }),
                     this.$render("i-panel", { grid: { area: 'editor' }, maxHeight: '45rem', overflow: { x: 'hidden', y: 'auto' } },
                         this.$render("i-markdown-editor", { id: "mdEditor", width: "100%", viewer: false, hideModeSwitch: true, mode: "wysiwyg", toolbarItems: [], font: { size: '1.25rem', color: Theme.text.primary }, lineHeight: 1.5, padding: { top: 12, bottom: 12, left: 0, right: 0 }, background: { color: 'transparent' }, height: "auto", minHeight: 0, overflow: 'hidden', overflowWrap: "break-word", onChanged: this.onEditorChanged.bind(this), cursor: 'text', border: { style: 'none' }, visible: true })),
                     this.$render("i-hstack", { id: "pnlBorder", horizontalAlignment: "space-between", grid: { area: 'reply' }, padding: { top: '0.625rem' } },

@@ -1,4 +1,5 @@
 import { application, Control, IconName } from "@ijstech/components";
+import assets from '../assets';
 
 export const fetchGifs = async (params: any) => {
   if (!params.offset) params.offset = 0;
@@ -124,9 +125,17 @@ export interface IEmoji {
 
 export interface IWidget {
   name: string | string[];
-  icon?: IconName;
+  icon?: { name: IconName } | {
+    image: {
+      url: string;
+      width: string;
+      height: string;
+      display: string;
+    };
+  }
   title: string;
   description?: string;
+  disabled?: boolean;
 }
 
 export const emojiCategories = [
@@ -240,48 +249,69 @@ export const searchEmojis = (q: string, mapper: Map<string, any>) => {
 export const chartWidgets: string[] = ['@scom/scom-pie-chart', '@scom/scom-line-chart', '@scom/scom-bar-chart', '@scom/scom-area-chart', '@scom/scom-mixed-chart', '@scom/scom-scatter-chart', '@scom/scom-counter'];
 
 export const widgets: IWidget[] = [
-  /**
   {
     name: chartWidgets,
-    icon: 'chart-line',
+    icon: { name: 'chart-line' },
     title: 'Chart',
-    description: 'Insert a chart widget'
+    description: 'Insert a chart widget',
+    disabled: true
   },
   {
     name: '@scom/scom-swap',
-    icon: 'exchange-alt',
+    icon: { name: 'exchange-alt' },
     title: 'Swap',
-    description: 'Insert a swap widget'
+    description: 'Insert a swap widget',
+    disabled: true
   },
   {
     name: '@scom/scom-staking',
-    icon: 'hand-holding-usd',
+    icon: { name: 'hand-holding-usd' },
     title: 'Staking',
-    description: 'Insert a staking widget'
+    description: 'Insert a staking widget',
+    disabled: true
   },
   {
     name: '@scom/scom-xchain-widget',
-    icon: 'exchange-alt',
+    icon: { name: 'exchange-alt' },
     title: 'Xchain',
-    description: 'Insert an xchain widget'
+    description: 'Insert an xchain widget',
+    disabled: true
   },
   {
     name: '@scom/scom-voting',
-    icon: 'vote-yea',
+    icon: { name: 'vote-yea' },
     title: 'Voting',
-    description: 'Insert a voting widget'
-  }, */
+    description: 'Insert a voting widget',
+    disabled: true
+  },
   {
     name: '@scom/scom-nft-minter',
-    icon: 'gavel',
-    title: 'NFT Minter',
-    description: 'Insert a NFT minter widget'
+    icon: { name: 'gavel' },
+    title: 'Membership NFT',
+    description: 'Mint a membership NFT for gated communities'
   },
-  /** 
   {
     name: '@scom/oswap-nft-widget',
-    icon: 'campground',
-    title: 'Oswap NFT',
-    description: 'Insert an Oswap NFT widget'
-  }*/
+    icon: { name: 'campground' },
+    title: 'Oswap Troll NFT',
+    description: 'Mint a membership NFT for OpenSwap community'
+  },
+  {
+    name: '@scom/scom-video',
+    icon: { name: 'video' },
+    title: 'Video',
+    description: 'Insert a video'
+  },
+  {
+    name: '@scom/scom-image',
+    icon: { name: 'image' },
+    title: 'Image',
+    description: 'Insert an image'
+  },
+  {
+    name: '@scom/scom-twitter-post',
+    icon: { image: { url: assets.fullPath('img/twitter.svg'), width: '100%', height: '100%', display: 'inline-block' }},
+    title: 'X',
+    description: 'Insert an X post'
+  }
 ]

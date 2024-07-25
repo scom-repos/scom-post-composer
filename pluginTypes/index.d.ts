@@ -1,3 +1,11 @@
+/// <amd-module name="@scom/scom-post-composer/assets.ts" />
+declare module "@scom/scom-post-composer/assets.ts" {
+    function fullPath(path: string): string;
+    const _default: {
+        fullPath: typeof fullPath;
+    };
+    export default _default;
+}
 /// <amd-module name="@scom/scom-post-composer/global/index.ts" />
 declare module "@scom/scom-post-composer/global/index.ts" {
     import { Control, IconName } from "@ijstech/components";
@@ -25,9 +33,19 @@ declare module "@scom/scom-post-composer/global/index.ts" {
     }
     export interface IWidget {
         name: string | string[];
-        icon?: IconName;
+        icon?: {
+            name: IconName;
+        } | {
+            image: {
+                url: string;
+                width: string;
+                height: string;
+                display: string;
+            };
+        };
         title: string;
         description?: string;
+        disabled?: boolean;
     }
     export const emojiCategories: {
         name: string;
@@ -65,14 +83,6 @@ declare module "@scom/scom-post-composer/global/index.ts" {
     export const searchEmojis: (q: string, mapper: Map<string, any>) => any;
     export const chartWidgets: string[];
     export const widgets: IWidget[];
-}
-/// <amd-module name="@scom/scom-post-composer/assets.ts" />
-declare module "@scom/scom-post-composer/assets.ts" {
-    function fullPath(path: string): string;
-    const _default: {
-        fullPath: typeof fullPath;
-    };
-    export default _default;
 }
 /// <amd-module name="@scom/scom-post-composer/components/form.tsx" />
 declare module "@scom/scom-post-composer/components/form.tsx" {
