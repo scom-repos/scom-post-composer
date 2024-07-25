@@ -269,16 +269,15 @@ define("@scom/scom-post-composer/global/index.ts", ["require", "exports", "@ijst
         {
             name: '@scom/scom-nft-minter',
             icon: 'gavel',
-            title: 'NFT Minter',
-            description: 'Insert a NFT minter widget'
+            title: 'Membership NFT',
+            description: 'Mint a membership NFT for gated communities'
         },
-        /**
         {
-          name: '@scom/oswap-nft-widget',
-          icon: 'campground',
-          title: 'Oswap NFT',
-          description: 'Insert an Oswap NFT widget'
-        }*/
+            name: '@scom/oswap-nft-widget',
+            icon: 'campground',
+            title: 'Oswap Troll NFT',
+            description: 'Mint a membership NFT for OpenSwap community'
+        }
     ];
 });
 define("@scom/scom-post-composer/assets.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_2) {
