@@ -16,7 +16,6 @@
     },
     "dependencies": {
         "@ijstech/components": "^0.1.29",
-        "@scom/scom-editor": "^0.1.1",
         "@scom/scom-post": "^0.1.0",
         "@scom/scom-storage": "^0.1.3"
     },
