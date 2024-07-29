@@ -132,7 +132,7 @@ export class ScomPostComposerWidget extends Module {
         this.iconClose.visible = true;
     }
 
-    private async renderForm(module: string | string[], widgetData?: { data: any, url: string }) {
+    private async renderForm(module: string | string[], widgetType?: string, widgetData?: { data: any, url: string }) {
         this.pnlWidgetWrapper.clearInnerHTML();
         this.pnlWidgetWrapper.visible = false;
         this.pnlCustomForm.clearInnerHTML();
@@ -156,12 +156,12 @@ export class ScomPostComposerWidget extends Module {
             this.pnlCustomForm.visible = true;
         } else {
             this.pnlConfig.templateColumns = innerWidth > 768 ? ['50%', '50%'] : ['100%'];
-            await this.loadWidgetConfig(module, widgetData);
+            await this.loadWidgetConfig(module, widgetType, widgetData);
         }
     }
 
-    private getActions(elm: any, isChart: boolean) {
-        const configs = elm.getConfigurators() || [];
+    private getActions(elm: any, isChart: boolean, configuratorCustomData?: string) {
+        const configs = elm.getConfigurators(configuratorCustomData) || [];
         let configurator, action;
         if (isChart) {
             configurator = configs.find((conf: any) => conf.target === 'Builders');
@@ -173,7 +173,7 @@ export class ScomPostComposerWidget extends Module {
         return action;
     }
 
-    private async loadWidgetConfig(module: string, widgetData?: { data: any, url: string }) {
+    private async loadWidgetConfig(module: string, configuratorCustomData?: string, widgetData?: { data: any, url: string }) {
         const { data, url } = widgetData || {};
         this.currentUrl = url;
         this.pnlWidgetWrapper.visible = false;
@@ -183,8 +183,8 @@ export class ScomPostComposerWidget extends Module {
         this.pnlWidgetWrapper.appendChild(elm);
         if (elm?.getConfigurators) {
             const isChart = chartWidgets.includes(module);
-            const action = this.getActions(elm, isChart);
-            const builder = elm.getConfigurators().find((conf: any) => conf.target === 'Builders');
+            const action = this.getActions(elm, isChart, configuratorCustomData);
+            const builder = elm.getConfigurators(configuratorCustomData).find((conf: any) => conf.target === 'Builders');
             const hasBuilder = builder && typeof builder.setData === 'function';
             if (action) {
                 if (action.customUI) {
@@ -343,7 +343,7 @@ export class ScomPostComposerWidget extends Module {
         this.pnlWidgets.visible = false;
         this.pnlConfig.visible = true;
         this.pnlLoading.visible = true;
-        await this.renderForm(widget.name, widgetData);
+        await this.renderForm(widget.name, widget.configuratorCustomData, widgetData);
         this.pnlLoading.visible = false;
         if (this.onRefresh) this.onRefresh(Array.isArray(widget.name) ? '50rem' : '90rem');
     }

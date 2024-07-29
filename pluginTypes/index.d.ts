@@ -43,6 +43,7 @@ declare module "@scom/scom-post-composer/global/index.ts" {
                 display: string;
             };
         };
+        configuratorCustomData?: string;
         title: string;
         description?: string;
         disabled?: boolean;

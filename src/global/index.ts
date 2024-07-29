@@ -133,6 +133,7 @@ export interface IWidget {
       display: string;
     };
   }
+  configuratorCustomData?: string;
   title: string;
   description?: string;
   disabled?: boolean;
@@ -294,13 +295,15 @@ export const widgets: IWidget[] = [
     name: '@scom/oswap-nft-widget',
     icon: { name: 'campground' },
     title: 'Oswap Troll NFT',
-    description: 'Mint a membership NFT for OpenSwap community'
+    description: 'Mint a membership NFT for OpenSwap community',
+    disabled: true
   },
   {
     name: '@scom/scom-video',
     icon: { name: 'video' },
-    title: 'Video',
-    description: 'Insert a video'
+    title: 'YouTube Video',
+    description: 'embeded YouTube video',
+    configuratorCustomData: "defaultLinkYoutube"
   },
   {
     name: '@scom/scom-image',

@@ -292,13 +292,15 @@ define("@scom/scom-post-composer/global/index.ts", ["require", "exports", "@ijst
             name: '@scom/oswap-nft-widget',
             icon: { name: 'campground' },
             title: 'Oswap Troll NFT',
-            description: 'Mint a membership NFT for OpenSwap community'
+            description: 'Mint a membership NFT for OpenSwap community',
+            disabled: true
         },
         {
             name: '@scom/scom-video',
             icon: { name: 'video' },
-            title: 'Video',
-            description: 'Insert a video'
+            title: 'YouTube Video',
+            description: 'embeded YouTube video',
+            configuratorCustomData: "defaultLinkYoutube"
         },
         {
             name: '@scom/scom-image',
@@ -470,7 +472,7 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
             this.iconBack.visible = false;
             this.iconClose.visible = true;
         }
-        async renderForm(module, widgetData) {
+        async renderForm(module, widgetType, widgetData) {
             this.pnlWidgetWrapper.clearInnerHTML();
             this.pnlWidgetWrapper.visible = false;
             this.pnlCustomForm.clearInnerHTML();
@@ -486,11 +488,11 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
             }
             else {
                 this.pnlConfig.templateColumns = innerWidth > 768 ? ['50%', '50%'] : ['100%'];
-                await this.loadWidgetConfig(module, widgetData);
+                await this.loadWidgetConfig(module, widgetType, widgetData);
             }
         }
-        getActions(elm, isChart) {
-            const configs = elm.getConfigurators() || [];
+        getActions(elm, isChart, configuratorCustomData) {
+            const configs = elm.getConfigurators(configuratorCustomData) || [];
             let configurator, action;
             if (isChart) {
                 configurator = configs.find((conf) => conf.target === 'Builders');
@@ -502,7 +504,7 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
             }
             return action;
         }
-        async loadWidgetConfig(module, widgetData) {
+        async loadWidgetConfig(module, configuratorCustomData, widgetData) {
             const { data, url } = widgetData || {};
             this.currentUrl = url;
             this.pnlWidgetWrapper.visible = false;
@@ -512,8 +514,8 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
             this.pnlWidgetWrapper.appendChild(elm);
             if (elm?.getConfigurators) {
                 const isChart = global_1.chartWidgets.includes(module);
-                const action = this.getActions(elm, isChart);
-                const builder = elm.getConfigurators().find((conf) => conf.target === 'Builders');
+                const action = this.getActions(elm, isChart, configuratorCustomData);
+                const builder = elm.getConfigurators(configuratorCustomData).find((conf) => conf.target === 'Builders');
                 const hasBuilder = builder && typeof builder.setData === 'function';
                 if (action) {
                     if (action.customUI) {
@@ -679,7 +681,7 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
             this.pnlWidgets.visible = false;
             this.pnlConfig.visible = true;
             this.pnlLoading.visible = true;
-            await this.renderForm(widget.name, widgetData);
+            await this.renderForm(widget.name, widget.configuratorCustomData, widgetData);
             this.pnlLoading.visible = false;
             if (this.onRefresh)
                 this.onRefresh(Array.isArray(widget.name) ? '50rem' : '90rem');
