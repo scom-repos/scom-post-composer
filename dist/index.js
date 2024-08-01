@@ -30,7 +30,7 @@ define("@scom/scom-post-composer/global/index.ts", ["require", "exports", "@ijst
             ...params
         }).toString() : '';
         try {
-            const response = await fetch(`http://api.giphy.com/v1/gifs/search?${queries}`);
+            const response = await fetch(`https://api.giphy.com/v1/gifs/search?${queries}`);
             return await response.json();
         }
         catch {
