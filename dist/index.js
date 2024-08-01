@@ -522,7 +522,16 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
                         if (hasBuilder) {
                             builder.setData(data || {});
                         }
-                        this.customForm = await action.customUI.render(hasBuilder ? { ...elm.getData() } : {}, this.onSave.bind(this));
+                        this.customForm = await action.customUI.render(hasBuilder ? { ...elm.getData() } : {}, async (result, data) => {
+                            let setupData = {};
+                            if (builder && typeof builder.setupData === 'function') {
+                                const hasSetup = await builder.setupData(data);
+                                if (!hasSetup)
+                                    return;
+                                setupData = builder.getData();
+                            }
+                            this.onSave(result, { ...data, ...setupData });
+                        });
                         this.pnlCustomForm.append(this.customForm);
                         this.pnlCustomForm.visible = true;
                     }
@@ -541,7 +550,14 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
                                 hide: false,
                                 onClick: async () => {
                                     const formData = await this.actionForm.getFormData();
-                                    const widgetUrl = (0, global_1.getWidgetEmbedUrl)(module, formData);
+                                    let setupData = {};
+                                    if (builder && typeof builder.setupData === 'function') {
+                                        const hasSetup = await builder.setupData(formData);
+                                        if (!hasSetup)
+                                            return;
+                                        setupData = builder.getData();
+                                    }
+                                    const widgetUrl = (0, global_1.getWidgetEmbedUrl)(module, { ...formData, ...setupData });
                                     if (url && this.onUpdate) {
                                         if (this.onUpdate)
                                             this.onUpdate(url, widgetUrl);
