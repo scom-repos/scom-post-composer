@@ -191,7 +191,15 @@ export class ScomPostComposerWidget extends Module {
                     if (hasBuilder) {
                         builder.setData(data || {});
                     }
-                    this.customForm = await action.customUI.render(hasBuilder ? { ...elm.getData() } : {}, this.onSave.bind(this));
+                    this.customForm = await action.customUI.render(hasBuilder ? { ...elm.getData() } : {}, async (result: boolean, data: any) => {
+                        let setupData = {};
+                        if (builder && typeof builder.setupData === 'function') {
+                            const hasSetup = await builder.setupData(data);
+                            if (!hasSetup) return;
+                            setupData = builder.getData();
+                        }
+                        this.onSave(result, { ...data, ...setupData });
+                    });
                     this.pnlCustomForm.append(this.customForm);
                     this.pnlCustomForm.visible = true;
                 } else {
@@ -209,7 +217,13 @@ export class ScomPostComposerWidget extends Module {
                             hide: false,
                             onClick: async () => {
                                 const formData = await this.actionForm.getFormData();
-                                const widgetUrl = getWidgetEmbedUrl(module, formData);
+                                let setupData = {};
+                                if (builder && typeof builder.setupData === 'function') {
+                                    const hasSetup = await builder.setupData(formData);
+                                    if (!hasSetup) return;
+                                    setupData = builder.getData();
+                                }
+                                const widgetUrl = getWidgetEmbedUrl(module, { ...formData, ...setupData });
                                 if (url && this.onUpdate) {
                                     if (this.onUpdate) this.onUpdate(url, widgetUrl);
                                 } else if (this.onConfirm) {
