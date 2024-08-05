@@ -208,7 +208,6 @@ declare module "@scom/scom-post-composer" {
         focusedPost?: IPost;
         avatar?: string;
         autoFocus?: boolean;
-        isAttachmentDisabled?: boolean;
         apiBaseUrl?: string;
         isPostAudienceShown?: boolean;
     }
@@ -275,7 +274,6 @@ declare module "@scom/scom-post-composer" {
         private mobile;
         private _avatar;
         private autoFocus;
-        private _isAttachmentDisabled;
         private currentPostData;
         private gifCateInitState;
         private emojiInitState;
@@ -316,8 +314,6 @@ declare module "@scom/scom-post-composer" {
         get avatar(): string;
         set avatar(value: string);
         get updatedValue(): any;
-        get isAttachmentDisabled(): boolean;
-        set isAttachmentDisabled(value: boolean);
         get isPostAudienceShown(): boolean;
         set isPostAudienceShown(value: boolean);
         private removeShow;
