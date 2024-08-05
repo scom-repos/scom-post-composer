@@ -96,7 +96,6 @@ interface ScomPostComposerElement extends ControlElement {
     focusedPost?: IPost;
     avatar?: string;
     autoFocus?: boolean;
-    isAttachmentDisabled?: boolean;
     apiBaseUrl?: string;
     isPostAudienceShown?: boolean;
 }
@@ -183,7 +182,6 @@ export class ScomPostComposer extends Module {
     private mobile: boolean;
     private _avatar: string;
     private autoFocus: boolean;
-    private _isAttachmentDisabled: boolean;
     private currentPostData: any;
     private gifCateInitState = 0;
     private emojiInitState = 0;
@@ -324,20 +322,6 @@ export class ScomPostComposer extends Module {
 
     get updatedValue() {
         return this.mdEditor.getMarkdownValue();
-    }
-
-    get isAttachmentDisabled() {
-        return this._isAttachmentDisabled;
-    }
-
-    set isAttachmentDisabled(value: boolean) {
-        this._isAttachmentDisabled = value;
-        if (this.iconMedia) {
-            this.iconMedia.visible = this.iconMedia.enabled = !value;
-        }
-        if (this.iconMediaMobile) {
-            this.iconMediaMobile.visible = this.iconMediaMobile.enabled = !value;
-        }
     }
 
     get isPostAudienceShown() {
@@ -1097,18 +1081,30 @@ export class ScomPostComposer extends Module {
         }
         if (!this.storageEl) {
             this.storageEl = ScomStorage.getInstance();
-            this.storageEl.onOpen = (path: string) => {
-                this.storageEl.closeModal();
-                const imageTypes = ['jpg', 'jpeg', 'png', 'gif', 'svg'];
-                const ext = path.split('.').pop();
-                if (imageTypes.includes(ext)) {
-                    this.mdEditor.value = this.updatedValue + '\n\n' + `![${path.split('/').pop()}](<${path}>)` + '\n\n';
-                } else {
-                    const linkMd = `[${path}](<${path}>)`;
-                    this.mdEditor.value = this.updatedValue + '\n\n' + linkMd + '\n\n';
-                }
-            }
             this.storageEl.onCancel = () => this.storageEl.closeModal();
+        }
+        this.storageEl.uploadMultiple = false;
+        this.storageEl.onUploadedFile = (path: string) => {
+            this.storageEl.closeModal();
+            const imageTypes = ['jpg', 'jpeg', 'png', 'gif', 'svg'];
+            const ext = path.split('.').pop();
+            if (imageTypes.includes(ext)) {
+                this.mdEditor.value = this.updatedValue + '\n\n' + `![${path.split('/').pop()}](<${path}>)` + '\n\n';
+            } else {
+                const linkMd = `[${path}](<${path}>)`;
+                this.mdEditor.value = this.updatedValue + '\n\n' + linkMd + '\n\n';
+            }
+        }
+        this.storageEl.onOpen = (path: string) => {
+            this.storageEl.closeModal();
+            const imageTypes = ['jpg', 'jpeg', 'png', 'gif', 'svg'];
+            const ext = path.split('.').pop();
+            if (imageTypes.includes(ext)) {
+                this.mdEditor.value = this.updatedValue + '\n\n' + `![${path.split('/').pop()}](<${path}>)` + '\n\n';
+            } else {
+                const linkMd = `[${path}](<${path}>)`;
+                this.mdEditor.value = this.updatedValue + '\n\n' + linkMd + '\n\n';
+            }
         }
         this.storageEl.openModal({
             width: 800,
@@ -1264,7 +1260,6 @@ export class ScomPostComposer extends Module {
         const mobile = this.getAttribute('mobile', true);
         this.mobile = mobile;
         this.avatar = this.getAttribute('avatar', true);
-        this.isAttachmentDisabled = this.getAttribute('isAttachmentDisabled', true, false);
         const isPostAudienceShown = this.getAttribute('isPostAudienceShown', true);
         if (isPostAudienceShown != null) {
             this._isPostAudienceShown = isPostAudienceShown;
@@ -1485,10 +1480,8 @@ export class ScomPostComposer extends Module {
                             border={{radius: '50%'}}
                             padding={{top: 5, bottom: 5, left: 5, right: 5}}
                             tooltip={{content: 'Media', placement: 'bottom'}}
-                            visible={!this.isAttachmentDisabled}
-                            enabled={!this.isAttachmentDisabled}
                             cursor="pointer"
-                            onClick={this.onUpload.bind(this)}
+                            onClick={this.showStorage}
                         ></i-icon>
                         <i-icon
                             name="images" width={28} height={28} fill={Theme.colors.primary.main}
@@ -1950,10 +1943,8 @@ export class ScomPostComposer extends Module {
                             border={{radius: '50%'}}
                             padding={{top: 5, bottom: 5, left: 5, right: 5}}
                             tooltip={{content: 'Media', placement: 'bottom'}}
-                            visible={!this.isAttachmentDisabled}
-                            enabled={!this.isAttachmentDisabled}
                             cursor="pointer"
-                            onClick={this.onUpload.bind(this)}
+                            onClick={this.showStorage}
                         ></i-icon>
                         <i-icon
                             name="images" width={28} height={28} fill={Theme.colors.primary.main}
@@ -2054,15 +2045,6 @@ export class ScomPostComposer extends Module {
                                     </i-hstack>
                                 </i-vstack>
                             </i-modal>
-                        </i-panel>
-                        <i-panel>
-                            <i-icon
-                                name="file" width={28} height={28} fill={Theme.colors.primary.main}
-                                padding={{top: 5, bottom: 5, left: 5, right: 5}}
-                                tooltip={{content: 'Select File', placement: 'bottom'}}
-                                cursor="pointer"
-                                onClick={this.showStorage}
-                            ></i-icon>
                         </i-panel>
                         <i-icon
                             width={28}

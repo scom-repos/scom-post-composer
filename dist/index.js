@@ -890,18 +890,6 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         get updatedValue() {
             return this.mdEditor.getMarkdownValue();
         }
-        get isAttachmentDisabled() {
-            return this._isAttachmentDisabled;
-        }
-        set isAttachmentDisabled(value) {
-            this._isAttachmentDisabled = value;
-            if (this.iconMedia) {
-                this.iconMedia.visible = this.iconMedia.enabled = !value;
-            }
-            if (this.iconMediaMobile) {
-                this.iconMediaMobile.visible = this.iconMediaMobile.enabled = !value;
-            }
-        }
         get isPostAudienceShown() {
             return this._isPostAudienceShown;
         }
@@ -1479,20 +1467,33 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             }
             if (!this.storageEl) {
                 this.storageEl = scom_storage_1.ScomStorage.getInstance();
-                this.storageEl.onOpen = (path) => {
-                    this.storageEl.closeModal();
-                    const imageTypes = ['jpg', 'jpeg', 'png', 'gif', 'svg'];
-                    const ext = path.split('.').pop();
-                    if (imageTypes.includes(ext)) {
-                        this.mdEditor.value = this.updatedValue + '\n\n' + `![${path.split('/').pop()}](<${path}>)` + '\n\n';
-                    }
-                    else {
-                        const linkMd = `[${path}](<${path}>)`;
-                        this.mdEditor.value = this.updatedValue + '\n\n' + linkMd + '\n\n';
-                    }
-                };
                 this.storageEl.onCancel = () => this.storageEl.closeModal();
             }
+            this.storageEl.uploadMultiple = false;
+            this.storageEl.onUploadedFile = (path) => {
+                this.storageEl.closeModal();
+                const imageTypes = ['jpg', 'jpeg', 'png', 'gif', 'svg'];
+                const ext = path.split('.').pop();
+                if (imageTypes.includes(ext)) {
+                    this.mdEditor.value = this.updatedValue + '\n\n' + `![${path.split('/').pop()}](<${path}>)` + '\n\n';
+                }
+                else {
+                    const linkMd = `[${path}](<${path}>)`;
+                    this.mdEditor.value = this.updatedValue + '\n\n' + linkMd + '\n\n';
+                }
+            };
+            this.storageEl.onOpen = (path) => {
+                this.storageEl.closeModal();
+                const imageTypes = ['jpg', 'jpeg', 'png', 'gif', 'svg'];
+                const ext = path.split('.').pop();
+                if (imageTypes.includes(ext)) {
+                    this.mdEditor.value = this.updatedValue + '\n\n' + `![${path.split('/').pop()}](<${path}>)` + '\n\n';
+                }
+                else {
+                    const linkMd = `[${path}](<${path}>)`;
+                    this.mdEditor.value = this.updatedValue + '\n\n' + linkMd + '\n\n';
+                }
+            };
             this.storageEl.openModal({
                 width: 800,
                 maxWidth: '100%',
@@ -1644,7 +1645,6 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             const mobile = this.getAttribute('mobile', true);
             this.mobile = mobile;
             this.avatar = this.getAttribute('avatar', true);
-            this.isAttachmentDisabled = this.getAttribute('isAttachmentDisabled', true, false);
             const isPostAudienceShown = this.getAttribute('isPostAudienceShown', true);
             if (isPostAudienceShown != null) {
                 this._isPostAudienceShown = isPostAudienceShown;
@@ -1729,7 +1729,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                         this.$render("i-markdown-editor", { id: "mdEditor", width: "100%", viewer: false, hideModeSwitch: true, mode: "wysiwyg", toolbarItems: [], font: { size: '1.25rem', color: Theme.text.primary }, lineHeight: 1.5, padding: { top: 12, bottom: 12, left: 0, right: 0 }, background: { color: 'transparent' }, height: "auto", minHeight: 0, overflow: 'hidden', overflowWrap: "break-word", onChanged: this.onEditorChanged.bind(this), cursor: 'text', border: { style: 'none' }, visible: true })),
                     this.$render("i-hstack", { id: "pnlBorder", horizontalAlignment: "space-between", grid: { area: 'reply' }, padding: { top: '0.625rem', right: '0.5rem' } },
                         this.$render("i-hstack", { id: "pnlIcons", gap: "4px", verticalAlignment: "center", visible: false },
-                            this.$render("i-icon", { id: "iconMediaMobile", name: "image", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Media', placement: 'bottom' }, visible: !this.isAttachmentDisabled, enabled: !this.isAttachmentDisabled, cursor: "pointer", onClick: this.onUpload.bind(this) }),
+                            this.$render("i-icon", { id: "iconMediaMobile", name: "image", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Media', placement: 'bottom' }, cursor: "pointer", onClick: this.showStorage }),
                             this.$render("i-icon", { name: "images", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'GIF', placement: 'bottom' }, cursor: "pointer", onClick: this.onShowGifModal }),
                             this.$render("i-panel", null,
                                 this.$render("i-icon", { name: "smile", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Emoji', placement: 'bottom' }, cursor: "pointer", onClick: () => this.onShowModal('mdEmoji') }),
@@ -1848,7 +1848,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                         this.$render("i-markdown-editor", { id: "mdEditor", width: "100%", viewer: false, hideModeSwitch: true, mode: "wysiwyg", toolbarItems: [], font: { size: '1.25rem', color: Theme.text.primary }, lineHeight: 1.5, padding: { top: 12, bottom: 12, left: 0, right: 0 }, background: { color: 'transparent' }, height: "auto", minHeight: 0, overflow: 'hidden', overflowWrap: "break-word", onChanged: this.onEditorChanged.bind(this), cursor: 'text', border: { style: 'none' }, visible: true })),
                     this.$render("i-hstack", { id: "pnlBorder", horizontalAlignment: "space-between", grid: { area: 'reply' }, padding: { top: '0.625rem' } },
                         this.$render("i-hstack", { id: "pnlIcons", gap: "4px", verticalAlignment: "center", visible: false },
-                            this.$render("i-icon", { id: "iconMediaMobile", name: "image", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Media', placement: 'bottom' }, visible: !this.isAttachmentDisabled, enabled: !this.isAttachmentDisabled, cursor: "pointer", onClick: this.onUpload.bind(this) }),
+                            this.$render("i-icon", { id: "iconMediaMobile", name: "image", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Media', placement: 'bottom' }, cursor: "pointer", onClick: this.showStorage }),
                             this.$render("i-icon", { name: "images", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'GIF', placement: 'bottom' }, cursor: "pointer", onClick: this.onShowGifModal }),
                             this.$render("i-panel", null,
                                 this.$render("i-icon", { name: "smile", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Emoji', placement: 'bottom' }, cursor: "pointer", onClick: () => this.onShowModal('mdEmoji') }),
@@ -1871,8 +1871,6 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                                                     right: '0.25rem',
                                                     bottom: '0.25rem'
                                                 } }))))),
-                            this.$render("i-panel", null,
-                                this.$render("i-icon", { name: "file", width: 28, height: 28, fill: Theme.colors.primary.main, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Select File', placement: 'bottom' }, cursor: "pointer", onClick: this.showStorage })),
                             this.$render("i-icon", { width: 28, height: 28, name: "shapes", fill: Theme.colors.primary.main, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Widgets', placement: 'bottom' }, cursor: "pointer", onClick: () => this.onShowWidgets() })),
                         this.$render("i-stack", { direction: "horizontal", width: "100%", alignItems: "center", justifyContent: "end", gap: "0.5rem" },
                             this.$render("i-panel", null,
