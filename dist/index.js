@@ -285,8 +285,16 @@ define("@scom/scom-post-composer/global/index.ts", ["require", "exports", "@ijst
         {
             name: '@scom/scom-nft-minter',
             icon: { name: 'gavel' },
-            title: 'Membership NFT',
-            description: 'Mint a membership NFT for gated communities'
+            title: 'Create Membership NFT',
+            description: 'Create a new NFT index to Mint a membership NFT for gated communities',
+            configuratorCustomData: 'new1155'
+        },
+        {
+            name: '@scom/scom-nft-minter',
+            icon: { name: 'gavel' },
+            title: 'Existing Membership NFT',
+            description: 'Mint a membership NFT for gated communities',
+            configuratorCustomData: 'customNft'
         },
         {
             name: '@scom/oswap-nft-widget',
@@ -301,6 +309,13 @@ define("@scom/scom-post-composer/global/index.ts", ["require", "exports", "@ijst
             title: 'YouTube Video',
             description: 'embeded YouTube video',
             configuratorCustomData: "defaultLinkYoutube"
+        },
+        {
+            name: '@scom/scom-video',
+            icon: { name: 'video' },
+            title: 'Video file',
+            description: '.mp4 or .mov file',
+            configuratorCustomData: "defaultLinkMp4"
         },
         {
             name: '@scom/scom-image',
