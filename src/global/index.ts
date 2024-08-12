@@ -136,6 +136,7 @@ export interface IWidget {
   configuratorCustomData?: string;
   title: string;
   description?: string;
+  note?: string;
   disabled?: boolean;
 }
 
@@ -290,6 +291,7 @@ export const widgets: IWidget[] = [
     icon: { name: 'gavel' },
     title: 'Create Membership NFT',
     description: 'Create a new NFT index to Mint a membership NFT for gated communities',
+    note: 'Will only work after a successful transaction',
     configuratorCustomData: 'new1155'
   },
   {

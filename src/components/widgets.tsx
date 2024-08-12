@@ -13,6 +13,7 @@ import {
     ComboBox,
     IComboItem,
     GridLayout,
+    VStack,
 } from '@ijstech/components';
 import { chartWidgets, extractWidgetUrl, getWidgetEmbedUrl, IWidget, widgets } from '../global';
 import { formStyle } from '../index.css';
@@ -41,7 +42,9 @@ export class ScomPostComposerWidget extends Module {
     private iconClose: Icon;
     private pnlWidgets: StackLayout;
     private pnlConfig: GridLayout;
-    private pnlWidgetWrapper: Panel;
+    private pnlWidgetWrapper: VStack;
+    private widgetWrapper: Panel;
+    private lbNotePreview: Label;
     private pnlLoading: StackLayout;
     private actionForm: Form;
     private pnlCustomForm: StackLayout;
@@ -132,8 +135,8 @@ export class ScomPostComposerWidget extends Module {
         this.iconClose.visible = true;
     }
 
-    private async renderForm(module: string | string[], widgetType?: string, widgetData?: { data: any, url: string }) {
-        this.pnlWidgetWrapper.clearInnerHTML();
+    private async renderForm(module: string | string[], note?: string, widgetType?: string, widgetData?: { data: any, url: string }) {
+        this.widgetWrapper.clearInnerHTML();
         this.pnlWidgetWrapper.visible = false;
         this.pnlCustomForm.clearInnerHTML();
         this.pnlCustomForm.visible = false;
@@ -156,7 +159,7 @@ export class ScomPostComposerWidget extends Module {
             this.pnlCustomForm.visible = true;
         } else {
             this.pnlConfig.templateColumns = innerWidth > 768 ? ['50%', '50%'] : ['100%'];
-            await this.loadWidgetConfig(module, widgetType, widgetData);
+            await this.loadWidgetConfig(module, note, widgetType, widgetData);
         }
     }
 
@@ -173,14 +176,16 @@ export class ScomPostComposerWidget extends Module {
         return action;
     }
 
-    private async loadWidgetConfig(module: string, configuratorCustomData?: string, widgetData?: { data: any, url: string }) {
+    private async loadWidgetConfig(module: string, note?: string, configuratorCustomData?: string, widgetData?: { data: any, url: string }) {
         const { data, url } = widgetData || {};
         this.currentUrl = url;
         this.pnlWidgetWrapper.visible = false;
+        this.lbNotePreview.visible = !!note;
+        this.lbNotePreview.caption = note || '';
         const elm: any = await application.createElement(module);
-        this.pnlWidgetWrapper.clearInnerHTML();
         this.pnlWidgetWrapper.visible = true;
-        this.pnlWidgetWrapper.appendChild(elm);
+        this.widgetWrapper.clearInnerHTML();
+        this.widgetWrapper.appendChild(elm);
         if (elm?.getConfigurators) {
             const isChart = chartWidgets.includes(module);
             const action = this.getActions(elm, isChart, configuratorCustomData);
@@ -357,7 +362,7 @@ export class ScomPostComposerWidget extends Module {
         this.pnlWidgets.visible = false;
         this.pnlConfig.visible = true;
         this.pnlLoading.visible = true;
-        await this.renderForm(widget.name, widget.configuratorCustomData, widgetData);
+        await this.renderForm(widget.name, widget.note, widget.configuratorCustomData, widgetData);
         this.pnlLoading.visible = false;
         if (this.onRefresh) this.onRefresh(Array.isArray(widget.name) ? '50rem' : '90rem');
     }
@@ -414,7 +419,12 @@ export class ScomPostComposerWidget extends Module {
                         }
                     ]}
                 >
-                    <i-panel id="pnlWidgetWrapper" />
+                    <i-vstack id="pnlWidgetWrapper" gap="0.25rem" horizontalAlignment="center">
+                        <i-label caption="Widget Preview" font={{ color: Theme.colors.primary.main, size: '1rem', bold: true }} />
+                        <i-label caption="This preview will update real-time as the config on the right changes" font={{ size: '0.75rem' }} opacity={0.75} />
+                        <i-label id="lbNotePreview" visible={false} font={{ color: Theme.colors.error.main, size: '0.75rem' }} />
+                        <i-panel id="widgetWrapper" />
+                    </i-vstack>
                     <i-panel>
                         <i-form id="actionForm" visible={false} class={formStyle}></i-form>
                         <i-stack id="pnlCustomForm" direction="vertical" visible={false}></i-stack>

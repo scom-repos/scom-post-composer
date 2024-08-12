@@ -46,6 +46,7 @@ declare module "@scom/scom-post-composer/global/index.ts" {
         configuratorCustomData?: string;
         title: string;
         description?: string;
+        note?: string;
         disabled?: boolean;
     }
     export const emojiCategories: {
@@ -147,6 +148,8 @@ declare module "@scom/scom-post-composer/components/widgets.tsx" {
         private pnlWidgets;
         private pnlConfig;
         private pnlWidgetWrapper;
+        private widgetWrapper;
+        private lbNotePreview;
         private pnlLoading;
         private actionForm;
         private pnlCustomForm;
