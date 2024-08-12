@@ -287,6 +287,7 @@ define("@scom/scom-post-composer/global/index.ts", ["require", "exports", "@ijst
             icon: { name: 'gavel' },
             title: 'Create Membership NFT',
             description: 'Create a new NFT index to Mint a membership NFT for gated communities',
+            note: 'Will only work after a successful transaction',
             configuratorCustomData: 'new1155'
         },
         {
@@ -487,8 +488,8 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
             this.iconBack.visible = false;
             this.iconClose.visible = true;
         }
-        async renderForm(module, widgetType, widgetData) {
-            this.pnlWidgetWrapper.clearInnerHTML();
+        async renderForm(module, note, widgetType, widgetData) {
+            this.widgetWrapper.clearInnerHTML();
             this.pnlWidgetWrapper.visible = false;
             this.pnlCustomForm.clearInnerHTML();
             this.pnlCustomForm.visible = false;
@@ -503,7 +504,7 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
             }
             else {
                 this.pnlConfig.templateColumns = innerWidth > 768 ? ['50%', '50%'] : ['100%'];
-                await this.loadWidgetConfig(module, widgetType, widgetData);
+                await this.loadWidgetConfig(module, note, widgetType, widgetData);
             }
         }
         getActions(elm, isChart, configuratorCustomData) {
@@ -519,14 +520,16 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
             }
             return action;
         }
-        async loadWidgetConfig(module, configuratorCustomData, widgetData) {
+        async loadWidgetConfig(module, note, configuratorCustomData, widgetData) {
             const { data, url } = widgetData || {};
             this.currentUrl = url;
             this.pnlWidgetWrapper.visible = false;
+            this.lbNotePreview.visible = !!note;
+            this.lbNotePreview.caption = note || '';
             const elm = await components_5.application.createElement(module);
-            this.pnlWidgetWrapper.clearInnerHTML();
             this.pnlWidgetWrapper.visible = true;
-            this.pnlWidgetWrapper.appendChild(elm);
+            this.widgetWrapper.clearInnerHTML();
+            this.widgetWrapper.appendChild(elm);
             if (elm?.getConfigurators) {
                 const isChart = global_1.chartWidgets.includes(module);
                 const action = this.getActions(elm, isChart, configuratorCustomData);
@@ -712,7 +715,7 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
             this.pnlWidgets.visible = false;
             this.pnlConfig.visible = true;
             this.pnlLoading.visible = true;
-            await this.renderForm(widget.name, widget.configuratorCustomData, widgetData);
+            await this.renderForm(widget.name, widget.note, widget.configuratorCustomData, widgetData);
             this.pnlLoading.visible = false;
             if (this.onRefresh)
                 this.onRefresh(Array.isArray(widget.name) ? '50rem' : '90rem');
@@ -733,7 +736,11 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
                             }
                         }
                     ] },
-                    this.$render("i-panel", { id: "pnlWidgetWrapper" }),
+                    this.$render("i-vstack", { id: "pnlWidgetWrapper", gap: "0.5rem", horizontalAlignment: "center" },
+                        this.$render("i-label", { caption: "Widget Preview", font: { color: Theme.colors.primary.main, size: '1rem', bold: true } }),
+                        this.$render("i-label", { caption: "This preview will update real-time as the config on the right changes", font: { size: '0.75rem' }, opacity: 0.75 }),
+                        this.$render("i-label", { id: "lbNotePreview", visible: false, font: { color: Theme.colors.error.main, size: '0.75rem' } }),
+                        this.$render("i-panel", { id: "widgetWrapper" })),
                     this.$render("i-panel", null,
                         this.$render("i-form", { id: "actionForm", visible: false, class: index_css_1.formStyle }),
                         this.$render("i-stack", { id: "pnlCustomForm", direction: "vertical", visible: false }),
