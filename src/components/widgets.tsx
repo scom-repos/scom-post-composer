@@ -39,7 +39,6 @@ declare global {
 export class ScomPostComposerWidget extends Module {
     private lblTitle: Label;
     private iconBack: Icon;
-    private iconClose: Icon;
     private pnlWidgets: StackLayout;
     private pnlConfig: GridLayout;
     private pnlWidgetWrapper: VStack;
@@ -119,7 +118,6 @@ export class ScomPostComposerWidget extends Module {
     private back() {
         this.lblTitle.caption = 'Widgets';
         this.iconBack.visible = false;
-        this.iconClose.visible = true;
         this.pnlWidgets.visible = true;
         this.pnlConfig.visible = false;
         this.pnlLoading.visible = false;
@@ -132,7 +130,6 @@ export class ScomPostComposerWidget extends Module {
         const { moduleName, data } = widgetData;
         this.selectWidget({ title: 'Config', name: moduleName }, { data, url });
         this.iconBack.visible = false;
-        this.iconClose.visible = true;
     }
 
     private async renderForm(module: string | string[], note?: string, widgetType?: string, widgetData?: { data: any, url: string }) {
@@ -358,7 +355,6 @@ export class ScomPostComposerWidget extends Module {
     private async selectWidget(widget: IWidget, widgetData?: { data: any, url: string }) {
         this.lblTitle.caption = widget.title;
         this.iconBack.visible = true;
-        this.iconClose.visible = false;
         this.pnlWidgets.visible = false;
         this.pnlConfig.visible = true;
         this.pnlLoading.visible = true;
@@ -395,7 +391,6 @@ export class ScomPostComposerWidget extends Module {
                         <i-label id="lblTitle" caption="Widgets" font={{ size: '1.125rem', color: Theme.colors.primary.main }}></i-label>
                     </i-stack>
                     <i-icon
-                        id="iconClose"
                         width="1rem"
                         height="1rem"
                         name="times"

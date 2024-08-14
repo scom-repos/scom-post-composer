@@ -473,7 +473,6 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
         back() {
             this.lblTitle.caption = 'Widgets';
             this.iconBack.visible = false;
-            this.iconClose.visible = true;
             this.pnlWidgets.visible = true;
             this.pnlConfig.visible = false;
             this.pnlLoading.visible = false;
@@ -486,7 +485,6 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
             const { moduleName, data } = widgetData;
             this.selectWidget({ title: 'Config', name: moduleName }, { data, url });
             this.iconBack.visible = false;
-            this.iconClose.visible = true;
         }
         async renderForm(module, note, widgetType, widgetData) {
             this.widgetWrapper.clearInnerHTML();
@@ -711,7 +709,6 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
         async selectWidget(widget, widgetData) {
             this.lblTitle.caption = widget.title;
             this.iconBack.visible = true;
-            this.iconClose.visible = false;
             this.pnlWidgets.visible = false;
             this.pnlConfig.visible = true;
             this.pnlLoading.visible = true;
@@ -726,7 +723,7 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
                     this.$render("i-stack", { direction: "horizontal", alignItems: "center", gap: "0.5rem" },
                         this.$render("i-icon", { id: "iconBack", width: "1rem", height: "1rem", name: "arrow-left", fill: Theme.colors.primary.main, onClick: this.back, cursor: "pointer", visible: false }),
                         this.$render("i-label", { id: "lblTitle", caption: "Widgets", font: { size: '1.125rem', color: Theme.colors.primary.main } })),
-                    this.$render("i-icon", { id: "iconClose", width: "1rem", height: "1rem", name: "times", fill: Theme.colors.primary.main, onClick: this.handleCloseButtonClick, cursor: "pointer" })),
+                    this.$render("i-icon", { width: "1rem", height: "1rem", name: "times", fill: Theme.colors.primary.main, onClick: this.handleCloseButtonClick, cursor: "pointer" })),
                 this.$render("i-stack", { id: "pnlWidgets", direction: "vertical", gap: "0.5rem" }),
                 this.$render("i-grid-layout", { id: "pnlConfig", visible: false, gap: { column: '0.5rem' }, templateColumns: ['50%', '50%'], mediaQueries: [
                         {
@@ -736,7 +733,7 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
                             }
                         }
                     ] },
-                    this.$render("i-vstack", { id: "pnlWidgetWrapper", gap: "0.5rem", horizontalAlignment: "center" },
+                    this.$render("i-vstack", { id: "pnlWidgetWrapper", gap: "0.25rem", horizontalAlignment: "center" },
                         this.$render("i-label", { caption: "Widget Preview", font: { color: Theme.colors.primary.main, size: '1rem', bold: true } }),
                         this.$render("i-label", { caption: "This preview will update real-time as the config on the right changes", font: { size: '0.75rem' }, opacity: 0.75 }),
                         this.$render("i-label", { id: "lbNotePreview", visible: false, font: { color: Theme.colors.error.main, size: '0.75rem' } }),
