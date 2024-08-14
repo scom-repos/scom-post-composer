@@ -144,7 +144,6 @@ declare module "@scom/scom-post-composer/components/widgets.tsx" {
     export class ScomPostComposerWidget extends Module {
         private lblTitle;
         private iconBack;
-        private iconClose;
         private pnlWidgets;
         private pnlConfig;
         private pnlWidgetWrapper;
