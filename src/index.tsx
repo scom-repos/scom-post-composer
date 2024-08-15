@@ -1527,7 +1527,7 @@ export class ScomPostComposer extends Module {
                                                 fill={Theme.text.secondary}/>
                                         <i-input
                                             id="inputEmoji"
-                                            placeholder='Search emojis'
+                                            placeholder='Search Emojis'
                                             width='100%'
                                             height='100%'
                                             border={{style: 'none'}}
@@ -1715,7 +1715,7 @@ export class ScomPostComposer extends Module {
                             <i-icon width={16} height={16} name='search' fill={Theme.text.secondary}/>
                             <i-input
                                 id="inputGif"
-                                placeholder='Search for Gifs'
+                                placeholder='Search for GIFs'
                                 width='100%'
                                 height='100%'
                                 captionWidth={'0px'}
@@ -1990,7 +1990,7 @@ export class ScomPostComposer extends Module {
                                                 fill={Theme.text.secondary}/>
                                         <i-input
                                             id="inputEmoji"
-                                            placeholder='Search emojis'
+                                            placeholder='Search Emojis'
                                             width='100%'
                                             height='100%'
                                             border={{style: 'none'}}
@@ -2161,7 +2161,7 @@ export class ScomPostComposer extends Module {
                             <i-icon width={16} height={16} name='search' fill={Theme.text.secondary}/>
                             <i-input
                                 id="inputGif"
-                                placeholder='Search for Gifs'
+                                placeholder='Search for GIFs'
                                 width='100%'
                                 height='100%'
                                 captionWidth={'0px'}
