@@ -426,7 +426,10 @@ export class ScomPostComposer extends Module {
         if (this.onSubmit) {
             this._data.value = this.updatedValue;
             const extractedText = this._data.value.replace(/\$\$widget0\s+(.*?)\$\$/g, '$1');
-            this.onSubmit(extractedText, [...this.newReply]);
+            const plainText = extractedText.replace(/!\[(.*?)]\((https?:\/\/\S+)\)/g, function(match, p1, p2) {
+                return p2 || p1;
+            });
+            this.onSubmit(plainText, [...this.newReply]);
         }
         this.resetEditor();
         // this.pnlMedias.clearInnerHTML();
@@ -530,7 +533,7 @@ export class ScomPostComposer extends Module {
 
     private onGifSelected(gif: any) {
         this.onCloseModal('mdGif');
-        const imgMd = `\n![${gif.images.fixed_height.url}](${gif.images.fixed_height_still.url})\n`;
+        const imgMd = `\n![${gif.title || ""}](${gif.images.fixed_height.url})\n`;
         this.value = this.updatedValue + imgMd;
         if (!this.btnReply.enabled) this.btnReply.enabled = true;
 
@@ -1089,7 +1092,7 @@ export class ScomPostComposer extends Module {
             const imageTypes = ['jpg', 'jpeg', 'png', 'gif', 'svg'];
             const ext = path.split('.').pop();
             if (imageTypes.includes(ext)) {
-                this.mdEditor.value = this.updatedValue + '\n\n' + `![${path.split('/').pop()}](<${path}>)` + '\n\n';
+                this.mdEditor.value = this.updatedValue + '\n\n' + `![${path.split('/').pop()}](${path})` + '\n\n';
             } else {
                 const linkMd = `[${path}](<${path}>)`;
                 this.mdEditor.value = this.updatedValue + '\n\n' + linkMd + '\n\n';
@@ -1100,7 +1103,7 @@ export class ScomPostComposer extends Module {
             const imageTypes = ['jpg', 'jpeg', 'png', 'gif', 'svg'];
             const ext = path.split('.').pop();
             if (imageTypes.includes(ext)) {
-                this.mdEditor.value = this.updatedValue + '\n\n' + `![${path.split('/').pop()}](<${path}>)` + '\n\n';
+                this.mdEditor.value = this.updatedValue + '\n\n' + `![${path.split('/').pop()}](${path})` + '\n\n';
             } else {
                 const linkMd = `[${path}](<${path}>)`;
                 this.mdEditor.value = this.updatedValue + '\n\n' + linkMd + '\n\n';
