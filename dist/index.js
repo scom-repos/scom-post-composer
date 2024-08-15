@@ -1009,7 +1009,10 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             if (this.onSubmit) {
                 this._data.value = this.updatedValue;
                 const extractedText = this._data.value.replace(/\$\$widget0\s+(.*?)\$\$/g, '$1');
-                this.onSubmit(extractedText, [...this.newReply]);
+                const plainText = extractedText.replace(/!\[(.*?)]\((https?:\/\/\S+)\)/g, function (match, p1, p2) {
+                    return p2 || p1;
+                });
+                this.onSubmit(plainText, [...this.newReply]);
             }
             this.resetEditor();
             // this.pnlMedias.clearInnerHTML();
@@ -1080,7 +1083,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         }
         onGifSelected(gif) {
             this.onCloseModal('mdGif');
-            const imgMd = `\n![${gif.images.fixed_height.url}](${gif.images.fixed_height_still.url})\n`;
+            const imgMd = `\n![${gif.title || ""}](${gif.images.fixed_height.url})\n`;
             this.value = this.updatedValue + imgMd;
             if (!this.btnReply.enabled)
                 this.btnReply.enabled = true;
@@ -1494,7 +1497,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 const imageTypes = ['jpg', 'jpeg', 'png', 'gif', 'svg'];
                 const ext = path.split('.').pop();
                 if (imageTypes.includes(ext)) {
-                    this.mdEditor.value = this.updatedValue + '\n\n' + `![${path.split('/').pop()}](<${path}>)` + '\n\n';
+                    this.mdEditor.value = this.updatedValue + '\n\n' + `![${path.split('/').pop()}](${path})` + '\n\n';
                 }
                 else {
                     const linkMd = `[${path}](<${path}>)`;
@@ -1506,7 +1509,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 const imageTypes = ['jpg', 'jpeg', 'png', 'gif', 'svg'];
                 const ext = path.split('.').pop();
                 if (imageTypes.includes(ext)) {
-                    this.mdEditor.value = this.updatedValue + '\n\n' + `![${path.split('/').pop()}](<${path}>)` + '\n\n';
+                    this.mdEditor.value = this.updatedValue + '\n\n' + `![${path.split('/').pop()}](${path})` + '\n\n';
                 }
                 else {
                     const linkMd = `[${path}](<${path}>)`;
@@ -1756,7 +1759,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                                     this.$render("i-vstack", { position: 'relative', padding: { left: '0.25rem', right: '0.25rem' } },
                                         this.$render("i-hstack", { verticalAlignment: "center", border: { radius: '9999px', width: '1px', style: 'solid', color: Theme.divider }, minHeight: 40, width: '100%', background: { color: Theme.input.background }, padding: { left: '0.75rem', right: '0.75rem' }, margin: { top: '0.25rem', bottom: '0.25rem' }, gap: "4px" },
                                             this.$render("i-icon", { width: '1rem', height: '1rem', name: 'search', fill: Theme.text.secondary }),
-                                            this.$render("i-input", { id: "inputEmoji", placeholder: 'Search emojis', width: '100%', height: '100%', border: { style: 'none' }, captionWidth: '0px', showClearButton: true, onClearClick: this.onEmojiMdOpen.bind(this), onKeyUp: this.onEmojiSearch.bind(this) })),
+                                            this.$render("i-input", { id: "inputEmoji", placeholder: 'Search Emojis', width: '100%', height: '100%', border: { style: 'none' }, captionWidth: '0px', showClearButton: true, onClearClick: this.onEmojiMdOpen.bind(this), onKeyUp: this.onEmojiSearch.bind(this) })),
                                         this.$render("i-grid-layout", { id: "gridEmojiCate", verticalAlignment: "center", columnsPerRow: 9, margin: { top: 4 }, grid: { verticalAlignment: 'center', horizontalAlignment: 'center' }, border: { bottom: { width: '1px', style: 'solid', color: Theme.divider } } }),
                                         this.$render("i-vstack", { id: "groupEmojis", maxHeight: 400, overflow: { y: 'auto' } }),
                                         this.$render("i-vstack", { id: "pnlEmojiResult", border: { bottom: { width: '1px', style: 'solid', color: Theme.divider } }, maxHeight: 400, overflow: { y: 'auto' }, minHeight: 200, gap: "0.75rem", visible: false }),
@@ -1875,7 +1878,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                                     this.$render("i-vstack", { position: 'relative', padding: { left: '0.25rem', right: '0.25rem' } },
                                         this.$render("i-hstack", { verticalAlignment: "center", border: { radius: '9999px', width: '1px', style: 'solid', color: Theme.divider }, minHeight: 40, width: '100%', background: { color: Theme.input.background }, padding: { left: '0.75rem', right: '0.75rem' }, margin: { top: '0.25rem', bottom: '0.25rem' }, gap: "4px" },
                                             this.$render("i-icon", { width: '1rem', height: '1rem', name: 'search', fill: Theme.text.secondary }),
-                                            this.$render("i-input", { id: "inputEmoji", placeholder: 'Search emojis', width: '100%', height: '100%', border: { style: 'none' }, captionWidth: '0px', showClearButton: true, onClearClick: this.onEmojiMdOpen.bind(this), onKeyUp: this.onEmojiSearch.bind(this) })),
+                                            this.$render("i-input", { id: "inputEmoji", placeholder: 'Search Emojis', width: '100%', height: '100%', border: { style: 'none' }, captionWidth: '0px', showClearButton: true, onClearClick: this.onEmojiMdOpen.bind(this), onKeyUp: this.onEmojiSearch.bind(this) })),
                                         this.$render("i-grid-layout", { id: "gridEmojiCate", verticalAlignment: "center", columnsPerRow: 9, margin: { top: 4 }, grid: { verticalAlignment: 'center', horizontalAlignment: 'center' }, border: { bottom: { width: '1px', style: 'solid', color: Theme.divider } } }),
                                         this.$render("i-vstack", { id: "groupEmojis", maxHeight: 400, overflow: { y: 'auto' } }),
                                         this.$render("i-vstack", { id: "pnlEmojiResult", border: { bottom: { width: '1px', style: 'solid', color: Theme.divider } }, maxHeight: 400, overflow: { y: 'auto' }, minHeight: 200, gap: "0.75rem", visible: false }),
