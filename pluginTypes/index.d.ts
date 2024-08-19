@@ -254,8 +254,10 @@ declare module "@scom/scom-post-composer" {
         private recent;
         private mdEditor;
         private uploadForm;
-        private iconMedia;
         private iconMediaMobile;
+        private iconGif;
+        private iconEmoji;
+        private iconWidget;
         private pnlActions;
         private mdPostActions;
         private storageEl;
@@ -284,6 +286,8 @@ declare module "@scom/scom-post-composer" {
         private audience;
         private manager;
         private _hasQuota;
+        private isSubmitting;
+        private errorMessage;
         onChanged: onChangedCallback;
         onSubmit: onSubmitCallback;
         onCancel: () => void;
@@ -327,6 +331,10 @@ declare module "@scom/scom-post-composer" {
         private clearObservers;
         private updateGrid;
         private onEditorChanged;
+        private extractImageMimeType;
+        private extractImageMarkdown;
+        private replaceBase64WithLinks;
+        private updateSubmittingStatus;
         private onReply;
         private onUpload;
         private updateFocusedPost;
