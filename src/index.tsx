@@ -18,7 +18,8 @@ import {
     VStack,
     Control,
     Switch, application, IPFS, StackLayout, IconName,
-    Alert
+    Alert,
+    moment
 } from '@ijstech/components';
 import {IPost, IPostData} from '@scom/scom-post';
 import {
@@ -39,6 +40,8 @@ import { widgetPreviewStyle, modalStyle } from './index.css';
 import {ScomStorage} from '@scom/scom-storage';
 
 const Theme = Styles.Theme.ThemeVars;
+
+const regexImage = /!\[.*?\]\(data:image\/[^;]+;base64,([^)]+)\)/g;
 
 const PostAudience: IPostAudience[] = [
     {
@@ -144,8 +147,10 @@ export class ScomPostComposer extends Module {
     private recent: Panel;
     private mdEditor: MarkdownEditor;
     private uploadForm: ScomPostComposerUpload;
-    private iconMedia: Icon;
     private iconMediaMobile: Icon;
+    private iconGif: Icon;
+    private iconEmoji: Icon;
+    private iconWidget: Button;
     private pnlActions: VStack;
     private mdPostActions: Modal;
     private storageEl: ScomStorage;
@@ -190,6 +195,8 @@ export class ScomPostComposer extends Module {
     private audience: IPostAudience = PostAudience[1];
     private manager: IPFS.FileManager;
     private _hasQuota = false;
+    private isSubmitting: boolean;
+    private errorMessage: string;
 
     public onChanged: onChangedCallback;
     public onSubmit: onSubmitCallback;
@@ -418,20 +425,126 @@ export class ScomPostComposer extends Module {
     private onEditorChanged() {
         if (this.pnlIcons && !this.pnlIcons.visible) this.pnlIcons.visible = true;
         this._data.value = this.updatedValue;
-        this.btnReply.enabled = !!this._data.value;
+        this.btnReply.enabled = !this.isSubmitting && !!this._data.value;
         if (this.onChanged) this.onChanged(this._data.value);
     }
 
-    private onReply() {
+    private extractImageMimeType(dataString: string) {
+        const startIndex = dataString.indexOf('data:') + 5;
+        const mimeType = dataString.substring(startIndex, dataString.indexOf(';', startIndex));
+        return mimeType;
+    }
+
+    private async extractImageMarkdown(text: string) {
+        let base64List = text.match(regexImage) || [];
+        let imageList: { base64: string; fileName: string; path?: string }[] = [];
+        const files = [];
+        if (!base64List.length) {
+            return [];
+        }
+        if (!this.hasQuota) {
+            this.errorMessage = 'Your qoute is not enough to upload your media to IPFS!';
+            return [];
+        }
+        if (!this.storageEl) {
+            this.storageEl = ScomStorage.getInstance();
+            this.storageEl.onCancel = () => this.storageEl.closeModal();
+        }
+        let fileId = 1;
+        const genFileId = () => Date.now() + fileId++;
+        for (const base64 of base64List) {
+            let fileName = `image-${moment(new Date()).format('YYYYMMDDhhmmssSSS')}.png`;
+            imageList.push({
+                fileName,
+                base64
+            });
+            let base64Image = base64.match(/data:image\/[^;]+;base64,([^)]+)/)[1];
+            let byteCharacters = atob(base64Image);
+            let byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            let byteArray = new Uint8Array(byteNumbers);
+            let type = this.extractImageMimeType(base64);
+            let file: any = new File([byteArray], fileName, { type });
+            file.path = `/${fileName}`;
+            file.cid = await IPFS.hashFile(file);
+            file.uid = genFileId();
+            files.push(file);
+        }
+        const data = await this.storageEl.uploadFiles(files);
+        if (!data.length) {
+            this.errorMessage = 'Something went wrong when uploading your media to IPFS!';
+            return [];
+        }
+        imageList = imageList.map(img => {
+            const fileInfo = data.find(v => v.fileName === img.fileName);
+            return {
+                ...img,
+                path: fileInfo?.path || ''
+            }
+        })
+        return imageList;
+    }
+
+    private async replaceBase64WithLinks(text: string) {
+        if (!text) return text;
+        const imageList = await this.extractImageMarkdown(text);
+        if (!imageList.length) return text;
+        let replacedBase64 = text.replace(regexImage, function(match) {
+            let image = imageList.find(v => v.base64 === match);
+            if (image && image.path) {
+                return `![](${image.path})`;
+            }
+            return '';
+        });
+        return replacedBase64;
+    }
+
+    private updateSubmittingStatus(status: boolean) {
+        this.isSubmitting = status;
+        this.btnReply.rightIcon.spin = status;
+        this.btnReply.rightIcon.visible = status;
+        this.btnReply.enabled = !status && !!this._data.value;
+        const icons = [
+            this.iconMediaMobile,
+            this.iconGif,
+            this.iconEmoji,
+            this.iconWidget
+        ];
+        for (const icon of icons) {
+            if (icon) {
+                icon.enabled = !status;
+                icon.cursor = status ? 'not-allowed' : 'pointer';
+            }
+        }
+    }
+
+    private async onReply() {
+        if (!this._data.value) return;
         if (this.onSubmit) {
             this._data.value = this.updatedValue;
-            const extractedText = this._data.value.replace(/\$\$widget0\s+(.*?)\$\$/g, '$1');
+            let extractedText = this._data.value.replace(/\$\$widget0\s+(.*?)\$\$/g, '$1');
+            this.updateSubmittingStatus(true);
+            extractedText = await this.replaceBase64WithLinks(extractedText);
+            if (this.errorMessage) {
+                const action = (this.buttonCaption || 'post').toLowerCase();
+                this.mdAlert.status = 'error';
+                this.mdAlert.title = `Failed to ${action}`;
+                this.mdAlert.content = this.errorMessage;
+                this.mdAlert.onConfirm = () => { };
+                this.mdAlert.showModal();
+                this.errorMessage = '';
+                this.updateSubmittingStatus(false);
+                return;
+            }
             const plainText = extractedText.replace(/!\[(.*?)]\((https?:\/\/\S+)\)/g, function(match, p1, p2) {
                 return p2 || p1;
             });
             this.onSubmit(plainText, [...this.newReply]);
         }
         this.resetEditor();
+        this.updateSubmittingStatus(false);
         // this.pnlMedias.clearInnerHTML();
     }
 
@@ -1178,6 +1291,9 @@ export class ScomPostComposer extends Module {
             const value = editor.getMarkdownValue();
             editor.value = value.replace(`$$widget0 ${widget}$$`, '');
         } else {
+            alert.status = 'confirm';
+            alert.title = 'Are you sure?';
+            alert.content = 'Do you really want to delete this widget?';
             alert.onConfirm = () => {
                 const value = editor.getMarkdownValue();
                 editor.value = value.replace(`$$widget0 ${widget}$$`, '');
@@ -1487,6 +1603,7 @@ export class ScomPostComposer extends Module {
                             onClick={this.showStorage}
                         ></i-icon>
                         <i-icon
+                            id="iconGif"
                             name="images" width={28} height={28} fill={Theme.colors.primary.main}
                             border={{radius: '50%'}}
                             padding={{top: 5, bottom: 5, left: 5, right: 5}}
@@ -1496,6 +1613,7 @@ export class ScomPostComposer extends Module {
                         ></i-icon>
                         <i-panel>
                             <i-icon
+                                id="iconEmoji"
                                 name="smile" width={28} height={28} fill={Theme.colors.primary.main}
                                 border={{radius: '50%'}}
                                 padding={{top: 5, bottom: 5, left: 5, right: 5}}
@@ -1587,6 +1705,7 @@ export class ScomPostComposer extends Module {
                             </i-modal>
                         </i-panel>
                         <i-icon
+                            id="iconWidget"
                             width={28}
                             height={28}
                             name="shapes"
@@ -1950,6 +2069,7 @@ export class ScomPostComposer extends Module {
                             onClick={this.showStorage}
                         ></i-icon>
                         <i-icon
+                            id="iconGif"
                             name="images" width={28} height={28} fill={Theme.colors.primary.main}
                             border={{radius: '50%'}}
                             padding={{top: 5, bottom: 5, left: 5, right: 5}}
@@ -1959,6 +2079,7 @@ export class ScomPostComposer extends Module {
                         ></i-icon>
                         <i-panel>
                             <i-icon
+                                id="iconEmoji"
                                 name="smile" width={28} height={28} fill={Theme.colors.primary.main}
                                 border={{radius: '50%'}}
                                 padding={{top: 5, bottom: 5, left: 5, right: 5}}
@@ -2050,6 +2171,7 @@ export class ScomPostComposer extends Module {
                             </i-modal>
                         </i-panel>
                         <i-icon
+                            id="iconWidget"
                             width={28}
                             height={28}
                             name="shapes"

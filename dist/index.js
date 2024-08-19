@@ -763,6 +763,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomPostComposer = void 0;
     const Theme = components_6.Styles.Theme.ThemeVars;
+    const regexImage = /!\[.*?\]\(data:image\/[^;]+;base64,([^)]+)\)/g;
     const PostAudience = [
         {
             title: 'Public',
@@ -1001,20 +1002,125 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             if (this.pnlIcons && !this.pnlIcons.visible)
                 this.pnlIcons.visible = true;
             this._data.value = this.updatedValue;
-            this.btnReply.enabled = !!this._data.value;
+            this.btnReply.enabled = !this.isSubmitting && !!this._data.value;
             if (this.onChanged)
                 this.onChanged(this._data.value);
         }
-        onReply() {
+        extractImageMimeType(dataString) {
+            const startIndex = dataString.indexOf('data:') + 5;
+            const mimeType = dataString.substring(startIndex, dataString.indexOf(';', startIndex));
+            return mimeType;
+        }
+        async extractImageMarkdown(text) {
+            let base64List = text.match(regexImage) || [];
+            let imageList = [];
+            const files = [];
+            if (!base64List.length) {
+                return [];
+            }
+            if (!this.hasQuota) {
+                this.errorMessage = 'Your qoute is not enough to upload your media to IPFS!';
+                return [];
+            }
+            if (!this.storageEl) {
+                this.storageEl = scom_storage_1.ScomStorage.getInstance();
+                this.storageEl.onCancel = () => this.storageEl.closeModal();
+            }
+            let fileId = 1;
+            const genFileId = () => Date.now() + fileId++;
+            for (const base64 of base64List) {
+                let fileName = `image-${(0, components_6.moment)(new Date()).format('YYYYMMDDhhmmssSSS')}.png`;
+                imageList.push({
+                    fileName,
+                    base64
+                });
+                let base64Image = base64.match(/data:image\/[^;]+;base64,([^)]+)/)[1];
+                let byteCharacters = atob(base64Image);
+                let byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                let byteArray = new Uint8Array(byteNumbers);
+                let type = this.extractImageMimeType(base64);
+                let file = new File([byteArray], fileName, { type });
+                file.path = `/${fileName}`;
+                file.cid = await components_6.IPFS.hashFile(file);
+                file.uid = genFileId();
+                files.push(file);
+            }
+            const data = await this.storageEl.uploadFiles(files);
+            if (!data.length) {
+                this.errorMessage = 'Something went wrong when uploading your media to IPFS!';
+                return [];
+            }
+            imageList = imageList.map(img => {
+                const fileInfo = data.find(v => v.fileName === img.fileName);
+                return {
+                    ...img,
+                    path: fileInfo?.path || ''
+                };
+            });
+            return imageList;
+        }
+        async replaceBase64WithLinks(text) {
+            if (!text)
+                return text;
+            const imageList = await this.extractImageMarkdown(text);
+            if (!imageList.length)
+                return text;
+            let replacedBase64 = text.replace(regexImage, function (match) {
+                let image = imageList.find(v => v.base64 === match);
+                if (image && image.path) {
+                    return `![](${image.path})`;
+                }
+                return '';
+            });
+            return replacedBase64;
+        }
+        updateSubmittingStatus(status) {
+            this.isSubmitting = status;
+            this.btnReply.rightIcon.spin = status;
+            this.btnReply.rightIcon.visible = status;
+            this.btnReply.enabled = !status && !!this._data.value;
+            const icons = [
+                this.iconMediaMobile,
+                this.iconGif,
+                this.iconEmoji,
+                this.iconWidget
+            ];
+            for (const icon of icons) {
+                if (icon) {
+                    icon.enabled = !status;
+                    icon.cursor = status ? 'not-allowed' : 'pointer';
+                }
+            }
+        }
+        async onReply() {
+            if (!this._data.value)
+                return;
             if (this.onSubmit) {
                 this._data.value = this.updatedValue;
-                const extractedText = this._data.value.replace(/\$\$widget0\s+(.*?)\$\$/g, '$1');
+                let extractedText = this._data.value.replace(/\$\$widget0\s+(.*?)\$\$/g, '$1');
+                this.updateSubmittingStatus(true);
+                extractedText = await this.replaceBase64WithLinks(extractedText);
+                if (this.errorMessage) {
+                    const action = (this.buttonCaption || 'post').toLowerCase();
+                    this.mdAlert.status = 'error';
+                    this.mdAlert.title = `Failed to ${action}`;
+                    this.mdAlert.content = this.errorMessage;
+                    this.mdAlert.onConfirm = () => { };
+                    this.mdAlert.showModal();
+                    this.errorMessage = '';
+                    this.updateSubmittingStatus(false);
+                    return;
+                }
                 const plainText = extractedText.replace(/!\[(.*?)]\((https?:\/\/\S+)\)/g, function (match, p1, p2) {
                     return p2 || p1;
                 });
                 this.onSubmit(plainText, [...this.newReply]);
             }
             this.resetEditor();
+            this.updateSubmittingStatus(false);
             // this.pnlMedias.clearInnerHTML();
         }
         async onUpload() {
@@ -1588,6 +1694,9 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 editor.value = value.replace(`$$widget0 ${widget}$$`, '');
             }
             else {
+                alert.status = 'confirm';
+                alert.title = 'Are you sure?';
+                alert.content = 'Do you really want to delete this widget?';
                 alert.onConfirm = () => {
                     const value = editor.getMarkdownValue();
                     editor.value = value.replace(`$$widget0 ${widget}$$`, '');
@@ -1752,9 +1861,9 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                     this.$render("i-hstack", { id: "pnlBorder", horizontalAlignment: "space-between", grid: { area: 'reply' }, padding: { top: '0.625rem', right: '0.5rem' } },
                         this.$render("i-hstack", { id: "pnlIcons", gap: "4px", verticalAlignment: "center", visible: false },
                             this.$render("i-icon", { id: "iconMediaMobile", name: "image", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Media', placement: 'bottom' }, cursor: "pointer", onClick: this.showStorage }),
-                            this.$render("i-icon", { name: "images", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'GIF', placement: 'bottom' }, cursor: "pointer", onClick: this.onShowGifModal }),
+                            this.$render("i-icon", { id: "iconGif", name: "images", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'GIF', placement: 'bottom' }, cursor: "pointer", onClick: this.onShowGifModal }),
                             this.$render("i-panel", null,
-                                this.$render("i-icon", { name: "smile", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Emoji', placement: 'bottom' }, cursor: "pointer", onClick: () => this.onShowModal('mdEmoji') }),
+                                this.$render("i-icon", { id: "iconEmoji", name: "smile", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Emoji', placement: 'bottom' }, cursor: "pointer", onClick: () => this.onShowModal('mdEmoji') }),
                                 this.$render("i-modal", { id: "mdEmoji", maxWidth: '100%', minWidth: 320, popupPlacement: 'bottomRight', showBackdrop: false, border: { radius: '1rem' }, boxShadow: 'rgba(101, 119, 134, 0.2) 0px 0px 15px, rgba(101, 119, 134, 0.15) 0px 0px 3px 1px', padding: { top: 0, left: 0, right: 0, bottom: 0 }, closeOnScrollChildFixed: true, onOpen: this.onEmojiMdOpen.bind(this), visible: false },
                                     this.$render("i-vstack", { position: 'relative', padding: { left: '0.25rem', right: '0.25rem' } },
                                         this.$render("i-hstack", { verticalAlignment: "center", border: { radius: '9999px', width: '1px', style: 'solid', color: Theme.divider }, minHeight: 40, width: '100%', background: { color: Theme.input.background }, padding: { left: '0.75rem', right: '0.75rem' }, margin: { top: '0.25rem', bottom: '0.25rem' }, gap: "4px" },
@@ -1774,7 +1883,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                                                     right: '0.25rem',
                                                     bottom: '0.25rem'
                                                 } }))))),
-                            this.$render("i-icon", { width: 28, height: 28, name: "shapes", fill: Theme.colors.primary.main, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Widgets', placement: 'bottom' }, cursor: "pointer", onClick: () => this.onShowWidgets() })),
+                            this.$render("i-icon", { id: "iconWidget", width: 28, height: 28, name: "shapes", fill: Theme.colors.primary.main, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Widgets', placement: 'bottom' }, cursor: "pointer", onClick: () => this.onShowWidgets() })),
                         this.$render("i-panel", null,
                             this.$render("i-button", { id: "btnPostAudience", height: 32, padding: { left: '1rem', right: '1rem' }, background: { color: Theme.colors.secondary.main }, font: { color: Theme.colors.secondary.contrastText, bold: true }, border: { radius: '0.375rem' }, caption: this.audience.title, icon: { width: 14, height: 14, name: this.audience.icon, fill: Theme.colors.secondary.contrastText }, rightIcon: { width: 14, height: 14, name: 'angle-down', fill: Theme.colors.secondary.contrastText }, visible: this.isPostAudienceShown, onClick: this.showPostAudienceModal.bind(this) }),
                             this.$render("i-modal", { id: "mdPostAudience", maxWidth: '15rem', minWidth: '12.25rem', maxHeight: '27.5rem', popupPlacement: 'bottomRight', showBackdrop: false, border: { radius: '0.5rem' }, boxShadow: "rgba(255, 255, 255, 0.2) 0px 0px 15px, rgba(255, 255, 255, 0.15) 0px 0px 3px 1px", padding: { top: 0, bottom: 0, left: 0, right: 0 }, overflow: { y: 'hidden' }, visible: false }, pnlPostAudiences)))),
@@ -1871,9 +1980,9 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                     this.$render("i-hstack", { id: "pnlBorder", horizontalAlignment: "space-between", grid: { area: 'reply' }, padding: { top: '0.625rem' } },
                         this.$render("i-hstack", { id: "pnlIcons", gap: "4px", verticalAlignment: "center", visible: false },
                             this.$render("i-icon", { id: "iconMediaMobile", name: "image", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Media', placement: 'bottom' }, cursor: "pointer", onClick: this.showStorage }),
-                            this.$render("i-icon", { name: "images", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'GIF', placement: 'bottom' }, cursor: "pointer", onClick: this.onShowGifModal }),
+                            this.$render("i-icon", { id: "iconGif", name: "images", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'GIF', placement: 'bottom' }, cursor: "pointer", onClick: this.onShowGifModal }),
                             this.$render("i-panel", null,
-                                this.$render("i-icon", { name: "smile", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Emoji', placement: 'bottom' }, cursor: "pointer", onClick: () => this.onShowModal('mdEmoji') }),
+                                this.$render("i-icon", { id: "iconEmoji", name: "smile", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Emoji', placement: 'bottom' }, cursor: "pointer", onClick: () => this.onShowModal('mdEmoji') }),
                                 this.$render("i-modal", { id: "mdEmoji", maxWidth: '100%', minWidth: 320, popupPlacement: 'bottomRight', showBackdrop: false, border: { radius: '1rem' }, boxShadow: 'rgba(101, 119, 134, 0.2) 0px 0px 15px, rgba(101, 119, 134, 0.15) 0px 0px 3px 1px', padding: { top: 0, left: 0, right: 0, bottom: 0 }, closeOnScrollChildFixed: true, onOpen: this.onEmojiMdOpen.bind(this), visible: false },
                                     this.$render("i-vstack", { position: 'relative', padding: { left: '0.25rem', right: '0.25rem' } },
                                         this.$render("i-hstack", { verticalAlignment: "center", border: { radius: '9999px', width: '1px', style: 'solid', color: Theme.divider }, minHeight: 40, width: '100%', background: { color: Theme.input.background }, padding: { left: '0.75rem', right: '0.75rem' }, margin: { top: '0.25rem', bottom: '0.25rem' }, gap: "4px" },
@@ -1893,7 +2002,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                                                     right: '0.25rem',
                                                     bottom: '0.25rem'
                                                 } }))))),
-                            this.$render("i-icon", { width: 28, height: 28, name: "shapes", fill: Theme.colors.primary.main, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Widgets', placement: 'bottom' }, cursor: "pointer", onClick: () => this.onShowWidgets() })),
+                            this.$render("i-icon", { id: "iconWidget", width: 28, height: 28, name: "shapes", fill: Theme.colors.primary.main, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Widgets', placement: 'bottom' }, cursor: "pointer", onClick: () => this.onShowWidgets() })),
                         this.$render("i-stack", { direction: "horizontal", width: "100%", alignItems: "center", justifyContent: "end", gap: "0.5rem" },
                             this.$render("i-panel", null,
                                 this.$render("i-button", { id: "btnPostAudience", height: 32, padding: { left: '1rem', right: '1rem' }, background: { color: Theme.colors.secondary.main }, font: { color: Theme.colors.secondary.contrastText, bold: true }, border: { radius: '0.375rem' }, caption: this.audience.title, icon: { width: 14, height: 14, name: this.audience.icon, fill: Theme.colors.secondary.contrastText }, rightIcon: { width: 14, height: 14, name: 'angle-down', fill: Theme.colors.secondary.contrastText }, visible: this.isPostAudienceShown, onClick: this.showPostAudienceModal.bind(this) }),
