@@ -35,3 +35,11 @@ export const widgetPreviewStyle = Styles.style({
     }
   }
 })
+
+export const alertStyle = Styles.style({
+  $nest: {
+    'i-vstack i-label': {
+      textAlign: 'center'
+    }
+  }
+})

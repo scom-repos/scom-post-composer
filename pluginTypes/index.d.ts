@@ -124,6 +124,7 @@ declare module "@scom/scom-post-composer/index.css.ts" {
     export const modalStyle: string;
     export const formStyle: string;
     export const widgetPreviewStyle: string;
+    export const alertStyle: string;
 }
 /// <amd-module name="@scom/scom-post-composer/components/widgets.tsx" />
 declare module "@scom/scom-post-composer/components/widgets.tsx" {
@@ -288,6 +289,7 @@ declare module "@scom/scom-post-composer" {
         private _hasQuota;
         private isSubmitting;
         private errorMessage;
+        private needToUploadMedia;
         onChanged: onChangedCallback;
         onSubmit: onSubmitCallback;
         onCancel: () => void;
@@ -335,6 +337,7 @@ declare module "@scom/scom-post-composer" {
         private extractImageMarkdown;
         private replaceBase64WithLinks;
         private updateSubmittingStatus;
+        private showAlert;
         private onReply;
         private onUpload;
         private updateFocusedPost;
