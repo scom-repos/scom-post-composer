@@ -476,7 +476,7 @@ export class ScomPostComposer extends Module {
             files.push(file);
         }
         const data = await this.storageEl.uploadFiles(files);
-        if (!data.length) {
+        if (!data.length || data.length < files.length) {
             this.errorMessage = 'Something went wrong when uploading your media to IPFS!';
             return [];
         }
