@@ -21,7 +21,7 @@ import {
     Alert,
     moment
 } from '@ijstech/components';
-import {IPost, IPostData} from '@scom/scom-post';
+import { IPost, IPostData } from '@scom/scom-post';
 import {
     fetchReactionGifs,
     fetchGifs,
@@ -35,11 +35,13 @@ import {
     getEmbedElement
 } from './global/index';
 import assets from './assets';
-import {ScomPostComposerUpload, ScomPostComposerWidget} from './components/index';
-import { widgetPreviewStyle, modalStyle } from './index.css';
-import {ScomStorage} from '@scom/scom-storage';
+import { ScomPostComposerUpload, ScomPostComposerWidget } from './components/index';
+import { widgetPreviewStyle, modalStyle, alertStyle } from './index.css';
+import { ScomStorage } from '@scom/scom-storage';
 
 const Theme = Styles.Theme.ThemeVars;
+
+const MAX_SIZE = 232003 // characters (~226kb)
 
 const regexImage = /!\[.*?\]\(data:image\/[^;]+;base64,([^)]+)\)/g;
 
@@ -64,7 +66,7 @@ type onSubmitCallback = (content: string, medias: IPostData[]) => void;
 type onPostAudienceChangedCallback = (value: string) => void;
 type Action = {
     caption: string;
-    icon?: {name: string, fill?: string;};
+    icon?: { name: string, fill?: string; };
     tooltip?: string;
     onClick?: (e?: any) => void;
     hoveredColor?: string;
@@ -197,6 +199,7 @@ export class ScomPostComposer extends Module {
     private _hasQuota = false;
     private isSubmitting: boolean;
     private errorMessage: string;
+    private needToUploadMedia: boolean;
 
     public onChanged: onChangedCallback;
     public onSubmit: onSubmitCallback;
@@ -223,7 +226,7 @@ export class ScomPostComposer extends Module {
     setFocus() {
         this.mdEditor.setFocus();
     }
-    
+
     get hasQuota() {
         return this._hasQuota;
     }
@@ -443,7 +446,7 @@ export class ScomPostComposer extends Module {
             return [];
         }
         if (!this.hasQuota) {
-            this.errorMessage = 'Your qoute is not enough to upload your media to IPFS!';
+            this.errorMessage = 'Your quota insufficient for IPFS media upload!';
             return [];
         }
         if (!this.storageEl) {
@@ -473,7 +476,7 @@ export class ScomPostComposer extends Module {
             files.push(file);
         }
         const data = await this.storageEl.uploadFiles(files);
-        if (!data.length) {
+        if (!data.length || data.length < files.length) {
             this.errorMessage = 'Something went wrong when uploading your media to IPFS!';
             return [];
         }
@@ -491,7 +494,7 @@ export class ScomPostComposer extends Module {
         if (!text) return text;
         const imageList = await this.extractImageMarkdown(text);
         if (!imageList.length) return text;
-        let replacedBase64 = text.replace(regexImage, function(match) {
+        let replacedBase64 = text.replace(regexImage, function (match) {
             let image = imageList.find(v => v.base64 === match);
             if (image && image.path) {
                 return `![](${image.path})`;
@@ -520,25 +523,43 @@ export class ScomPostComposer extends Module {
         }
     }
 
+    private showAlert(status: string, title: string, content: string, onConfirm?: () => void) {
+        this.mdAlert.status = status;
+        this.mdAlert.title = title;
+        this.mdAlert.content = content;
+        this.mdAlert.onConfirm = () => onConfirm ? onConfirm() : {};
+        this.mdAlert.showModal();
+    }
+
     private async onReply() {
         if (!this._data.value) return;
         if (this.onSubmit) {
             this._data.value = this.updatedValue;
             let extractedText = this._data.value.replace(/\$\$widget0\s+(.*?)\$\$/g, '$1');
             this.updateSubmittingStatus(true);
-            extractedText = await this.replaceBase64WithLinks(extractedText);
-            if (this.errorMessage) {
-                const action = (this.buttonCaption || 'post').toLowerCase();
-                this.mdAlert.status = 'error';
-                this.mdAlert.title = `Failed to ${action}`;
-                this.mdAlert.content = this.errorMessage;
-                this.mdAlert.onConfirm = () => { };
-                this.mdAlert.showModal();
-                this.errorMessage = '';
+            const action = (this.buttonCaption || 'post').toLowerCase();
+            if (this.needToUploadMedia) {
+                this.needToUploadMedia = false;
+                extractedText = await this.replaceBase64WithLinks(extractedText);
+                if (this.errorMessage) {
+                    this.showAlert('error', `Failed to ${action}`, this.errorMessage, () => { });
+                    this.updateSubmittingStatus(false);
+                    return;
+                }
+            } else if (extractedText.length > MAX_SIZE) {
+                const base64List = extractedText.match(regexImage) || [];
+                if (base64List.length) {
+                    this.showAlert('confirm', `Excessed max post size!`, `In order to ${action}, please confirm the upload of your media to IPFS?`, () => {
+                        this.needToUploadMedia = true;
+                        this.onReply();
+                    });
+                } else {
+                    this.showAlert('error', `Failed to ${action}`, 'Excessed max post size!', () => { });
+                }
                 this.updateSubmittingStatus(false);
                 return;
             }
-            const plainText = extractedText.replace(/!\[(.*?)]\((https?:\/\/\S+)\)/g, function(match, p1, p2) {
+            const plainText = extractedText.replace(/!\[(.*?)]\((https?:\/\/\S+)\)/g, function (match, p1, p2) {
                 return p2 || p1;
             });
             this.onSubmit(plainText, [...this.newReply]);
@@ -562,7 +583,7 @@ export class ScomPostComposer extends Module {
     }
 
     private updateFocusedPost() {
-        if(this.pnlFocusedPost && this.mobile) {
+        if (this.pnlFocusedPost && this.mobile) {
             this.renderActions();
             const onProfileClicked = (target: Control, data: any, event: Event) => this.onShowModal2(target, data, 'mdPostActions');
             const focusedPost = <i-scom-post
@@ -618,7 +639,7 @@ export class ScomPostComposer extends Module {
     private async renderGifCate() {
         this.gridGifCate.clearInnerHTML();
         this.gifCateLoading.visible = true;
-        const {data = []} = await fetchReactionGifs();
+        const { data = [] } = await fetchReactionGifs();
         const limitedList = [...data].slice(0, 8);
         this.gifCateLoading.visible = false;
         this.gridGifCate.visible = true;
@@ -634,10 +655,10 @@ export class ScomPostComposer extends Module {
                     ></i-image>
                     <i-label
                         caption={cate.name}
-                        font={{size: '1.25rem', weight: 700}}
+                        font={{ size: '1.25rem', weight: 700 }}
                         position="absolute" bottom="0px"
                         display="block" width={'100%'}
-                        padding={{left: '0.5rem', top: '0.5rem', right: '0.5rem', bottom: '0.5rem'}}
+                        padding={{ left: '0.5rem', top: '0.5rem', right: '0.5rem', bottom: '0.5rem' }}
                     ></i-label>
                 </i-panel>
             )
@@ -718,8 +739,8 @@ export class ScomPostComposer extends Module {
         if (this.renderedMap[this.currentGifPage]) return;
         this.gifLoading.visible = true;
         this.renderedMap[this.currentGifPage] = true;
-        const params = {q, offset: this.currentGifPage - 1};
-        const {data = [], pagination: {total_count, count}} = await fetchGifs(params);
+        const params = { q, offset: this.currentGifPage - 1 };
+        const { data = [], pagination: { total_count, count } } = await fetchGifs(params);
         this.totalGifPage = Math.ceil(total_count / count);
         this.bottomElm.visible = this.totalGifPage > 1;
         for (let gif of data) {
@@ -765,7 +786,7 @@ export class ScomPostComposer extends Module {
     private async initEmojiGroup(category: IEmojiCategory) {
         if (this.isRecent(category) && !this.hasRecentEmojis) return;
         if (!this.emojiGroupsData.has(category.value)) {
-            const list = await fetchEmojis({category: category.value});
+            const list = await fetchEmojis({ category: category.value });
             this.emojiGroupsData.set(category.value, JSON.parse(JSON.stringify(list)));
         }
         this.renderEmojiGroup(this.groupEmojis, category);
@@ -786,7 +807,7 @@ export class ScomPostComposer extends Module {
                     overflow={'hidden'}
                     cursor='pointer'
                     opacity={0.5}
-                    padding={{top: '0.25rem', bottom: '0.25rem'}}
+                    padding={{ top: '0.25rem', bottom: '0.25rem' }}
                     horizontalAlignment="center"
                     position='relative'
                     class="emoji-cate"
@@ -799,11 +820,11 @@ export class ScomPostComposer extends Module {
                     ></i-image>
                     <i-hstack
                         visible={false}
-                        border={{radius: '9999px'}}
+                        border={{ radius: '9999px' }}
                         height={'0.25rem'}
                         width={'100%'}
                         position='absolute' bottom="0px"
-                        background={{color: Theme.colors.primary.main}}
+                        background={{ color: Theme.colors.primary.main }}
                     ></i-hstack>
                 </i-vstack>
             )
@@ -816,30 +837,30 @@ export class ScomPostComposer extends Module {
         const group = (
             <i-vstack
                 id={`${category.value}`}
-                border={{bottom: {width: '1px', style: 'solid', color: Theme.divider}}}
+                border={{ bottom: { width: '1px', style: 'solid', color: Theme.divider } }}
                 gap="0.75rem"
                 class="emoji-group"
             >
                 <i-hstack
-                    padding={{top: '0.75rem', left: '0.75rem', right: '0.75rem', bottom: '0.75rem'}}
+                    padding={{ top: '0.75rem', left: '0.75rem', right: '0.75rem', bottom: '0.75rem' }}
                     position="sticky" top="0px" width={'100%'} zIndex={9}
-                    background={{color: Theme.background.modal}}
+                    background={{ color: Theme.background.modal }}
                     verticalAlignment="center" horizontalAlignment="space-between"
                 >
                     <i-label
                         caption={category.name}
-                        font={{size: '1.063rem', weight: 700}}
+                        font={{ size: '1.063rem', weight: 700 }}
                         wordBreak="break-word"
                     ></i-label>
                     <i-button
                         caption="Clear all"
-                        font={{size: '0.9rem', weight: 700, color: Theme.colors.primary.main}}
+                        font={{ size: '0.9rem', weight: 700, color: Theme.colors.primary.main }}
                         cursor='pointer'
                         boxShadow='none'
-                        padding={{left: '0.75rem', right: '0.75rem'}}
+                        padding={{ left: '0.75rem', right: '0.75rem' }}
                         lineHeight={'1.25rem'}
-                        border={{radius: '9999px'}}
-                        background={{color: Theme.colors.info.light}}
+                        border={{ radius: '9999px' }}
+                        background={{ color: Theme.colors.info.light }}
                         visible={this.isRecent(category) && this.hasRecentEmojis}
                         onClick={this.onRecentClear}
                     ></i-button>
@@ -847,7 +868,7 @@ export class ScomPostComposer extends Module {
             </i-vstack>
         )
         const itemWrap = <i-grid-layout id={`group-${category.value}`} columnsPerRow={9}
-                                        padding={{left: '0.75rem', right: '0.75rem', bottom: '0.75rem'}}/>
+            padding={{ left: '0.75rem', right: '0.75rem', bottom: '0.75rem' }} />
         group.append(itemWrap);
         parent.appendChild(group);
         let data = [];
@@ -940,7 +961,7 @@ export class ScomPostComposer extends Module {
                 icon: { name: 'copy' },
                 tooltip: 'The link has been copied successfully',
                 onClick: (e) => {
-                    if(typeof this.currentPostData !== 'undefined') {
+                    if (typeof this.currentPostData !== 'undefined') {
                         application.copyToClipboard(`${window.location.origin}/#!/e/${this.currentPostData.id}`)
                     }
                     this.mdPostActions.visible = false;
@@ -960,7 +981,7 @@ export class ScomPostComposer extends Module {
                 icon: { name: 'copy' },
                 tooltip: 'The ID has been copied successfully',
                 onClick: (e) => {
-                    if(typeof this.currentPostData !== 'undefined') {
+                    if (typeof this.currentPostData !== 'undefined') {
                         application.copyToClipboard(this.currentPostData.id)
                     }
                     this.mdPostActions.visible = false;
@@ -971,7 +992,7 @@ export class ScomPostComposer extends Module {
                 icon: { name: 'copy' },
                 tooltip: 'The raw data has been copied successfully',
                 onClick: (e) => {
-                    if(typeof this.currentPostData !== 'undefined') {
+                    if (typeof this.currentPostData !== 'undefined') {
                         application.copyToClipboard(JSON.stringify(this.currentPostData['eventData']))
                     }
                     this.mdPostActions.visible = false;
@@ -987,7 +1008,7 @@ export class ScomPostComposer extends Module {
                 icon: { name: 'copy' },
                 tooltip: 'The public key has been copied successfully',
                 onClick: (e) => {
-                    if(typeof this.currentPostData !== 'undefined') {
+                    if (typeof this.currentPostData !== 'undefined') {
                         application.copyToClipboard(this.currentPostData.author.npub || '')
                     }
                     this.mdPostActions.visible = false;
@@ -1012,9 +1033,9 @@ export class ScomPostComposer extends Module {
                     horizontalAlignment="space-between"
                     verticalAlignment="center"
                     width="100%"
-                    padding={{top: '0.625rem', bottom: '0.625rem', left: '0.75rem', right: '0.75rem'}}
-                    background={{color: 'transparent'}}
-                    border={{radius: '0.5rem'}}
+                    padding={{ top: '0.625rem', bottom: '0.625rem', left: '0.75rem', right: '0.75rem' }}
+                    background={{ color: 'transparent' }}
+                    border={{ radius: '0.5rem' }}
                     opacity={item.hoveredColor ? 1 : 0.667}
                     hover={{
                         backgroundColor: item.hoveredColor || Theme.action.hoverBackground,
@@ -1024,7 +1045,7 @@ export class ScomPostComposer extends Module {
                 >
                     <i-label
                         caption={item.caption}
-                        font={{color: item.icon?.fill || Theme.text.primary, weight: 400, size: '0.875rem'}}
+                        font={{ color: item.icon?.fill || Theme.text.primary, weight: 400, size: '0.875rem' }}
                     ></i-label>
                     <i-icon
                         name={item.icon.name}
@@ -1039,7 +1060,7 @@ export class ScomPostComposer extends Module {
             <i-hstack
                 width="100%"
                 horizontalAlignment="center"
-                padding={{top: 12, bottom: 12, left: 16, right: 16}}
+                padding={{ top: 12, bottom: 12, left: 16, right: 16 }}
                 visible={false}
                 mediaQueries={[
                     {
@@ -1051,11 +1072,11 @@ export class ScomPostComposer extends Module {
                 <i-button
                     caption='Cancel'
                     width="100%" minHeight={44}
-                    padding={{left: 16, right: 16}}
-                    font={{color: Theme.text.primary, weight: 600}}
-                    border={{radius: '30px', width: '1px', style: 'solid', color: Theme.colors.secondary.light}}
-                    grid={{horizontalAlignment: 'center'}}
-                    background={{color: 'transparent'}}
+                    padding={{ left: 16, right: 16 }}
+                    font={{ color: Theme.text.primary, weight: 600 }}
+                    border={{ radius: '30px', width: '1px', style: 'solid', color: Theme.colors.secondary.light }}
+                    grid={{ horizontalAlignment: 'center' }}
+                    background={{ color: 'transparent' }}
                     boxShadow="none"
                     onClick={() => this.onCloseModal('mdPostActions')}
                 ></i-button>
@@ -1067,11 +1088,11 @@ export class ScomPostComposer extends Module {
         const isCurrentColor = color === this.currentEmojiColor;
         const colorEl = (
             <i-panel
-                background={{color}}
-                border={{radius: '50%'}}
+                background={{ color }}
+                border={{ radius: '50%' }}
                 width={'1.188rem'} height={'1.188rem'}
-                padding={{left: '0.35rem'}}
-                stack={{grow: '0', shrink: '0', basis: '1.188rem'}}
+                padding={{ left: '0.35rem' }}
+                stack={{ grow: '0', shrink: '0', basis: '1.188rem' }}
                 boxShadow={`${isCurrentColor ? 'rgb(29, 155, 240) 0px 0px 0px 2px' : 'none'}`}
                 onClick={this.onEmojiColorSelected}
             >
@@ -1115,11 +1136,11 @@ export class ScomPostComposer extends Module {
         (target.children[1] as Control).visible = true;
         target.opacity = 1;
         if (this.isRecent(category)) {
-            this.groupEmojis.scrollTo({top: 0});
+            this.groupEmojis.scrollTo({ top: 0 });
         } else {
             const groupEl = this.querySelector(`#${category.value}`) as Control;
             if (groupEl) {
-                this.groupEmojis.scrollTo({top: groupEl.offsetTop});
+                this.groupEmojis.scrollTo({ top: groupEl.offsetTop });
             }
         }
     }
@@ -1135,7 +1156,7 @@ export class ScomPostComposer extends Module {
         this.recentEmojis[emoji.name] = emoji;
         const parent = (event.target as Control).closest('.emoji-group') as Control;
         if (parent) {
-            this.groupEmojis.scrollTo({top: parent.offsetTop + event.clientY});
+            this.groupEmojis.scrollTo({ top: parent.offsetTop + event.clientY });
         }
     }
 
@@ -1228,7 +1249,7 @@ export class ScomPostComposer extends Module {
             height: '90vh',
             overflow: 'hidden',
             zIndex: 1000,
-            closeIcon: {width: '1rem', height: '1rem', name: 'times', fill: Theme.text.primary, margin: {bottom: '0.5rem'}},
+            closeIcon: { width: '1rem', height: '1rem', name: 'times', fill: Theme.text.primary, margin: { bottom: '0.5rem' } },
             class: modalStyle
         })
         this.storageEl.onShow();
@@ -1311,7 +1332,7 @@ export class ScomPostComposer extends Module {
             gap: '0.75rem',
             verticalAlignment: 'center',
             horizontalAlignment: 'end',
-            margin: { bottom: '0.5rem'},
+            margin: { bottom: '0.5rem' },
             padding: { left: '0.75rem', right: '0.75rem' }
         });
         const iconConfig = new Icon(hStack, {
@@ -1388,11 +1409,11 @@ export class ScomPostComposer extends Module {
         } else {
             this.renderPostComposer();
         }
-        this.setData({isReplyToShown, replyTo, type, placeholder, buttonCaption});
+        this.setData({ isReplyToShown, replyTo, type, placeholder, buttonCaption });
         this.renderEmojis();
         // if(this.autoFocus) {
         this.mdEditor.autoFocus = this.autoFocus;
-        if(this.autoFocus)
+        if (this.autoFocus)
             this.mdEditor.setFocus();
         // }
         // this.updateFocusedPost();
@@ -1477,59 +1498,59 @@ export class ScomPostComposer extends Module {
             <i-hstack
                 justifyContent={'space-between'}
                 alignItems={'center'}
-                padding={{left: '0.5rem', right: '0.5rem'}}
+                padding={{ left: '0.5rem', right: '0.5rem' }}
                 position={'fixed'}
                 top={0}
                 zIndex={10}
-                background={{color: '#000'}}
+                background={{ color: '#000' }}
                 width={'100%'}
-                border={{bottom: {width: '.5px', style: 'solid', color: Theme.divider}}}
+                border={{ bottom: { width: '.5px', style: 'solid', color: Theme.divider } }}
                 height={50}
                 mediaQueries={[
                     {
                         maxWidth: '767px',
                         properties: {
-                            border: { bottom: { style: 'none' }}
+                            border: { bottom: { style: 'none' } }
                         }
                     }
                 ]}
             >
                 <i-button caption={"Cancel"} onClick={this.handleMobileCloseComposer.bind(this)}
-                          padding={{left: 5, right: 5, top: 5, bottom: 5}} font={{size: Theme.typography.fontSize}}
-                          background={{color: 'transparent'}}/>
+                    padding={{ left: 5, right: 5, top: 5, bottom: 5 }} font={{ size: Theme.typography.fontSize }}
+                    background={{ color: 'transparent' }} />
                 <i-button id={"btnReply"}
-                          caption={"Post"}
-                          enabled={false}
-                          onClick={this.onReply.bind(this)}
-                          padding={{left: '1rem', right: '1rem'}}
-                          height={36}
-                          background={{color: Theme.colors.primary.main}}
-                          font={{size: Theme.typography.fontSize, color: Theme.colors.primary.contrastText, bold: true}}
-                          border={{radius: '30px'}}/>
+                    caption={"Post"}
+                    enabled={false}
+                    onClick={this.onReply.bind(this)}
+                    padding={{ left: '1rem', right: '1rem' }}
+                    height={36}
+                    background={{ color: Theme.colors.primary.main }}
+                    font={{ size: Theme.typography.fontSize, color: Theme.colors.primary.contrastText, bold: true }}
+                    border={{ radius: '30px' }} />
             </i-hstack>
             <i-hstack
                 id="pnlReplyTo"
                 visible={false}
                 gap="0.5rem"
                 verticalAlignment="center"
-                padding={{top: '0.25rem', bottom: '0.75rem', left: '3.25rem'}}
+                padding={{ top: '0.25rem', bottom: '0.75rem', left: '3.25rem' }}
             >
                 <i-label
                     caption="Replying to"
-                    font={{size: '1rem', color: Theme.text.secondary}}
+                    font={{ size: '1rem', color: Theme.text.secondary }}
                 ></i-label>
                 <i-label
                     id="lbReplyTo"
-                    link={{href: ''}}
-                    font={{size: '1rem', color: Theme.colors.primary.main}}
+                    link={{ href: '' }}
+                    font={{ size: '1rem', color: Theme.colors.primary.main }}
                 ></i-label>
             </i-hstack>
-            <i-panel id={'pnlFocusedPost'} padding={{top: 50}}>
+            <i-panel id={'pnlFocusedPost'} padding={{ top: 50 }}>
 
             </i-panel>
             <i-grid-layout
                 id="gridReply"
-                gap={{column: '0.75rem'}}
+                gap={{ column: '0.75rem' }}
                 height={""}
                 templateColumns={['2.75rem', 'minmax(auto, calc(100% - 3.5rem))']}
                 templateRows={['auto']}
@@ -1537,26 +1558,26 @@ export class ScomPostComposer extends Module {
                     ['avatar', 'editor'],
                     ['avatar', 'reply']
                 ]}
-                padding={{left: '0.75rem'}}
+                padding={{ left: '0.75rem' }}
             >
                 <i-image
                     id="imgReplier"
-                    grid={{area: 'avatar'}}
+                    grid={{ area: 'avatar' }}
                     width={'2.75rem'}
                     height={'2.75rem'}
                     display="block"
-                    background={{color: Theme.background.main}}
-                    border={{radius: '50%'}}
+                    background={{ color: Theme.background.main }}
+                    border={{ radius: '50%' }}
                     overflow={'hidden'}
-                    margin={{top: '0.75rem'}}
+                    margin={{ top: '0.75rem' }}
                     objectFit='cover'
                     url={this._avatar}
                     fallbackUrl={assets.fullPath('img/default_avatar.png')}
                 ></i-image>
                 <i-panel
-                    grid={{area: 'editor'}}
+                    grid={{ area: 'editor' }}
                     maxHeight={'45rem'}
-                    overflow={{x: 'hidden', y: 'auto'}}
+                    overflow={{ x: 'hidden', y: 'auto' }}
                 >
                     <i-markdown-editor
                         id="mdEditor"
@@ -1565,17 +1586,17 @@ export class ScomPostComposer extends Module {
                         hideModeSwitch={true}
                         mode="wysiwyg"
                         toolbarItems={[]}
-                        font={{size: '1.25rem', color: Theme.text.primary}}
+                        font={{ size: '1.25rem', color: Theme.text.primary }}
                         lineHeight={1.5}
-                        padding={{top: 12, bottom: 12, left: 0, right: 0}}
-                        background={{color: 'transparent'}}
+                        padding={{ top: 12, bottom: 12, left: 0, right: 0 }}
+                        background={{ color: 'transparent' }}
                         height="auto"
                         minHeight={0}
                         overflow={'hidden'}
                         overflowWrap="break-word"
                         onChanged={this.onEditorChanged.bind(this)}
                         cursor='text'
-                        border={{style: 'none'}}
+                        border={{ style: 'none' }}
                         visible={true}
                     ></i-markdown-editor>
                     {/* <i-vstack id="pnlMedias" /> */}
@@ -1585,8 +1606,8 @@ export class ScomPostComposer extends Module {
                 <i-hstack
                     id="pnlBorder"
                     horizontalAlignment="space-between"
-                    grid={{area: 'reply'}}
-                    padding={{top: '0.625rem', right: '0.5rem'}}
+                    grid={{ area: 'reply' }}
+                    padding={{ top: '0.625rem', right: '0.5rem' }}
                 >
                     <i-hstack
                         id="pnlIcons"
@@ -1596,18 +1617,18 @@ export class ScomPostComposer extends Module {
                         <i-icon
                             id="iconMediaMobile"
                             name="image" width={28} height={28} fill={Theme.colors.primary.main}
-                            border={{radius: '50%'}}
-                            padding={{top: 5, bottom: 5, left: 5, right: 5}}
-                            tooltip={{content: 'Media', placement: 'bottom'}}
+                            border={{ radius: '50%' }}
+                            padding={{ top: 5, bottom: 5, left: 5, right: 5 }}
+                            tooltip={{ content: 'Media', placement: 'bottom' }}
                             cursor="pointer"
                             onClick={this.showStorage}
                         ></i-icon>
                         <i-icon
                             id="iconGif"
                             name="images" width={28} height={28} fill={Theme.colors.primary.main}
-                            border={{radius: '50%'}}
-                            padding={{top: 5, bottom: 5, left: 5, right: 5}}
-                            tooltip={{content: 'GIF', placement: 'bottom'}}
+                            border={{ radius: '50%' }}
+                            padding={{ top: 5, bottom: 5, left: 5, right: 5 }}
+                            tooltip={{ content: 'GIF', placement: 'bottom' }}
                             cursor="pointer"
                             onClick={this.onShowGifModal}
                         ></i-icon>
@@ -1615,9 +1636,9 @@ export class ScomPostComposer extends Module {
                             <i-icon
                                 id="iconEmoji"
                                 name="smile" width={28} height={28} fill={Theme.colors.primary.main}
-                                border={{radius: '50%'}}
-                                padding={{top: 5, bottom: 5, left: 5, right: 5}}
-                                tooltip={{content: 'Emoji', placement: 'bottom'}}
+                                border={{ radius: '50%' }}
+                                padding={{ top: 5, bottom: 5, left: 5, right: 5 }}
+                                tooltip={{ content: 'Emoji', placement: 'bottom' }}
                                 cursor="pointer"
                                 onClick={() => this.onShowModal('mdEmoji')}
                             ></i-icon>
@@ -1627,31 +1648,31 @@ export class ScomPostComposer extends Module {
                                 minWidth={320}
                                 popupPlacement='bottomRight'
                                 showBackdrop={false}
-                                border={{radius: '1rem'}}
+                                border={{ radius: '1rem' }}
                                 boxShadow='rgba(101, 119, 134, 0.2) 0px 0px 15px, rgba(101, 119, 134, 0.15) 0px 0px 3px 1px'
-                                padding={{top: 0, left: 0, right: 0, bottom: 0}}
+                                padding={{ top: 0, left: 0, right: 0, bottom: 0 }}
                                 closeOnScrollChildFixed={true}
                                 onOpen={this.onEmojiMdOpen.bind(this)}
                                 visible={false}
                             >
-                                <i-vstack position='relative' padding={{left: '0.25rem', right: '0.25rem'}}>
+                                <i-vstack position='relative' padding={{ left: '0.25rem', right: '0.25rem' }}>
                                     <i-hstack
                                         verticalAlignment="center"
-                                        border={{radius: '9999px', width: '1px', style: 'solid', color: Theme.divider}}
+                                        border={{ radius: '9999px', width: '1px', style: 'solid', color: Theme.divider }}
                                         minHeight={40} width={'100%'}
-                                        background={{color: Theme.input.background}}
-                                        padding={{left: '0.75rem', right: '0.75rem'}}
-                                        margin={{top: '0.25rem', bottom: '0.25rem'}}
+                                        background={{ color: Theme.input.background }}
+                                        padding={{ left: '0.75rem', right: '0.75rem' }}
+                                        margin={{ top: '0.25rem', bottom: '0.25rem' }}
                                         gap="4px"
                                     >
                                         <i-icon width={'1rem'} height={'1rem'} name='search'
-                                                fill={Theme.text.secondary}/>
+                                            fill={Theme.text.secondary} />
                                         <i-input
                                             id="inputEmoji"
                                             placeholder='Search Emojis'
                                             width='100%'
                                             height='100%'
-                                            border={{style: 'none'}}
+                                            border={{ style: 'none' }}
                                             captionWidth={'0px'}
                                             showClearButton={true}
                                             onClearClick={this.onEmojiMdOpen.bind(this)}
@@ -1662,15 +1683,15 @@ export class ScomPostComposer extends Module {
                                         id="gridEmojiCate"
                                         verticalAlignment="center"
                                         columnsPerRow={9}
-                                        margin={{top: 4}}
-                                        grid={{verticalAlignment: 'center', horizontalAlignment: 'center'}}
-                                        border={{bottom: {width: '1px', style: 'solid', color: Theme.divider}}}
+                                        margin={{ top: 4 }}
+                                        grid={{ verticalAlignment: 'center', horizontalAlignment: 'center' }}
+                                        border={{ bottom: { width: '1px', style: 'solid', color: Theme.divider } }}
                                     ></i-grid-layout>
-                                    <i-vstack id="groupEmojis" maxHeight={400} overflow={{y: 'auto'}}/>
+                                    <i-vstack id="groupEmojis" maxHeight={400} overflow={{ y: 'auto' }} />
                                     <i-vstack
                                         id="pnlEmojiResult"
-                                        border={{bottom: {width: '1px', style: 'solid', color: Theme.divider}}}
-                                        maxHeight={400} overflow={{y: 'auto'}}
+                                        border={{ bottom: { width: '1px', style: 'solid', color: Theme.divider } }}
+                                        maxHeight={400} overflow={{ y: 'auto' }}
                                         minHeight={200}
                                         gap="0.75rem"
                                         visible={false}
@@ -1678,16 +1699,16 @@ export class ScomPostComposer extends Module {
                                     <i-hstack
                                         bottom="0px" left="0px" position="absolute" width={'100%'}
                                         verticalAlignment="center" horizontalAlignment="space-between"
-                                        padding={{top: '0.75rem', left: '0.75rem', right: '0.75rem', bottom: '0.75rem'}}
+                                        padding={{ top: '0.75rem', left: '0.75rem', right: '0.75rem', bottom: '0.75rem' }}
                                         gap="0.75rem" zIndex={20}
-                                        background={{color: Theme.background.modal}}
+                                        background={{ color: Theme.background.modal }}
                                         border={{
                                             radius: '0 0 1rem 1rem',
-                                            top: {width: '1px', style: 'solid', color: Theme.divider}
+                                            top: { width: '1px', style: 'solid', color: Theme.divider }
                                         }}
                                     >
                                         <i-label id="lbEmoji" width={'1.25rem'} height={'1.25rem'}
-                                                 display="inline-block"></i-label>
+                                            display="inline-block"></i-label>
                                         <i-hstack
                                             id="pnlColors"
                                             verticalAlignment="center" gap={'0.25rem'}
@@ -1710,8 +1731,8 @@ export class ScomPostComposer extends Module {
                             height={28}
                             name="shapes"
                             fill={Theme.colors.primary.main}
-                            padding={{top: 5, bottom: 5, left: 5, right: 5}}
-                            tooltip={{content: 'Widgets', placement: 'bottom'}}
+                            padding={{ top: 5, bottom: 5, left: 5, right: 5 }}
+                            tooltip={{ content: 'Widgets', placement: 'bottom' }}
                             cursor="pointer"
                             onClick={() => this.onShowWidgets()}
                         ></i-icon>
@@ -1720,10 +1741,10 @@ export class ScomPostComposer extends Module {
                         <i-button
                             id="btnPostAudience"
                             height={32}
-                            padding={{left: '1rem', right: '1rem'}}
-                            background={{color: Theme.colors.secondary.main}}
-                            font={{color: Theme.colors.secondary.contrastText, bold: true}}
-                            border={{radius: '0.375rem'}}
+                            padding={{ left: '1rem', right: '1rem' }}
+                            background={{ color: Theme.colors.secondary.main }}
+                            font={{ color: Theme.colors.secondary.contrastText, bold: true }}
+                            border={{ radius: '0.375rem' }}
                             caption={this.audience.title}
                             icon={{ width: 14, height: 14, name: this.audience.icon, fill: Theme.colors.secondary.contrastText }}
                             rightIcon={{ width: 14, height: 14, name: 'angle-down', fill: Theme.colors.secondary.contrastText }}
@@ -1756,8 +1777,8 @@ export class ScomPostComposer extends Module {
                 minWidth={'12.25rem'}
                 popupPlacement='bottomRight'
                 showBackdrop={false}
-                border={{radius: '0.25rem', width: '1px', style: 'solid', color: Theme.divider}}
-                padding={{top: '0.5rem', left: '0.5rem', right: '0.5rem', bottom: '0.5rem'}}
+                border={{ radius: '0.25rem', width: '1px', style: 'solid', color: Theme.divider }}
+                padding={{ top: '0.5rem', left: '0.5rem', right: '0.5rem', bottom: '0.5rem' }}
                 mediaQueries={[
                     {
                         maxWidth: '767px',
@@ -1769,23 +1790,23 @@ export class ScomPostComposer extends Module {
                             maxWidth: '100%',
                             width: '100%',
                             maxHeight: '50vh',
-                            overflow: {y: 'auto'},
-                            border: {radius: '16px 16px 0 0'}
+                            overflow: { y: 'auto' },
+                            border: { radius: '16px 16px 0 0' }
                         }
                     }
                 ]}
                 onClose={() => this.removeShow('mdPostActions')}
             >
-                <i-vstack id="pnlActions" minWidth={0} maxHeight={'27.5rem'} overflow={{y: 'auto'}}/>
+                <i-vstack id="pnlActions" minWidth={0} maxHeight={'27.5rem'} overflow={{ y: 'auto' }} />
             </i-modal>
 
             <i-modal
                 id="mdGif"
-                border={{radius: '1rem'}}
+                border={{ radius: '1rem' }}
                 maxWidth={'600px'}
                 maxHeight={'90vh'}
-                overflow={{y: 'auto'}}
-                padding={{top: 0, right: 0, left: 0, bottom: 0}}
+                overflow={{ y: 'auto' }}
+                padding={{ top: 0, right: 0, left: 0, bottom: 0 }}
                 mediaQueries={[
                     {
                         maxWidth: '767px',
@@ -1797,7 +1818,7 @@ export class ScomPostComposer extends Module {
                             maxWidth: '100%',
                             height: '100%',
                             width: '100%',
-                            border: {radius: 0}
+                            border: { radius: 0 }
                         }
                     }
                 ]}
@@ -1808,11 +1829,11 @@ export class ScomPostComposer extends Module {
                     <i-hstack
                         verticalAlignment="center"
                         height={53}
-                        margin={{top: 8, bottom: 8}}
-                        padding={{right: '0.5rem', left: '0.5rem'}}
+                        margin={{ top: 8, bottom: 8 }}
+                        padding={{ right: '0.5rem', left: '0.5rem' }}
                         position="sticky"
                         zIndex={2} top={'0px'}
-                        background={{color: Theme.background.modal}}
+                        background={{ color: Theme.background.modal }}
                     >
                         <i-panel
                             id="pnlGifBack"
@@ -1828,20 +1849,20 @@ export class ScomPostComposer extends Module {
                         </i-panel>
                         <i-hstack
                             verticalAlignment="center"
-                            padding={{left: '0.75rem', right: '0.75rem'}}
-                            border={{radius: '9999px', width: '1px', style: 'solid', color: Theme.divider}}
+                            padding={{ left: '0.75rem', right: '0.75rem' }}
+                            border={{ radius: '9999px', width: '1px', style: 'solid', color: Theme.divider }}
                             minHeight={40} width={'100%'}
-                            background={{color: Theme.input.background}}
+                            background={{ color: Theme.input.background }}
                             gap="4px"
                         >
-                            <i-icon width={16} height={16} name='search' fill={Theme.text.secondary}/>
+                            <i-icon width={16} height={16} name='search' fill={Theme.text.secondary} />
                             <i-input
                                 id="inputGif"
                                 placeholder='Search for GIFs'
                                 width='100%'
                                 height='100%'
                                 captionWidth={'0px'}
-                                border={{style: 'none'}}
+                                border={{ style: 'none' }}
                                 showClearButton={true}
                                 onClearClick={() => this.onToggleMainGif(true)}
                                 onKeyUp={(target: Input) => this.onGifSearch(target.value)}
@@ -1864,7 +1885,7 @@ export class ScomPostComposer extends Module {
                             direction="vertical"
                             height="100%" width="100%"
                             class="i-loading-overlay"
-                            background={{color: Theme.background.modal}}
+                            background={{ color: Theme.background.modal }}
                         >
                             <i-stack direction="vertical" class="i-loading-spinner" alignItems="center" justifyContent="center">
                                 <i-icon
@@ -1887,10 +1908,10 @@ export class ScomPostComposer extends Module {
                         <i-hstack
                             horizontalAlignment="space-between"
                             gap="0.5rem"
-                            padding={{left: '0.75rem', right: '0.75rem', top: '0.75rem', bottom: '0.75rem'}}
+                            padding={{ left: '0.75rem', right: '0.75rem', top: '0.75rem', bottom: '0.75rem' }}
                         >
                             <i-label caption="Auto-play GIFs"
-                                     font={{color: Theme.text.secondary, size: '0.9rem'}}></i-label>
+                                font={{ color: Theme.text.secondary, size: '0.9rem' }}></i-label>
                             <i-switch
                                 id="autoPlaySwitch"
                                 checked={true}
@@ -1910,14 +1931,14 @@ export class ScomPostComposer extends Module {
                         <i-panel id="bottomElm" width={'100%'} minHeight={20}>
                             <i-vstack
                                 id="gifLoading"
-                                padding={{top: '0.5rem', bottom: '0.5rem'}}
+                                padding={{ top: '0.5rem', bottom: '0.5rem' }}
                                 visible={false}
                                 height="100%" width="100%"
                                 class="i-loading-overlay"
-                                background={{color: Theme.background.modal}}
+                                background={{ color: Theme.background.modal }}
                             >
                                 <i-vstack class="i-loading-spinner" horizontalAlignment="center"
-                                          verticalAlignment="center">
+                                    verticalAlignment="center">
                                     <i-icon
                                         class="i-loading-spinner_icon"
                                         name="spinner"
@@ -1934,11 +1955,11 @@ export class ScomPostComposer extends Module {
 
             <i-modal
                 id="mdWidgets"
-                border={{radius: '1rem'}}
+                border={{ radius: '1rem' }}
                 maxWidth={'600px'}
                 maxHeight={'90vh'}
-                overflow={{y: 'auto'}}
-                padding={{top: 0, right: 0, left: 0, bottom: 0}}
+                overflow={{ y: 'auto' }}
+                padding={{ top: 0, right: 0, left: 0, bottom: 0 }}
                 mediaQueries={[
                     {
                         maxWidth: '767px',
@@ -1950,7 +1971,7 @@ export class ScomPostComposer extends Module {
                             maxWidth: '100%',
                             height: '100%',
                             width: '100%',
-                            border: {radius: 0}
+                            border: { radius: 0 }
                         }
                     }
                 ]}
@@ -1958,10 +1979,10 @@ export class ScomPostComposer extends Module {
                 <i-vstack>
                     <i-hstack
                         verticalAlignment="center" horizontalAlignment="space-between"
-                        padding={{right: '1rem', left: '1rem', top: '1rem', bottom: '1rem'}}
+                        padding={{ right: '1rem', left: '1rem', top: '1rem', bottom: '1rem' }}
                     >
                         <i-label caption='SCOM Widgets'
-                                 font={{color: Theme.colors.primary.main, size: '1rem', bold: true}}></i-label>
+                            font={{ color: Theme.colors.primary.main, size: '1rem', bold: true }}></i-label>
                         <i-icon
                             name="times"
                             cursor='pointer'
@@ -1978,27 +1999,27 @@ export class ScomPostComposer extends Module {
 
     private renderPostComposer() {
         const pnlPostAudiences = this.renderPostAudiences();
-        this.pnlPostComposer.append(<i-panel padding={{bottom: '0.75rem', top: '0.75rem'}} cursor='default'>
+        this.pnlPostComposer.append(<i-panel padding={{ bottom: '0.75rem', top: '0.75rem' }} cursor='default'>
             <i-hstack
                 id="pnlReplyTo"
                 visible={false}
                 gap="0.5rem"
                 verticalAlignment="center"
-                padding={{top: '0.25rem', bottom: '0.75rem', left: '3.25rem'}}
+                padding={{ top: '0.25rem', bottom: '0.75rem', left: '3.25rem' }}
             >
                 <i-label
                     caption="Replying to"
-                    font={{size: '1rem', color: Theme.text.secondary}}
+                    font={{ size: '1rem', color: Theme.text.secondary }}
                 ></i-label>
                 <i-label
                     id="lbReplyTo"
-                    link={{href: ''}}
-                    font={{size: '1rem', color: Theme.colors.primary.main}}
+                    link={{ href: '' }}
+                    font={{ size: '1rem', color: Theme.colors.primary.main }}
                 ></i-label>
             </i-hstack>
             <i-grid-layout
                 id="gridReply"
-                gap={{column: '0.75rem'}}
+                gap={{ column: '0.75rem' }}
                 templateColumns={['2.75rem', 'minmax(auto, calc(100% - 3.5rem))']}
                 templateRows={['auto']}
                 templateAreas={[
@@ -2008,22 +2029,22 @@ export class ScomPostComposer extends Module {
             >
                 <i-image
                     id="imgReplier"
-                    grid={{area: 'avatar'}}
+                    grid={{ area: 'avatar' }}
                     width={'2.75rem'}
                     height={'2.75rem'}
                     display="block"
-                    background={{color: Theme.background.main}}
-                    border={{radius: '50%'}}
+                    background={{ color: Theme.background.main }}
+                    border={{ radius: '50%' }}
                     overflow={'hidden'}
-                    margin={{top: '0.75rem'}}
+                    margin={{ top: '0.75rem' }}
                     objectFit='cover'
                     url={this._avatar}
                     fallbackUrl={assets.fullPath('img/default_avatar.png')}
                 ></i-image>
                 <i-panel
-                    grid={{area: 'editor'}}
+                    grid={{ area: 'editor' }}
                     maxHeight={'45rem'}
-                    overflow={{x: 'hidden', y: 'auto'}}
+                    overflow={{ x: 'hidden', y: 'auto' }}
                 >
                     <i-markdown-editor
                         id="mdEditor"
@@ -2032,17 +2053,17 @@ export class ScomPostComposer extends Module {
                         hideModeSwitch={true}
                         mode="wysiwyg"
                         toolbarItems={[]}
-                        font={{size: '1.25rem', color: Theme.text.primary}}
+                        font={{ size: '1.25rem', color: Theme.text.primary }}
                         lineHeight={1.5}
-                        padding={{top: 12, bottom: 12, left: 0, right: 0}}
-                        background={{color: 'transparent'}}
+                        padding={{ top: 12, bottom: 12, left: 0, right: 0 }}
+                        background={{ color: 'transparent' }}
                         height="auto"
                         minHeight={0}
                         overflow={'hidden'}
                         overflowWrap="break-word"
                         onChanged={this.onEditorChanged.bind(this)}
                         cursor='text'
-                        border={{style: 'none'}}
+                        border={{ style: 'none' }}
                         visible={true}
                     ></i-markdown-editor>
                 </i-panel>
@@ -2051,8 +2072,8 @@ export class ScomPostComposer extends Module {
                 <i-hstack
                     id="pnlBorder"
                     horizontalAlignment="space-between"
-                    grid={{area: 'reply'}}
-                    padding={{top: '0.625rem'}}
+                    grid={{ area: 'reply' }}
+                    padding={{ top: '0.625rem' }}
                 >
                     <i-hstack
                         id="pnlIcons"
@@ -2062,18 +2083,18 @@ export class ScomPostComposer extends Module {
                         <i-icon
                             id="iconMediaMobile"
                             name="image" width={28} height={28} fill={Theme.colors.primary.main}
-                            border={{radius: '50%'}}
-                            padding={{top: 5, bottom: 5, left: 5, right: 5}}
-                            tooltip={{content: 'Media', placement: 'bottom'}}
+                            border={{ radius: '50%' }}
+                            padding={{ top: 5, bottom: 5, left: 5, right: 5 }}
+                            tooltip={{ content: 'Media', placement: 'bottom' }}
                             cursor="pointer"
                             onClick={this.showStorage}
                         ></i-icon>
                         <i-icon
                             id="iconGif"
                             name="images" width={28} height={28} fill={Theme.colors.primary.main}
-                            border={{radius: '50%'}}
-                            padding={{top: 5, bottom: 5, left: 5, right: 5}}
-                            tooltip={{content: 'GIF', placement: 'bottom'}}
+                            border={{ radius: '50%' }}
+                            padding={{ top: 5, bottom: 5, left: 5, right: 5 }}
+                            tooltip={{ content: 'GIF', placement: 'bottom' }}
                             cursor="pointer"
                             onClick={this.onShowGifModal}
                         ></i-icon>
@@ -2081,9 +2102,9 @@ export class ScomPostComposer extends Module {
                             <i-icon
                                 id="iconEmoji"
                                 name="smile" width={28} height={28} fill={Theme.colors.primary.main}
-                                border={{radius: '50%'}}
-                                padding={{top: 5, bottom: 5, left: 5, right: 5}}
-                                tooltip={{content: 'Emoji', placement: 'bottom'}}
+                                border={{ radius: '50%' }}
+                                padding={{ top: 5, bottom: 5, left: 5, right: 5 }}
+                                tooltip={{ content: 'Emoji', placement: 'bottom' }}
                                 cursor="pointer"
                                 onClick={() => this.onShowModal('mdEmoji')}
                             ></i-icon>
@@ -2093,31 +2114,31 @@ export class ScomPostComposer extends Module {
                                 minWidth={320}
                                 popupPlacement='bottomRight'
                                 showBackdrop={false}
-                                border={{radius: '1rem'}}
+                                border={{ radius: '1rem' }}
                                 boxShadow='rgba(101, 119, 134, 0.2) 0px 0px 15px, rgba(101, 119, 134, 0.15) 0px 0px 3px 1px'
-                                padding={{top: 0, left: 0, right: 0, bottom: 0}}
+                                padding={{ top: 0, left: 0, right: 0, bottom: 0 }}
                                 closeOnScrollChildFixed={true}
                                 onOpen={this.onEmojiMdOpen.bind(this)}
                                 visible={false}
                             >
-                                <i-vstack position='relative' padding={{left: '0.25rem', right: '0.25rem'}}>
+                                <i-vstack position='relative' padding={{ left: '0.25rem', right: '0.25rem' }}>
                                     <i-hstack
                                         verticalAlignment="center"
-                                        border={{radius: '9999px', width: '1px', style: 'solid', color: Theme.divider}}
+                                        border={{ radius: '9999px', width: '1px', style: 'solid', color: Theme.divider }}
                                         minHeight={40} width={'100%'}
-                                        background={{color: Theme.input.background}}
-                                        padding={{left: '0.75rem', right: '0.75rem'}}
-                                        margin={{top: '0.25rem', bottom: '0.25rem'}}
+                                        background={{ color: Theme.input.background }}
+                                        padding={{ left: '0.75rem', right: '0.75rem' }}
+                                        margin={{ top: '0.25rem', bottom: '0.25rem' }}
                                         gap="4px"
                                     >
                                         <i-icon width={'1rem'} height={'1rem'} name='search'
-                                                fill={Theme.text.secondary}/>
+                                            fill={Theme.text.secondary} />
                                         <i-input
                                             id="inputEmoji"
                                             placeholder='Search Emojis'
                                             width='100%'
                                             height='100%'
-                                            border={{style: 'none'}}
+                                            border={{ style: 'none' }}
                                             captionWidth={'0px'}
                                             showClearButton={true}
                                             onClearClick={this.onEmojiMdOpen.bind(this)}
@@ -2128,15 +2149,15 @@ export class ScomPostComposer extends Module {
                                         id="gridEmojiCate"
                                         verticalAlignment="center"
                                         columnsPerRow={9}
-                                        margin={{top: 4}}
-                                        grid={{verticalAlignment: 'center', horizontalAlignment: 'center'}}
-                                        border={{bottom: {width: '1px', style: 'solid', color: Theme.divider}}}
+                                        margin={{ top: 4 }}
+                                        grid={{ verticalAlignment: 'center', horizontalAlignment: 'center' }}
+                                        border={{ bottom: { width: '1px', style: 'solid', color: Theme.divider } }}
                                     ></i-grid-layout>
-                                    <i-vstack id="groupEmojis" maxHeight={400} overflow={{y: 'auto'}}/>
+                                    <i-vstack id="groupEmojis" maxHeight={400} overflow={{ y: 'auto' }} />
                                     <i-vstack
                                         id="pnlEmojiResult"
-                                        border={{bottom: {width: '1px', style: 'solid', color: Theme.divider}}}
-                                        maxHeight={400} overflow={{y: 'auto'}}
+                                        border={{ bottom: { width: '1px', style: 'solid', color: Theme.divider } }}
+                                        maxHeight={400} overflow={{ y: 'auto' }}
                                         minHeight={200}
                                         gap="0.75rem"
                                         visible={false}
@@ -2144,16 +2165,16 @@ export class ScomPostComposer extends Module {
                                     <i-hstack
                                         bottom="0px" left="0px" position="absolute" width={'100%'}
                                         verticalAlignment="center" horizontalAlignment="space-between"
-                                        padding={{top: '0.75rem', left: '0.75rem', right: '0.75rem', bottom: '0.75rem'}}
+                                        padding={{ top: '0.75rem', left: '0.75rem', right: '0.75rem', bottom: '0.75rem' }}
                                         gap="0.75rem" zIndex={20}
-                                        background={{color: Theme.background.modal}}
+                                        background={{ color: Theme.background.modal }}
                                         border={{
                                             radius: '0 0 1rem 1rem',
-                                            top: {width: '1px', style: 'solid', color: Theme.divider}
+                                            top: { width: '1px', style: 'solid', color: Theme.divider }
                                         }}
                                     >
                                         <i-label id="lbEmoji" width={'1.25rem'} height={'1.25rem'}
-                                                 display="inline-block"></i-label>
+                                            display="inline-block"></i-label>
                                         <i-hstack
                                             id="pnlColors"
                                             verticalAlignment="center" gap={'0.25rem'}
@@ -2176,8 +2197,8 @@ export class ScomPostComposer extends Module {
                             height={28}
                             name="shapes"
                             fill={Theme.colors.primary.main}
-                            padding={{top: 5, bottom: 5, left: 5, right: 5}}
-                            tooltip={{content: 'Widgets', placement: 'bottom'}}
+                            padding={{ top: 5, bottom: 5, left: 5, right: 5 }}
+                            tooltip={{ content: 'Widgets', placement: 'bottom' }}
                             cursor="pointer"
                             onClick={() => this.onShowWidgets()}
                         ></i-icon>
@@ -2187,10 +2208,10 @@ export class ScomPostComposer extends Module {
                             <i-button
                                 id="btnPostAudience"
                                 height={32}
-                                padding={{left: '1rem', right: '1rem'}}
-                                background={{color: Theme.colors.secondary.main}}
-                                font={{color: Theme.colors.secondary.contrastText, bold: true}}
-                                border={{radius: '0.375rem'}}
+                                padding={{ left: '1rem', right: '1rem' }}
+                                background={{ color: Theme.colors.secondary.main }}
+                                font={{ color: Theme.colors.secondary.contrastText, bold: true }}
+                                border={{ radius: '0.375rem' }}
                                 caption={this.audience.title}
                                 icon={{ width: 14, height: 14, name: this.audience.icon, fill: Theme.colors.secondary.contrastText }}
                                 rightIcon={{ width: 14, height: 14, name: 'angle-down', fill: Theme.colors.secondary.contrastText }}
@@ -2216,10 +2237,10 @@ export class ScomPostComposer extends Module {
                         <i-button
                             id="btnReply"
                             height={36}
-                            padding={{left: '1rem', right: '1rem'}}
-                            background={{color: Theme.colors.primary.main}}
-                            font={{color: Theme.colors.primary.contrastText, bold: true}}
-                            border={{radius: '30px'}}
+                            padding={{ left: '1rem', right: '1rem' }}
+                            background={{ color: Theme.colors.primary.main }}
+                            font={{ color: Theme.colors.primary.contrastText, bold: true }}
+                            border={{ radius: '30px' }}
                             enabled={false}
                             caption="Post"
                             onClick={this.onReply.bind(this)}
@@ -2230,11 +2251,11 @@ export class ScomPostComposer extends Module {
 
             <i-modal
                 id="mdGif"
-                border={{radius: '1rem'}}
+                border={{ radius: '1rem' }}
                 maxWidth={'600px'}
                 maxHeight={'90vh'}
-                overflow={{y: 'auto'}}
-                padding={{top: 0, right: 0, left: 0, bottom: 0}}
+                overflow={{ y: 'auto' }}
+                padding={{ top: 0, right: 0, left: 0, bottom: 0 }}
                 mediaQueries={[
                     {
                         maxWidth: '767px',
@@ -2246,7 +2267,7 @@ export class ScomPostComposer extends Module {
                             maxWidth: '100%',
                             height: '100%',
                             width: '100%',
-                            border: {radius: 0}
+                            border: { radius: 0 }
                         }
                     }
                 ]}
@@ -2257,11 +2278,11 @@ export class ScomPostComposer extends Module {
                     <i-hstack
                         verticalAlignment="center"
                         height={53}
-                        margin={{top: 8, bottom: 8}}
-                        padding={{right: '0.5rem', left: '0.5rem'}}
+                        margin={{ top: 8, bottom: 8 }}
+                        padding={{ right: '0.5rem', left: '0.5rem' }}
                         position="sticky"
                         zIndex={2} top={'0px'}
-                        background={{color: Theme.background.modal}}
+                        background={{ color: Theme.background.modal }}
                     >
                         <i-panel
                             id="pnlGifBack"
@@ -2277,20 +2298,20 @@ export class ScomPostComposer extends Module {
                         </i-panel>
                         <i-hstack
                             verticalAlignment="center"
-                            padding={{left: '0.75rem', right: '0.75rem'}}
-                            border={{radius: '9999px', width: '1px', style: 'solid', color: Theme.divider}}
+                            padding={{ left: '0.75rem', right: '0.75rem' }}
+                            border={{ radius: '9999px', width: '1px', style: 'solid', color: Theme.divider }}
                             minHeight={40} width={'100%'}
-                            background={{color: Theme.input.background}}
+                            background={{ color: Theme.input.background }}
                             gap="4px"
                         >
-                            <i-icon width={16} height={16} name='search' fill={Theme.text.secondary}/>
+                            <i-icon width={16} height={16} name='search' fill={Theme.text.secondary} />
                             <i-input
                                 id="inputGif"
                                 placeholder='Search for GIFs'
                                 width='100%'
                                 height='100%'
                                 captionWidth={'0px'}
-                                border={{style: 'none'}}
+                                border={{ style: 'none' }}
                                 showClearButton={true}
                                 onClearClick={() => this.onToggleMainGif(true)}
                                 onKeyUp={(target: Input) => this.onGifSearch(target.value)}
@@ -2313,7 +2334,7 @@ export class ScomPostComposer extends Module {
                             direction="vertical"
                             height="100%" width="100%"
                             class="i-loading-overlay"
-                            background={{color: Theme.background.modal}}
+                            background={{ color: Theme.background.modal }}
                         >
                             <i-stack direction="vertical" class="i-loading-spinner" alignItems="center" justifyContent="center">
                                 <i-icon
@@ -2336,10 +2357,10 @@ export class ScomPostComposer extends Module {
                         <i-hstack
                             horizontalAlignment="space-between"
                             gap="0.5rem"
-                            padding={{left: '0.75rem', right: '0.75rem', top: '0.75rem', bottom: '0.75rem'}}
+                            padding={{ left: '0.75rem', right: '0.75rem', top: '0.75rem', bottom: '0.75rem' }}
                         >
                             <i-label caption="Auto-play GIFs"
-                                     font={{color: Theme.text.secondary, size: '0.9rem'}}></i-label>
+                                font={{ color: Theme.text.secondary, size: '0.9rem' }}></i-label>
                             <i-switch
                                 id="autoPlaySwitch"
                                 checked={true}
@@ -2359,14 +2380,14 @@ export class ScomPostComposer extends Module {
                         <i-panel id="bottomElm" width={'100%'} minHeight={20}>
                             <i-vstack
                                 id="gifLoading"
-                                padding={{top: '0.5rem', bottom: '0.5rem'}}
+                                padding={{ top: '0.5rem', bottom: '0.5rem' }}
                                 visible={false}
                                 height="100%" width="100%"
                                 class="i-loading-overlay"
-                                background={{color: Theme.background.modal}}
+                                background={{ color: Theme.background.modal }}
                             >
                                 <i-vstack class="i-loading-spinner" horizontalAlignment="center"
-                                          verticalAlignment="center">
+                                    verticalAlignment="center">
                                     <i-icon
                                         class="i-loading-spinner_icon"
                                         name="spinner"
@@ -2383,11 +2404,11 @@ export class ScomPostComposer extends Module {
 
             <i-modal
                 id="mdWidgets"
-                border={{radius: '1rem'}}
+                border={{ radius: '1rem' }}
                 maxWidth={'600px'}
                 maxHeight={'90vh'}
-                overflow={{y: 'auto'}}
-                padding={{top: 0, right: 0, left: 0, bottom: 0}}
+                overflow={{ y: 'auto' }}
+                padding={{ top: 0, right: 0, left: 0, bottom: 0 }}
                 mediaQueries={[
                     {
                         maxWidth: '767px',
@@ -2399,7 +2420,7 @@ export class ScomPostComposer extends Module {
                             maxWidth: '100%',
                             height: '100%',
                             width: '100%',
-                            border: {radius: 0}
+                            border: { radius: 0 }
                         }
                     }
                 ]}
@@ -2407,10 +2428,10 @@ export class ScomPostComposer extends Module {
                 <i-vstack>
                     <i-hstack
                         verticalAlignment="center" horizontalAlignment="space-between"
-                        padding={{right: '1rem', left: '1rem', top: '1rem', bottom: '1rem'}}
+                        padding={{ right: '1rem', left: '1rem', top: '1rem', bottom: '1rem' }}
                     >
                         <i-label caption='SCOM Widgets'
-                                 font={{color: Theme.colors.primary.main, size: '1rem', bold: true}}></i-label>
+                            font={{ color: Theme.colors.primary.main, size: '1rem', bold: true }}></i-label>
                         <i-icon
                             name="times"
                             cursor='pointer'
@@ -2431,6 +2452,7 @@ export class ScomPostComposer extends Module {
                     status="confirm"
                     title="Are you sure?"
                     content="Do you really want to delete this widget?"
+                    class={alertStyle}
                 />
             </i-panel>
         );

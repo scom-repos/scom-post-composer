@@ -388,7 +388,7 @@ define("@scom/scom-post-composer/components/form.tsx", ["require", "exports", "@
 define("@scom/scom-post-composer/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_4) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.widgetPreviewStyle = exports.formStyle = exports.modalStyle = void 0;
+    exports.alertStyle = exports.widgetPreviewStyle = exports.formStyle = exports.modalStyle = void 0;
     exports.modalStyle = components_4.Styles.style({
         $nest: {
             '.modal > div:nth-child(2)': {
@@ -419,6 +419,13 @@ define("@scom/scom-post-composer/index.css.ts", ["require", "exports", "@ijstech
             },
             'img': {
                 margin: 'inherit !important'
+            }
+        }
+    });
+    exports.alertStyle = components_4.Styles.style({
+        $nest: {
+            'i-vstack i-label': {
+                textAlign: 'center'
             }
         }
     });
@@ -763,6 +770,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomPostComposer = void 0;
     const Theme = components_6.Styles.Theme.ThemeVars;
+    const MAX_SIZE = 232003; // characters (~226kb)
     const regexImage = /!\[.*?\]\(data:image\/[^;]+;base64,([^)]+)\)/g;
     const PostAudience = [
         {
@@ -1019,7 +1027,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 return [];
             }
             if (!this.hasQuota) {
-                this.errorMessage = 'Your qoute is not enough to upload your media to IPFS!';
+                this.errorMessage = 'Your quota insufficient for IPFS media upload!';
                 return [];
             }
             if (!this.storageEl) {
@@ -1049,7 +1057,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 files.push(file);
             }
             const data = await this.storageEl.uploadFiles(files);
-            if (!data.length) {
+            if (!data.length || data.length < files.length) {
                 this.errorMessage = 'Something went wrong when uploading your media to IPFS!';
                 return [];
             }
@@ -1095,6 +1103,13 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 }
             }
         }
+        showAlert(status, title, content, onConfirm) {
+            this.mdAlert.status = status;
+            this.mdAlert.title = title;
+            this.mdAlert.content = content;
+            this.mdAlert.onConfirm = () => onConfirm ? onConfirm() : {};
+            this.mdAlert.showModal();
+        }
         async onReply() {
             if (!this._data.value)
                 return;
@@ -1102,15 +1117,27 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 this._data.value = this.updatedValue;
                 let extractedText = this._data.value.replace(/\$\$widget0\s+(.*?)\$\$/g, '$1');
                 this.updateSubmittingStatus(true);
-                extractedText = await this.replaceBase64WithLinks(extractedText);
-                if (this.errorMessage) {
-                    const action = (this.buttonCaption || 'post').toLowerCase();
-                    this.mdAlert.status = 'error';
-                    this.mdAlert.title = `Failed to ${action}`;
-                    this.mdAlert.content = this.errorMessage;
-                    this.mdAlert.onConfirm = () => { };
-                    this.mdAlert.showModal();
-                    this.errorMessage = '';
+                const action = (this.buttonCaption || 'post').toLowerCase();
+                if (this.needToUploadMedia) {
+                    this.needToUploadMedia = false;
+                    extractedText = await this.replaceBase64WithLinks(extractedText);
+                    if (this.errorMessage) {
+                        this.showAlert('error', `Failed to ${action}`, this.errorMessage, () => { });
+                        this.updateSubmittingStatus(false);
+                        return;
+                    }
+                }
+                else if (extractedText.length > MAX_SIZE) {
+                    const base64List = extractedText.match(regexImage) || [];
+                    if (base64List.length) {
+                        this.showAlert('confirm', `Excessed max post size!`, `In order to ${action}, please confirm the upload of your media to IPFS?`, () => {
+                            this.needToUploadMedia = true;
+                            this.onReply();
+                        });
+                    }
+                    else {
+                        this.showAlert('error', `Failed to ${action}`, 'Excessed max post size!', () => { });
+                    }
                     this.updateSubmittingStatus(false);
                     return;
                 }
@@ -2069,7 +2096,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         }
         render() {
             return (this.$render("i-panel", { id: 'pnlPostComposer' },
-                this.$render("i-alert", { id: "mdAlert", status: "confirm", title: "Are you sure?", content: "Do you really want to delete this widget?" })));
+                this.$render("i-alert", { id: "mdAlert", status: "confirm", title: "Are you sure?", content: "Do you really want to delete this widget?", class: index_css_2.alertStyle })));
         }
     };
     ScomPostComposer = __decorate([
