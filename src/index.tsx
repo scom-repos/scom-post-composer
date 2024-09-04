@@ -1278,6 +1278,7 @@ export class ScomPostComposer extends Module {
             width: '90%',
             maxWidth: '50rem',
             padding: { top: 0, bottom: 0, left: 0, right: 0 },
+            popupPlacement: 'top',
             closeOnBackdropClick: true,
             closeIcon: null
         });
