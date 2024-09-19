@@ -75,8 +75,8 @@ export const getEmbedElement = async (postData: any, parent: Control) => {
   const elm = await application.createElement(module, true) as any;
   if (!elm) throw new Error('not found');
   elm.parent = parent;
-  const builderTarget = elm.getConfigurators ? elm.getConfigurators().find((conf: any) => conf.target === 'Builders' || conf.target === 'Editor') : null;
   if (elm.ready) await elm.ready();
+  const builderTarget = elm.getConfigurators ? elm.getConfigurators().find((conf: any) => conf.target === 'Builders' || conf.target === 'Editor') : null;
   elm.maxWidth = '100%';
   elm.maxHeight = '100%';
   if (builderTarget?.setData && data.properties) {

@@ -102,9 +102,9 @@ define("@scom/scom-post-composer/global/index.ts", ["require", "exports", "@ijst
         if (!elm)
             throw new Error('not found');
         elm.parent = parent;
-        const builderTarget = elm.getConfigurators ? elm.getConfigurators().find((conf) => conf.target === 'Builders' || conf.target === 'Editor') : null;
         if (elm.ready)
             await elm.ready();
+        const builderTarget = elm.getConfigurators ? elm.getConfigurators().find((conf) => conf.target === 'Builders' || conf.target === 'Editor') : null;
         elm.maxWidth = '100%';
         elm.maxHeight = '100%';
         if (builderTarget?.setData && data.properties) {
