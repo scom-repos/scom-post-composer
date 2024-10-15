@@ -1312,7 +1312,7 @@ export class ScomPostComposer extends Module {
                                 id="mdEmoji"
                                 maxWidth={'100%'}
                                 minWidth={320}
-                                popupPlacement='bottomRight'
+                                popupPlacement='bottomLeft'
                                 showBackdrop={false}
                                 border={{ radius: '1rem' }}
                                 boxShadow='rgba(101, 119, 134, 0.2) 0px 0px 15px, rgba(101, 119, 134, 0.15) 0px 0px 3px 1px'
@@ -1711,7 +1711,7 @@ export class ScomPostComposer extends Module {
                                 id="mdEmoji"
                                 maxWidth={'100%'}
                                 minWidth={320}
-                                popupPlacement='bottomRight'
+                                popupPlacement='bottomLeft'
                                 showBackdrop={false}
                                 border={{ radius: '1rem' }}
                                 boxShadow='rgba(101, 119, 134, 0.2) 0px 0px 15px, rgba(101, 119, 134, 0.15) 0px 0px 3px 1px'
