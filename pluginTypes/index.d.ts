@@ -18,19 +18,6 @@ declare module "@scom/scom-post-composer/global/index.ts" {
         data: any;
     };
     export const getEmbedElement: (postData: any, parent: Control) => Promise<any>;
-    export interface IEmojiCategory {
-        name: string;
-        value: string;
-        image?: string;
-        groups?: string[];
-    }
-    export interface IEmoji {
-        name: string;
-        category: string;
-        group: string;
-        htmlCode: string[];
-        unicode: string[];
-    }
     export interface IWidget {
         name: string | string[];
         icon?: {
@@ -49,40 +36,6 @@ declare module "@scom/scom-post-composer/global/index.ts" {
         note?: string;
         disabled?: boolean;
     }
-    export const emojiCategories: {
-        name: string;
-        value: string;
-        image: string;
-        groups: string[];
-    }[];
-    export const colorsMapper: {
-        'rgb(255, 220, 93)': {
-            htmlCode: string;
-            unicode: string;
-        };
-        'rgb(247, 222, 206)': {
-            htmlCode: string;
-            unicode: string;
-        };
-        'rgb(243, 210, 162)': {
-            htmlCode: string;
-            unicode: string;
-        };
-        'rgb(213, 171, 136)': {
-            htmlCode: string;
-            unicode: string;
-        };
-        'rgb(175, 126, 87)': {
-            htmlCode: string;
-            unicode: string;
-        };
-        'rgb(124, 83, 62)': {
-            htmlCode: string;
-            unicode: string;
-        };
-    };
-    export const fetchEmojis: (params: any) => Promise<any>;
-    export const searchEmojis: (q: string, mapper: Map<string, any>) => any;
     export const chartWidgets: string[];
     export const widgets: IWidget[];
 }
@@ -242,17 +195,9 @@ declare module "@scom/scom-post-composer" {
         private pnlGifClose;
         private inputGif;
         private bottomElm;
-        private gridEmojiCate;
-        private groupEmojis;
-        private pnlColors;
-        private lbEmoji;
-        private pnlEmojiResult;
-        private inputEmoji;
         private gifLoading;
         private autoPlaySwitch;
         private pnlFocusedPost;
-        private selectedColor;
-        private recent;
         private mdEditor;
         private uploadForm;
         private iconMediaMobile;
@@ -264,6 +209,7 @@ declare module "@scom/scom-post-composer" {
         private storageEl;
         private widgetModule;
         private mdAlert;
+        private emojiPicker;
         private _focusedPost;
         private _data;
         private currentGifPage;
@@ -271,17 +217,11 @@ declare module "@scom/scom-post-composer" {
         private renderedMap;
         private bottomObserver;
         private newReply;
-        private isEmojiSearching;
-        private recentEmojis;
-        private emojiCateMapper;
-        private emojiGroupsData;
-        private searchTimer;
         private mobile;
         private _avatar;
         private autoFocus;
         private currentPostData;
         private gifCateInitState;
-        private emojiInitState;
         private _apiBaseUrl;
         private _isPostAudienceShown;
         private audience;
@@ -314,9 +254,6 @@ declare module "@scom/scom-post-composer" {
         set apiBaseUrl(value: string);
         get postAudience(): string;
         private get isQuote();
-        private get hasRecentEmojis();
-        private get emojiColors();
-        private get currentEmojiColor();
         get value(): string;
         set value(content: string);
         get avatar(): string;
@@ -326,7 +263,6 @@ declare module "@scom/scom-post-composer" {
         set isPostAudienceShown(value: boolean);
         private removeShow;
         private onShowModal2;
-        private isRecent;
         setData(value: IReplyInput): void;
         clear(): void;
         private resetEditor;
@@ -355,21 +291,8 @@ declare module "@scom/scom-post-composer" {
         private onGifPlayChanged;
         private onBack;
         private onCloseGifModal;
-        private renderEmojis;
-        private initEmojiGroup;
-        private initEmojis;
-        private renderEmojiCate;
-        private renderEmojiGroup;
-        private updateEmojiGroups;
-        private filterGroups;
-        private onRecentClear;
-        private renderEmojiColors;
         private renderActions;
-        private renderColor;
-        private onEmojiColorSelected;
-        private onEmojiCateSelected;
-        private onEmojiSelected;
-        private onEmojiSearch;
+        private handleSelectedEmoji;
         private onEmojiMdOpen;
         private showStorage;
         private onShowWidgets;

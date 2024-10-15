@@ -19,7 +19,7 @@ define("@scom/scom-post-composer/assets.ts", ["require", "exports", "@ijstech/co
 define("@scom/scom-post-composer/global/index.ts", ["require", "exports", "@ijstech/components", "@scom/scom-post-composer/assets.ts"], function (require, exports, components_2, assets_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.widgets = exports.chartWidgets = exports.searchEmojis = exports.fetchEmojis = exports.colorsMapper = exports.emojiCategories = exports.getEmbedElement = exports.extractWidgetUrl = exports.getWidgetEmbedUrl = exports.fetchReactionGifs = exports.fetchGifs = void 0;
+    exports.widgets = exports.chartWidgets = exports.getEmbedElement = exports.extractWidgetUrl = exports.getWidgetEmbedUrl = exports.fetchReactionGifs = exports.fetchGifs = void 0;
     const fetchGifs = async (params) => {
         if (!params.offset)
             params.offset = 0;
@@ -137,114 +137,6 @@ define("@scom/scom-post-composer/global/index.ts", ["require", "exports", "@ijst
         }
         return Object.keys(values).length ? values : null;
     };
-    exports.emojiCategories = [
-        {
-            name: 'Recent',
-            value: 'recent',
-            image: 'https://abs-0.twimg.com/emoji/v2/svg/1f551.svg',
-            groups: []
-        },
-        {
-            name: 'Smileys & Emotion',
-            value: 'smileys-and-people',
-            image: 'https://abs-0.twimg.com/emoji/v2/svg/1f600.svg',
-            groups: ['body', 'cat-face', 'clothing', 'creature-face', 'emotion', 'face-negative', 'face-neutral', 'face-positive', 'face-positive', 'face-role', 'face-sick', 'family', 'monkey-face', 'person', 'person-activity', 'person-gesture', 'person-role', 'skin-tone']
-        },
-        {
-            name: 'Animals & nature',
-            value: 'animals-and-nature',
-            image: 'https://abs-0.twimg.com/emoji/v2/svg/1f43b.svg',
-            groups: ['animal-amphibian', 'animal-bird', 'animal-bug', 'animal-mammal', 'animal-marine', 'animal-reptile', 'plant-flower', 'plant-other']
-        },
-        {
-            name: 'Food & drink',
-            value: 'food-and-drink',
-            image: 'https://abs-0.twimg.com/emoji/v2/svg/1f354.svg',
-            groups: ['dishware', 'drink', 'food-asian', 'food-fruit', 'food-prepared', 'food-sweat', 'food-vegetable']
-        },
-        {
-            name: 'Activity',
-            value: 'activities',
-            image: 'https://abs-0.twimg.com/emoji/v2/svg/26bd.svg',
-            groups: ["activities"]
-        },
-        {
-            name: 'Travel & places',
-            value: 'travel-and-places',
-            image: 'https://abs-0.twimg.com/emoji/v2/svg/1f698.svg',
-            groups: ["travel-and-places"]
-        },
-        {
-            name: 'Objects',
-            value: 'objects',
-            image: 'https://abs-0.twimg.com/emoji/v2/svg/1f4a1.svg',
-            groups: ["objects"]
-        },
-        {
-            name: 'Symbols',
-            value: 'symbols',
-            image: 'https://abs-0.twimg.com/emoji/v2/svg/1f523.svg',
-            groups: ["symbols"]
-        },
-        {
-            name: 'Flags',
-            value: 'flags',
-            image: 'https://abs-0.twimg.com/emoji/v2/svg/1f6a9.svg',
-            groups: ["flags"]
-        }
-    ];
-    exports.colorsMapper = {
-        'rgb(255, 220, 93)': {
-            htmlCode: '',
-            unicode: ''
-        },
-        'rgb(247, 222, 206)': {
-            htmlCode: '&#127995;',
-            unicode: 'U+1F3FB'
-        },
-        'rgb(243, 210, 162)': {
-            htmlCode: '&#127996;',
-            unicode: 'U+1F3FC'
-        },
-        'rgb(213, 171, 136)': {
-            htmlCode: '&#127997;',
-            unicode: 'U+1F3FD'
-        },
-        'rgb(175, 126, 87)': {
-            htmlCode: '&#127998;',
-            unicode: 'U+1F3FE'
-        },
-        'rgb(124, 83, 62)': {
-            htmlCode: '&#127999;',
-            unicode: 'U+1F3FF'
-        }
-    };
-    const EMOJI_BASE_URL = 'https://emojihub.yurace.pro/api/all';
-    const fetchEmojis = async (params) => {
-        try {
-            const uri = `${EMOJI_BASE_URL}/category/${params.category}`;
-            const response = await fetch(`${uri}`);
-            return await response.json();
-        }
-        catch {
-            return [];
-        }
-    };
-    exports.fetchEmojis = fetchEmojis;
-    const searchEmojis = (q, mapper) => {
-        const keyword = q.toLowerCase();
-        const categoryName = exports.emojiCategories.find(cate => cate.name.toLowerCase().includes(keyword))?.name;
-        if (categoryName)
-            return mapper.get(categoryName);
-        const groups = mapper.values();
-        let result = [];
-        for (let group of groups) {
-            const filteredGroup = [...group].filter(emoji => emoji.name.toLowerCase().includes(keyword));
-            result = [...result, ...filteredGroup];
-        }
-        return result;
-    };
-    exports.searchEmojis = searchEmojis;
     exports.chartWidgets = ['@scom/scom-pie-chart', '@scom/scom-line-chart', '@scom/scom-bar-chart', '@scom/scom-area-chart', '@scom/scom-mixed-chart', '@scom/scom-scatter-chart', '@scom/scom-counter'];
     exports.widgets = [
         {
@@ -810,23 +702,17 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 threshold: 0.9
             });
             this.newReply = [];
-            this.isEmojiSearching = false;
-            this.recentEmojis = {};
-            this.emojiCateMapper = new Map();
-            this.emojiGroupsData = new Map();
             this.gifCateInitState = 0;
-            this.emojiInitState = 0;
             this._isPostAudienceShown = false;
             this.audience = PostAudience[1];
             this._hasQuota = false;
-            this.onRecentClear = this.onRecentClear.bind(this);
-            this.onEmojiColorSelected = this.onEmojiColorSelected.bind(this);
             this.onUpload = this.onUpload.bind(this);
             this.onGifPlayChanged = this.onGifPlayChanged.bind(this);
             this.showStorage = this.showStorage.bind(this);
             this.onShowGifModal = this.onShowGifModal.bind(this);
             this.onShowWidgets = this.onShowWidgets.bind(this);
             this.onShowDeleteWidget = this.onShowDeleteWidget.bind(this);
+            this.handleSelectedEmoji = this.handleSelectedEmoji.bind(this);
         }
         static async create(options, parent) {
             let self = new this(parent, options);
@@ -891,15 +777,6 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         get isQuote() {
             return this.type === 'quoted';
         }
-        get hasRecentEmojis() {
-            return !!Object.values(this.recentEmojis).length;
-        }
-        get emojiColors() {
-            return Object.keys(index_1.colorsMapper);
-        }
-        get currentEmojiColor() {
-            return this.selectedColor?.background?.color || this.emojiColors[0];
-        }
         get value() {
             return this._data.value;
         }
@@ -942,9 +819,6 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 this[name].classList.add('show');
             }
         }
-        isRecent(category) {
-            return category.value === 'recent';
-        }
         setData(value) {
             this.clear();
             this._data = value;
@@ -968,8 +842,6 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             };
             this.currentGifPage = 1;
             this.totalGifPage = 1;
-            // this.pnlMedias.clearInnerHTML();
-            this.emojiGroupsData = new Map();
         }
         resetEditor() {
             if (this.mdEditor) {
@@ -1310,108 +1182,6 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         onCloseGifModal() {
             this.onCloseModal('mdGif');
         }
-        async renderEmojis() {
-            this.recentEmojis = {};
-            this.emojiCateMapper = new Map();
-            this.renderEmojiCate();
-            this.renderColor(this.emojiColors[0]);
-        }
-        async initEmojiGroup(category) {
-            if (this.isRecent(category) && !this.hasRecentEmojis)
-                return;
-            if (!this.emojiGroupsData.has(category.value)) {
-                const list = await (0, index_1.fetchEmojis)({ category: category.value });
-                this.emojiGroupsData.set(category.value, JSON.parse(JSON.stringify(list)));
-            }
-            this.renderEmojiGroup(this.groupEmojis, category);
-        }
-        async initEmojis() {
-            for (let category of index_1.emojiCategories) {
-                await this.initEmojiGroup(category);
-            }
-        }
-        async renderEmojiCate() {
-            this.gridEmojiCate.clearInnerHTML();
-            for (let category of index_1.emojiCategories) {
-                const cateEl = (this.$render("i-vstack", { id: `cate-${category.value}`, overflow: 'hidden', cursor: 'pointer', opacity: 0.5, padding: { top: '0.25rem', bottom: '0.25rem' }, horizontalAlignment: "center", position: 'relative', class: "emoji-cate", gap: '0.5rem', onClick: (target) => this.onEmojiCateSelected(target, category) },
-                    this.$render("i-image", { url: category.image, width: '1.25rem', height: '1.25rem', display: 'block' }),
-                    this.$render("i-hstack", { visible: false, border: { radius: '9999px' }, height: '0.25rem', width: '100%', position: 'absolute', bottom: "0px", background: { color: Theme.colors.primary.main } })));
-                this.gridEmojiCate.appendChild(cateEl);
-                this.emojiCateMapper.set(`cate-${category.value}`, cateEl);
-            }
-        }
-        async renderEmojiGroup(parent, category) {
-            const group = (this.$render("i-vstack", { id: `${category.value}`, border: { bottom: { width: '1px', style: 'solid', color: Theme.divider } }, gap: "0.75rem", class: "emoji-group" },
-                this.$render("i-hstack", { padding: { top: '0.75rem', left: '0.75rem', right: '0.75rem', bottom: '0.75rem' }, position: "sticky", top: "0px", width: '100%', zIndex: 9, background: { color: Theme.background.modal }, verticalAlignment: "center", horizontalAlignment: "space-between" },
-                    this.$render("i-label", { caption: category.name, font: { size: '1.063rem', weight: 700 }, wordBreak: "break-word" }),
-                    this.$render("i-button", { caption: "Clear all", font: { size: '0.9rem', weight: 700, color: Theme.colors.primary.main }, cursor: 'pointer', boxShadow: 'none', padding: { left: '0.75rem', right: '0.75rem' }, lineHeight: '1.25rem', border: { radius: '9999px' }, background: { color: Theme.colors.info.light }, visible: this.isRecent(category) && this.hasRecentEmojis, onClick: this.onRecentClear }))));
-            const itemWrap = this.$render("i-grid-layout", { id: `group-${category.value}`, columnsPerRow: 9, padding: { left: '0.75rem', right: '0.75rem', bottom: '0.75rem' } });
-            group.append(itemWrap);
-            parent.appendChild(group);
-            let data = [];
-            if (this.isRecent(category)) {
-                data = Object.values(this.recentEmojis);
-            }
-            else if (category.value === 'search') {
-                const result = (0, index_1.searchEmojis)(this.inputEmoji.value, this.emojiGroupsData);
-                data = this.filterGroups(result);
-            }
-            else {
-                data = this.filterGroups(this.emojiGroupsData.get(category.value) || []);
-            }
-            for (let i = 0; i < data.length; i++) {
-                const item = data[i];
-                itemWrap.appendChild(this.$render("i-panel", { width: '1.5rem', height: '1.5rem', onClick: (target, event) => this.onEmojiSelected(event, item) },
-                    this.$render("i-label", { caption: item.htmlCode.join(''), display: "inline-block" })));
-            }
-            if (this.isRecent(category)) {
-                this.recent = group;
-                parent.insertAdjacentElement('afterbegin', group);
-            }
-        }
-        updateEmojiGroups() {
-            for (let i = 1; i < index_1.emojiCategories.length; i++) {
-                const category = index_1.emojiCategories[i];
-                const gridElm = this.groupEmojis.querySelector(`#group-${category.value}`);
-                if (!gridElm)
-                    continue;
-                gridElm.clearInnerHTML();
-                const data = this.filterGroups(this.emojiGroupsData.get(category.value));
-                for (let i = 0; i < data.length; i++) {
-                    const item = data[i];
-                    gridElm.appendChild(this.$render("i-panel", { width: '1.5rem', height: '1.5rem', onClick: (target, event) => this.onEmojiSelected(event, item) },
-                        this.$render("i-label", { caption: item.htmlCode.join(''), display: "inline-block" })));
-                }
-            }
-        }
-        filterGroups(data) {
-            const colorHtmlCode = index_1.colorsMapper[this.currentEmojiColor].htmlCode;
-            return [...data].filter(item => {
-                if (colorHtmlCode) {
-                    return item.htmlCode.includes(colorHtmlCode);
-                }
-                else {
-                    const itemLength = item.htmlCode?.length;
-                    return itemLength && itemLength !== 2;
-                }
-            });
-        }
-        onRecentClear() {
-            this.recentEmojis = {};
-            if (this.recent) {
-                this.recent.clearInnerHTML();
-                this.recent = null;
-            }
-            if (this.gridEmojiCate?.children[1]) {
-                this.onEmojiCateSelected(this.gridEmojiCate.children[1], index_1.emojiCategories[1]);
-            }
-        }
-        renderEmojiColors() {
-            this.pnlColors.clearInnerHTML();
-            for (let color of this.emojiColors) {
-                this.renderColor(color);
-            }
-        }
         renderActions() {
             const actions = [
                 {
@@ -1500,120 +1270,12 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 ] },
                 this.$render("i-button", { caption: 'Cancel', width: "100%", minHeight: 44, padding: { left: 16, right: 16 }, font: { color: Theme.text.primary, weight: 600 }, border: { radius: '30px', width: '1px', style: 'solid', color: Theme.colors.secondary.light }, grid: { horizontalAlignment: 'center' }, background: { color: 'transparent' }, boxShadow: "none", onClick: () => this.onCloseModal('mdPostActions') })));
         }
-        renderColor(color) {
-            const isCurrentColor = color === this.currentEmojiColor;
-            const colorEl = (this.$render("i-panel", { background: { color }, border: { radius: '50%' }, width: '1.188rem', height: '1.188rem', padding: { left: '0.35rem' }, stack: { grow: '0', shrink: '0', basis: '1.188rem' }, boxShadow: `${isCurrentColor ? 'rgb(29, 155, 240) 0px 0px 0px 2px' : 'none'}`, onClick: this.onEmojiColorSelected },
-                this.$render("i-icon", { name: 'check', width: '0.5rem', height: '0.5rem', lineHeight: '0.35rem', fill: 'rgb(21, 32, 43)', visible: isCurrentColor })));
-            if (isCurrentColor)
-                this.selectedColor = colorEl;
-            this.pnlColors.appendChild(colorEl);
-        }
-        onEmojiColorSelected(target) {
-            if (!this.pnlColors?.children || this.pnlColors?.children?.length < 2) {
-                this.renderEmojiColors();
-                return;
-            }
-            if (this.selectedColor) {
-                this.selectedColor.boxShadow = 'none';
-                const icon = this.selectedColor.querySelector('i-icon');
-                if (icon)
-                    icon.visible = false;
-            }
-            target.boxShadow = 'rgb(29, 155, 240) 0px 0px 0px 2px';
-            const icon = target.querySelector('i-icon');
-            if (icon)
-                icon.visible = true;
-            this.selectedColor = target;
-            this.updateEmojiGroups();
-        }
-        onEmojiCateSelected(target, category) {
-            if (!target)
-                return;
-            const preventSelected = this.isEmojiSearching || (this.isRecent(category) && !this.recent?.children[1]?.innerHTML);
-            if (preventSelected)
-                return;
-            const cates = this.querySelectorAll('.emoji-cate');
-            for (let cateEl of cates) {
-                cateEl.opacity = 0.5;
-                cateEl.children[1].visible = false;
-            }
-            target.children[1].visible = true;
-            target.opacity = 1;
-            if (this.isRecent(category)) {
-                this.groupEmojis.scrollTo({ top: 0 });
-            }
-            else {
-                const groupEl = this.querySelector(`#${category.value}`);
-                if (groupEl) {
-                    this.groupEmojis.scrollTo({ top: groupEl.offsetTop });
-                }
-            }
-        }
-        async onEmojiSelected(event, emoji) {
-            event.stopImmediatePropagation();
-            event.preventDefault();
-            this.lbEmoji.caption = `${emoji.htmlCode.join('')}`;
-            const newSpan = document.createElement('span');
-            newSpan.innerHTML = `<span style='font-size:1.25rem;'>${emoji.htmlCode.join('')}</span>`;
-            this.value = this.updatedValue + '\n' + newSpan.innerHTML;
-            this.recentEmojis[emoji.name] = emoji;
-            const parent = event.target.closest('.emoji-group');
-            if (parent) {
-                this.groupEmojis.scrollTo({ top: parent.offsetTop + event.clientY });
-            }
-        }
-        async onEmojiSearch() {
-            if (this.searchTimer)
-                clearTimeout(this.searchTimer);
-            if (!this.inputEmoji.value) {
-                this.pnlEmojiResult.visible = false;
-                this.groupEmojis.visible = true;
-                this.lbEmoji.caption = '';
-                this.isEmojiSearching = false;
-                this.mdEmoji.refresh();
-            }
-            else {
-                this.pnlEmojiResult.visible = true;
-                this.groupEmojis.visible = false;
-                this.pnlEmojiResult.clearInnerHTML();
-                this.searchTimer = setTimeout(() => {
-                    const category = {
-                        name: 'Search results',
-                        value: 'search'
-                    };
-                    this.renderEmojiGroup(this.pnlEmojiResult, category);
-                    this.mdEmoji.refresh();
-                }, 100);
-                this.isEmojiSearching = true;
-            }
+        async handleSelectedEmoji(value) {
+            this.value = this.updatedValue + value;
         }
         onEmojiMdOpen() {
-            this.pnlEmojiResult.visible = false;
-            this.groupEmojis.visible = true;
-            this.inputEmoji.value = '';
-            this.lbEmoji.caption = '';
-            this.isEmojiSearching = false;
-            if (!this.emojiInitState) {
-                this.emojiInitState = 1;
-                this.initEmojis();
-            }
-            else {
-                if (this.hasRecentEmojis) {
-                    const recent = this.groupEmojis.querySelector('#recent');
-                    recent && this.groupEmojis.removeChild(recent);
-                    this.renderEmojiGroup(this.groupEmojis, index_1.emojiCategories[0]);
-                }
-                else {
-                    this.recent && this.recent.clearInnerHTML();
-                }
-                const index = this.hasRecentEmojis ? 0 : 1;
-                if (this.gridEmojiCate?.children?.length) {
-                    this.onEmojiCateSelected(this.gridEmojiCate.children[index], index_1.emojiCategories[index]);
-                }
-                this.pnlColors.clearInnerHTML();
-                this.renderColor(this.currentEmojiColor);
-                this.mdEmoji.refresh();
-            }
+            this.emojiPicker.clearSearch();
+            this.mdEmoji.refresh();
         }
         showStorage() {
             if (!this.hasQuota) {
@@ -1815,7 +1477,6 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 this.renderPostComposer();
             }
             this.setData({ isReplyToShown, replyTo, type, placeholder, buttonCaption });
-            this.renderEmojis();
             // if(this.autoFocus) {
             this.mdEditor.autoFocus = this.autoFocus;
             if (this.autoFocus)
@@ -1893,24 +1554,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                             this.$render("i-panel", null,
                                 this.$render("i-icon", { id: "iconEmoji", name: "smile", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Emoji', placement: 'bottom' }, cursor: "pointer", onClick: () => this.onShowModal('mdEmoji') }),
                                 this.$render("i-modal", { id: "mdEmoji", maxWidth: '100%', minWidth: 320, popupPlacement: 'bottomRight', showBackdrop: false, border: { radius: '1rem' }, boxShadow: 'rgba(101, 119, 134, 0.2) 0px 0px 15px, rgba(101, 119, 134, 0.15) 0px 0px 3px 1px', padding: { top: 0, left: 0, right: 0, bottom: 0 }, closeOnScrollChildFixed: true, onOpen: this.onEmojiMdOpen.bind(this), visible: false },
-                                    this.$render("i-vstack", { position: 'relative', padding: { left: '0.25rem', right: '0.25rem' } },
-                                        this.$render("i-hstack", { verticalAlignment: "center", border: { radius: '9999px', width: '1px', style: 'solid', color: Theme.divider }, minHeight: 40, width: '100%', background: { color: Theme.input.background }, padding: { left: '0.75rem', right: '0.75rem' }, margin: { top: '0.25rem', bottom: '0.25rem' }, gap: "4px" },
-                                            this.$render("i-icon", { width: '1rem', height: '1rem', name: 'search', fill: Theme.text.secondary }),
-                                            this.$render("i-input", { id: "inputEmoji", placeholder: 'Search Emojis', width: '100%', height: '100%', border: { style: 'none' }, captionWidth: '0px', showClearButton: true, onClearClick: this.onEmojiMdOpen.bind(this), onKeyUp: this.onEmojiSearch.bind(this) })),
-                                        this.$render("i-grid-layout", { id: "gridEmojiCate", verticalAlignment: "center", columnsPerRow: 9, margin: { top: 4 }, grid: { verticalAlignment: 'center', horizontalAlignment: 'center' }, border: { bottom: { width: '1px', style: 'solid', color: Theme.divider } } }),
-                                        this.$render("i-vstack", { id: "groupEmojis", maxHeight: 400, overflow: { y: 'auto' } }),
-                                        this.$render("i-vstack", { id: "pnlEmojiResult", border: { bottom: { width: '1px', style: 'solid', color: Theme.divider } }, maxHeight: 400, overflow: { y: 'auto' }, minHeight: 200, gap: "0.75rem", visible: false }),
-                                        this.$render("i-hstack", { bottom: "0px", left: "0px", position: "absolute", width: '100%', verticalAlignment: "center", horizontalAlignment: "space-between", padding: { top: '0.75rem', left: '0.75rem', right: '0.75rem', bottom: '0.75rem' }, gap: "0.75rem", zIndex: 20, background: { color: Theme.background.modal }, border: {
-                                                radius: '0 0 1rem 1rem',
-                                                top: { width: '1px', style: 'solid', color: Theme.divider }
-                                            } },
-                                            this.$render("i-label", { id: "lbEmoji", width: '1.25rem', height: '1.25rem', display: "inline-block" }),
-                                            this.$render("i-hstack", { id: "pnlColors", verticalAlignment: "center", gap: '0.25rem', overflow: 'hidden', cursor: "pointer", padding: {
-                                                    top: '0.25rem',
-                                                    left: '0.25rem',
-                                                    right: '0.25rem',
-                                                    bottom: '0.25rem'
-                                                } }))))),
+                                    this.$render("i-scom-emoji-picker", { id: "emojiPicker", onEmojiSelected: this.handleSelectedEmoji }))),
                             this.$render("i-icon", { id: "iconWidget", width: 28, height: 28, name: "shapes", fill: Theme.colors.primary.main, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Widgets', placement: 'bottom' }, cursor: "pointer", onClick: () => this.onShowWidgets() })),
                         this.$render("i-panel", null,
                             this.$render("i-button", { id: "btnPostAudience", height: 32, padding: { left: '1rem', right: '1rem' }, background: { color: Theme.colors.secondary.main }, font: { color: Theme.colors.secondary.contrastText, bold: true }, border: { radius: '0.375rem' }, caption: this.audience.title, icon: { width: 14, height: 14, name: this.audience.icon, fill: Theme.colors.secondary.contrastText }, rightIcon: { width: 14, height: 14, name: 'angle-down', fill: Theme.colors.secondary.contrastText }, visible: this.isPostAudienceShown, onClick: this.showPostAudienceModal.bind(this) }),
@@ -2012,24 +1656,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                             this.$render("i-panel", null,
                                 this.$render("i-icon", { id: "iconEmoji", name: "smile", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Emoji', placement: 'bottom' }, cursor: "pointer", onClick: () => this.onShowModal('mdEmoji') }),
                                 this.$render("i-modal", { id: "mdEmoji", maxWidth: '100%', minWidth: 320, popupPlacement: 'bottomRight', showBackdrop: false, border: { radius: '1rem' }, boxShadow: 'rgba(101, 119, 134, 0.2) 0px 0px 15px, rgba(101, 119, 134, 0.15) 0px 0px 3px 1px', padding: { top: 0, left: 0, right: 0, bottom: 0 }, closeOnScrollChildFixed: true, onOpen: this.onEmojiMdOpen.bind(this), visible: false },
-                                    this.$render("i-vstack", { position: 'relative', padding: { left: '0.25rem', right: '0.25rem' } },
-                                        this.$render("i-hstack", { verticalAlignment: "center", border: { radius: '9999px', width: '1px', style: 'solid', color: Theme.divider }, minHeight: 40, width: '100%', background: { color: Theme.input.background }, padding: { left: '0.75rem', right: '0.75rem' }, margin: { top: '0.25rem', bottom: '0.25rem' }, gap: "4px" },
-                                            this.$render("i-icon", { width: '1rem', height: '1rem', name: 'search', fill: Theme.text.secondary }),
-                                            this.$render("i-input", { id: "inputEmoji", placeholder: 'Search Emojis', width: '100%', height: '100%', border: { style: 'none' }, captionWidth: '0px', showClearButton: true, onClearClick: this.onEmojiMdOpen.bind(this), onKeyUp: this.onEmojiSearch.bind(this) })),
-                                        this.$render("i-grid-layout", { id: "gridEmojiCate", verticalAlignment: "center", columnsPerRow: 9, margin: { top: 4 }, grid: { verticalAlignment: 'center', horizontalAlignment: 'center' }, border: { bottom: { width: '1px', style: 'solid', color: Theme.divider } } }),
-                                        this.$render("i-vstack", { id: "groupEmojis", maxHeight: 400, overflow: { y: 'auto' } }),
-                                        this.$render("i-vstack", { id: "pnlEmojiResult", border: { bottom: { width: '1px', style: 'solid', color: Theme.divider } }, maxHeight: 400, overflow: { y: 'auto' }, minHeight: 200, gap: "0.75rem", visible: false }),
-                                        this.$render("i-hstack", { bottom: "0px", left: "0px", position: "absolute", width: '100%', verticalAlignment: "center", horizontalAlignment: "space-between", padding: { top: '0.75rem', left: '0.75rem', right: '0.75rem', bottom: '0.75rem' }, gap: "0.75rem", zIndex: 20, background: { color: Theme.background.modal }, border: {
-                                                radius: '0 0 1rem 1rem',
-                                                top: { width: '1px', style: 'solid', color: Theme.divider }
-                                            } },
-                                            this.$render("i-label", { id: "lbEmoji", width: '1.25rem', height: '1.25rem', display: "inline-block" }),
-                                            this.$render("i-hstack", { id: "pnlColors", verticalAlignment: "center", gap: '0.25rem', overflow: 'hidden', cursor: "pointer", padding: {
-                                                    top: '0.25rem',
-                                                    left: '0.25rem',
-                                                    right: '0.25rem',
-                                                    bottom: '0.25rem'
-                                                } }))))),
+                                    this.$render("i-scom-emoji-picker", { id: "emojiPicker", onEmojiSelected: this.handleSelectedEmoji }))),
                             this.$render("i-icon", { id: "iconWidget", width: 28, height: 28, name: "shapes", fill: Theme.colors.primary.main, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Widgets', placement: 'bottom' }, cursor: "pointer", onClick: () => this.onShowWidgets() })),
                         this.$render("i-stack", { direction: "horizontal", width: "100%", alignItems: "center", justifyContent: "end", gap: "0.5rem" },
                             this.$render("i-panel", null,

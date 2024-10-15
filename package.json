@@ -16,6 +16,7 @@
     },
     "dependencies": {
         "@ijstech/components": "^0.1.29",
+        "@scom/scom-emoji-picker": "https://github.com/scom-repos/scom-emoji-picker.git",
         "@scom/scom-post": "^0.1.0",
         "@scom/scom-storage": "^0.1.3"
     },
