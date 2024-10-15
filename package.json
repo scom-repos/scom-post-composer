@@ -1,6 +1,6 @@
 {
     "name": "@scom/scom-post-composer",
-    "version": "0.1.9",
+    "version": "0.1.10",
     "main": "dist/index.js",
     "plugin": "dist",
     "pluginTypes": "pluginTypes/index.d.ts",
@@ -16,7 +16,7 @@
     },
     "dependencies": {
         "@ijstech/components": "^0.1.29",
-        "@scom/scom-emoji-picker": "https://github.com/scom-repos/scom-emoji-picker.git",
+        "@scom/scom-emoji-picker": "^0.1.1",
         "@scom/scom-post": "^0.1.0",
         "@scom/scom-storage": "^0.1.3"
     },
