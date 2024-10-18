@@ -123,6 +123,7 @@ export interface IWidget {
   description?: string;
   note?: string;
   disabled?: boolean;
+  isDevOnly?: boolean;
 }
 
 export const chartWidgets: string[] = ['@scom/scom-pie-chart', '@scom/scom-line-chart', '@scom/scom-bar-chart', '@scom/scom-area-chart', '@scom/scom-mixed-chart', '@scom/scom-scatter-chart', '@scom/scom-counter'];
@@ -169,14 +170,16 @@ export const widgets: IWidget[] = [
     title: 'Create Membership NFT',
     description: 'Create a new NFT index to Mint a membership NFT for gated communities',
     note: 'Will only work after a successful transaction',
-    configuratorCustomData: 'new1155'
+    configuratorCustomData: 'new1155',
+    isDevOnly: true
   },
   {
     name: '@scom/scom-nft-minter',
     icon: { name: 'gavel' },
     title: 'Existing Membership NFT',
     description: 'Mint a membership NFT for gated communities',
-    configuratorCustomData: 'customNft'
+    configuratorCustomData: 'customNft',
+    isDevOnly: true
   },
   {
     name: '@scom/oswap-nft-widget',
@@ -203,7 +206,8 @@ export const widgets: IWidget[] = [
     name: '@scom/scom-image',
     icon: { name: 'image' },
     title: 'Image',
-    description: 'Insert an image'
+    description: 'Insert an image',
+    isDevOnly: true
   },
   {
     name: '@scom/scom-twitter-post',

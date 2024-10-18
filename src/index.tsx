@@ -84,6 +84,7 @@ interface IReplyInput {
 }
 
 interface ScomPostComposerElement extends ControlElement {
+    env?: string;   
     replyTo?: IPost;
     isReplyToShown?: boolean;
     type?: IReplyType;
@@ -181,6 +182,7 @@ export class ScomPostComposer extends Module {
     private isSubmitting: boolean;
     private errorMessage: string;
     private needToUploadMedia: boolean;
+    private _env: string;
 
     public onChanged: onChangedCallback;
     public onSubmit: onSubmitCallback;
@@ -205,6 +207,15 @@ export class ScomPostComposer extends Module {
 
     setFocus() {
         this.mdEditor.setFocus();
+    }
+
+    get env() {
+        return this._env;
+    }
+
+    set env(value: string) {
+        this._env = value;
+        if (this.widgetModule) this.widgetModule.env = value;
     }
 
     get hasQuota() {
@@ -924,6 +935,7 @@ export class ScomPostComposer extends Module {
     private async onShowWidgets(widget?: { widgetUrl: string, icon: Icon }) {
         if (!this.widgetModule) {
             this.widgetModule = await ScomPostComposerWidget.create({
+                env: this._env,
                 onConfirm: (url: string) => {
                     if (url)
                         this.mdEditor.value = this.updatedValue + '\n\n' + url + '\n\n';
@@ -1067,6 +1079,8 @@ export class ScomPostComposer extends Module {
         const mobile = this.getAttribute('mobile', true);
         this.mobile = mobile;
         this.avatar = this.getAttribute('avatar', true);
+        const env = this.getAttribute('env', true);
+        if (env) this._env = env;
         const isPostAudienceShown = this.getAttribute('isPostAudienceShown', true);
         if (isPostAudienceShown != null) {
             this._isPostAudienceShown = isPostAudienceShown;
