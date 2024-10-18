@@ -180,14 +180,16 @@ define("@scom/scom-post-composer/global/index.ts", ["require", "exports", "@ijst
             title: 'Create Membership NFT',
             description: 'Create a new NFT index to Mint a membership NFT for gated communities',
             note: 'Will only work after a successful transaction',
-            configuratorCustomData: 'new1155'
+            configuratorCustomData: 'new1155',
+            isDevOnly: true
         },
         {
             name: '@scom/scom-nft-minter',
             icon: { name: 'gavel' },
             title: 'Existing Membership NFT',
             description: 'Mint a membership NFT for gated communities',
-            configuratorCustomData: 'customNft'
+            configuratorCustomData: 'customNft',
+            isDevOnly: true
         },
         {
             name: '@scom/oswap-nft-widget',
@@ -214,7 +216,8 @@ define("@scom/scom-post-composer/global/index.ts", ["require", "exports", "@ijst
             name: '@scom/scom-image',
             icon: { name: 'image' },
             title: 'Image',
-            description: 'Insert an image'
+            description: 'Insert an image',
+            isDevOnly: true
         },
         {
             name: '@scom/scom-twitter-post',
@@ -337,6 +340,15 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
             if (this.onCloseButtonClick)
                 this.onCloseButtonClick();
         }
+        get env() {
+            return this._env;
+        }
+        set env(value) {
+            if (this._env !== value) {
+                this._env = value;
+                this.renderWidgets();
+            }
+        }
         init() {
             super.init();
             this.onTypeChanged = this.onTypeChanged.bind(this);
@@ -344,6 +356,9 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
             this.onUpdate = this.getAttribute('onUpdate', true) || this.onUpdate;
             this.onCloseButtonClick = this.getAttribute('onCloseButtonClick', true) || this.onCloseButtonClick;
             this.onRefresh = this.getAttribute('onRefresh', true) || this.onRefresh;
+            const env = this.getAttribute('env', true);
+            if (env)
+                this._env = env;
             this.renderWidgets();
         }
         show(url) {
@@ -355,7 +370,8 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
             }
         }
         renderWidgets() {
-            const _widgets = global_1.widgets.filter(v => !v.disabled);
+            const isDevEnv = this._env === 'dev';
+            const _widgets = global_1.widgets.filter(v => !(v.disabled || (v.isDevOnly && !isDevEnv)));
             this.pnlWidgets.clearInnerHTML();
             for (let widget of _widgets) {
                 const icon = new components_5.Icon(undefined, { ...widget.icon, width: '1rem', height: '1rem' });
@@ -721,6 +737,14 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         }
         setFocus() {
             this.mdEditor.setFocus();
+        }
+        get env() {
+            return this._env;
+        }
+        set env(value) {
+            this._env = value;
+            if (this.widgetModule)
+                this.widgetModule.env = value;
         }
         get hasQuota() {
             return this._hasQuota;
@@ -1325,6 +1349,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         async onShowWidgets(widget) {
             if (!this.widgetModule) {
                 this.widgetModule = await index_2.ScomPostComposerWidget.create({
+                    env: this._env,
                     onConfirm: (url) => {
                         if (url)
                             this.mdEditor.value = this.updatedValue + '\n\n' + url + '\n\n';
@@ -1466,6 +1491,9 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             const mobile = this.getAttribute('mobile', true);
             this.mobile = mobile;
             this.avatar = this.getAttribute('avatar', true);
+            const env = this.getAttribute('env', true);
+            if (env)
+                this._env = env;
             const isPostAudienceShown = this.getAttribute('isPostAudienceShown', true);
             if (isPostAudienceShown != null) {
                 this._isPostAudienceShown = isPostAudienceShown;
