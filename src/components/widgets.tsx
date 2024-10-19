@@ -21,6 +21,7 @@ import { formStyle } from '../index.css';
 const Theme = Styles.Theme.ThemeVars;
 
 interface ScomPostComposerWidgetsElement extends ControlElement {
+    env?: string;
     onConfirm?: (url: string) => void;
     onUpdate?: (oldUrl: string, newUrl: string) => void;
     onCloseButtonClick?: () => void;
@@ -50,6 +51,7 @@ export class ScomPostComposerWidget extends Module {
     private cbType: ComboBox;
     private customForm: any;
     private currentUrl: string;
+    private _env: string;
 
     onConfirm: (url: string) => void;
     onUpdate: (oldUrl: string, newUrl: string) => void;
@@ -66,6 +68,17 @@ export class ScomPostComposerWidget extends Module {
         if (this.onCloseButtonClick) this.onCloseButtonClick();
     }
 
+    get env() {
+        return this._env;
+    }
+
+    set env(value: string) {
+        if (this._env !== value) {
+            this._env = value;
+            this.renderWidgets();
+        }
+    }
+
     init() {
         super.init();
         this.onTypeChanged = this.onTypeChanged.bind(this);
@@ -73,6 +86,8 @@ export class ScomPostComposerWidget extends Module {
         this.onUpdate = this.getAttribute('onUpdate', true) || this.onUpdate;
         this.onCloseButtonClick = this.getAttribute('onCloseButtonClick', true) || this.onCloseButtonClick;
         this.onRefresh = this.getAttribute('onRefresh', true) || this.onRefresh;
+        const env = this.getAttribute('env', true);
+        if (env) this._env = env;
         this.renderWidgets();
     }
 
@@ -85,7 +100,8 @@ export class ScomPostComposerWidget extends Module {
     }
 
     private renderWidgets() {
-        const _widgets = widgets.filter(v => !v.disabled);
+        const isDevEnv = this._env === 'dev';
+        const _widgets = widgets.filter(v => !(v.disabled || (v.isDevOnly && !isDevEnv)));
         this.pnlWidgets.clearInnerHTML();
         for (let widget of _widgets) {
             const icon = new Icon(undefined, { ...widget.icon, width: '1rem', height: '1rem' });

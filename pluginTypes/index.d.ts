@@ -35,6 +35,7 @@ declare module "@scom/scom-post-composer/global/index.ts" {
         description?: string;
         note?: string;
         disabled?: boolean;
+        isDevOnly?: boolean;
     }
     export const chartWidgets: string[];
     export const widgets: IWidget[];
@@ -83,6 +84,7 @@ declare module "@scom/scom-post-composer/index.css.ts" {
 declare module "@scom/scom-post-composer/components/widgets.tsx" {
     import { ControlElement, Module, Container } from '@ijstech/components';
     interface ScomPostComposerWidgetsElement extends ControlElement {
+        env?: string;
         onConfirm?: (url: string) => void;
         onUpdate?: (oldUrl: string, newUrl: string) => void;
         onCloseButtonClick?: () => void;
@@ -109,12 +111,15 @@ declare module "@scom/scom-post-composer/components/widgets.tsx" {
         private cbType;
         private customForm;
         private currentUrl;
+        private _env;
         onConfirm: (url: string) => void;
         onUpdate: (oldUrl: string, newUrl: string) => void;
         onCloseButtonClick: () => void;
         onRefresh: (maxWidth: string) => void;
         static create(options?: ScomPostComposerWidgetsElement, parent?: Container): Promise<ScomPostComposerWidget>;
         private handleCloseButtonClick;
+        get env(): string;
+        set env(value: string);
         init(): void;
         show(url?: string): void;
         private renderWidgets;
@@ -152,6 +157,7 @@ declare module "@scom/scom-post-composer" {
         value?: string;
     }
     interface ScomPostComposerElement extends ControlElement {
+        env?: string;
         replyTo?: IPost;
         isReplyToShown?: boolean;
         type?: IReplyType;
@@ -230,12 +236,15 @@ declare module "@scom/scom-post-composer" {
         private isSubmitting;
         private errorMessage;
         private needToUploadMedia;
+        private _env;
         onChanged: onChangedCallback;
         onSubmit: onSubmitCallback;
         onCancel: () => void;
         constructor(parent?: Container, options?: any);
         static create(options?: ScomPostComposerElement, parent?: Container): Promise<ScomPostComposer>;
         setFocus(): void;
+        get env(): string;
+        set env(value: string);
         get hasQuota(): boolean;
         set hasQuota(value: boolean);
         get focusedPost(): IPost;
