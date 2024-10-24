@@ -953,12 +953,24 @@ export class ScomPostComposer extends Module {
             });
         }
         const modal = this.widgetModule.openModal({
-            width: '90%',
+            width: window.matchMedia('(max-width: 767px)').matches ? '100vdw' : '90%',
             maxWidth: '50rem',
             padding: { top: 0, bottom: 0, left: 0, right: 0 },
             popupPlacement: 'top',
             closeOnBackdropClick: true,
-            closeIcon: null
+            closeIcon: null,
+            mediaQueries: [
+                {
+                    maxWidth: '767px',
+                    properties: {
+                        width: '100dvw',
+                        maxWidth: '100dvw',
+                        height: '100dvh',
+                        maxHeight: '100dvh',
+                        overflow: { y: 'auto' }
+                    }
+                }
+            ]
         });
         this.widgetModule.onRefresh = (maxWidth: string) => {
             modal.maxWidth = maxWidth;
@@ -1426,8 +1438,8 @@ export class ScomPostComposer extends Module {
                         properties: {
                             showBackdrop: true,
                             popupPlacement: 'top',
-                            position: 'fixed',
                             zIndex: 999,
+                            maxHeight: '100dvh',
                             maxWidth: '100%',
                             height: '100%',
                             width: '100%',
@@ -1563,46 +1575,6 @@ export class ScomPostComposer extends Module {
                             </i-vstack>
                         </i-panel>
                     </i-vstack>
-                </i-vstack>
-            </i-modal>
-
-            <i-modal
-                id="mdWidgets"
-                border={{ radius: '1rem' }}
-                maxWidth={'600px'}
-                maxHeight={'90vh'}
-                overflow={{ y: 'auto' }}
-                padding={{ top: 0, right: 0, left: 0, bottom: 0 }}
-                mediaQueries={[
-                    {
-                        maxWidth: '767px',
-                        properties: {
-                            showBackdrop: true,
-                            popupPlacement: 'top',
-                            position: 'fixed',
-                            zIndex: 999,
-                            maxWidth: '100%',
-                            height: '100%',
-                            width: '100%',
-                            border: { radius: 0 }
-                        }
-                    }
-                ]}
-            >
-                <i-vstack>
-                    <i-hstack
-                        verticalAlignment="center" horizontalAlignment="space-between"
-                        padding={{ right: '1rem', left: '1rem', top: '1rem', bottom: '1rem' }}
-                    >
-                        <i-label caption='SCOM Widgets'
-                            font={{ color: Theme.colors.primary.main, size: '1rem', bold: true }}></i-label>
-                        <i-icon
-                            name="times"
-                            cursor='pointer'
-                            width={20} height={20} fill={Theme.colors.secondary.main}
-                            onClick={() => this.onCloseModal('mdWidgets')}
-                        ></i-icon>
-                    </i-hstack>
                 </i-vstack>
             </i-modal>
         </i-panel>;
@@ -1945,46 +1917,6 @@ export class ScomPostComposer extends Module {
                             </i-vstack>
                         </i-panel>
                     </i-vstack>
-                </i-vstack>
-            </i-modal>
-
-            <i-modal
-                id="mdWidgets"
-                border={{ radius: '1rem' }}
-                maxWidth={'600px'}
-                maxHeight={'90vh'}
-                overflow={{ y: 'auto' }}
-                padding={{ top: 0, right: 0, left: 0, bottom: 0 }}
-                mediaQueries={[
-                    {
-                        maxWidth: '767px',
-                        properties: {
-                            showBackdrop: true,
-                            popupPlacement: 'top',
-                            position: 'fixed',
-                            zIndex: 999,
-                            maxWidth: '100%',
-                            height: '100%',
-                            width: '100%',
-                            border: { radius: 0 }
-                        }
-                    }
-                ]}
-            >
-                <i-vstack>
-                    <i-hstack
-                        verticalAlignment="center" horizontalAlignment="space-between"
-                        padding={{ right: '1rem', left: '1rem', top: '1rem', bottom: '1rem' }}
-                    >
-                        <i-label caption='SCOM Widgets'
-                            font={{ color: Theme.colors.primary.main, size: '1rem', bold: true }}></i-label>
-                        <i-icon
-                            name="times"
-                            cursor='pointer'
-                            width={20} height={20} fill={Theme.colors.secondary.main}
-                            onClick={() => this.onCloseModal('mdWidgets')}
-                        ></i-icon>
-                    </i-hstack>
                 </i-vstack>
             </i-modal>
         </i-panel>)
