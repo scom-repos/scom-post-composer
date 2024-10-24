@@ -141,7 +141,7 @@ export const widgets: IWidget[] = [
     icon: { name: 'exchange-alt' },
     title: 'Swap',
     description: 'Insert a swap widget',
-    disabled: true
+    isDevOnly: true
   },
   {
     name: '@scom/scom-staking',
