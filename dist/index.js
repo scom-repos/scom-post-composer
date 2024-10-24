@@ -151,7 +151,7 @@ define("@scom/scom-post-composer/global/index.ts", ["require", "exports", "@ijst
             icon: { name: 'exchange-alt' },
             title: 'Swap',
             description: 'Insert a swap widget',
-            disabled: true
+            isDevOnly: true
         },
         {
             name: '@scom/scom-staking',
