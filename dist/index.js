@@ -1367,12 +1367,24 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 });
             }
             const modal = this.widgetModule.openModal({
-                width: '90%',
+                width: window.matchMedia('(max-width: 767px)').matches ? '100vdw' : '90%',
                 maxWidth: '50rem',
                 padding: { top: 0, bottom: 0, left: 0, right: 0 },
                 popupPlacement: 'top',
                 closeOnBackdropClick: true,
-                closeIcon: null
+                closeIcon: null,
+                mediaQueries: [
+                    {
+                        maxWidth: '767px',
+                        properties: {
+                            width: '100dvw',
+                            maxWidth: '100dvw',
+                            height: '100dvh',
+                            maxHeight: '100dvh',
+                            overflow: { y: 'auto' }
+                        }
+                    }
+                ]
             });
             this.widgetModule.onRefresh = (maxWidth) => {
                 modal.maxWidth = maxWidth;
@@ -1610,8 +1622,8 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                             properties: {
                                 showBackdrop: true,
                                 popupPlacement: 'top',
-                                position: 'fixed',
                                 zIndex: 999,
+                                maxHeight: '100dvh',
                                 maxWidth: '100%',
                                 height: '100%',
                                 width: '100%',
@@ -1642,26 +1654,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                             this.$render("i-panel", { id: "bottomElm", width: '100%', minHeight: 20 },
                                 this.$render("i-vstack", { id: "gifLoading", padding: { top: '0.5rem', bottom: '0.5rem' }, visible: false, height: "100%", width: "100%", class: "i-loading-overlay", background: { color: Theme.background.modal } },
                                     this.$render("i-vstack", { class: "i-loading-spinner", horizontalAlignment: "center", verticalAlignment: "center" },
-                                        this.$render("i-icon", { class: "i-loading-spinner_icon", name: "spinner", width: 24, height: 24, fill: Theme.colors.primary.main }))))))),
-                this.$render("i-modal", { id: "mdWidgets", border: { radius: '1rem' }, maxWidth: '600px', maxHeight: '90vh', overflow: { y: 'auto' }, padding: { top: 0, right: 0, left: 0, bottom: 0 }, mediaQueries: [
-                        {
-                            maxWidth: '767px',
-                            properties: {
-                                showBackdrop: true,
-                                popupPlacement: 'top',
-                                position: 'fixed',
-                                zIndex: 999,
-                                maxWidth: '100%',
-                                height: '100%',
-                                width: '100%',
-                                border: { radius: 0 }
-                            }
-                        }
-                    ] },
-                    this.$render("i-vstack", null,
-                        this.$render("i-hstack", { verticalAlignment: "center", horizontalAlignment: "space-between", padding: { right: '1rem', left: '1rem', top: '1rem', bottom: '1rem' } },
-                            this.$render("i-label", { caption: 'SCOM Widgets', font: { color: Theme.colors.primary.main, size: '1rem', bold: true } }),
-                            this.$render("i-icon", { name: "times", cursor: 'pointer', width: 20, height: 20, fill: Theme.colors.secondary.main, onClick: () => this.onCloseModal('mdWidgets') })))));
+                                        this.$render("i-icon", { class: "i-loading-spinner_icon", name: "spinner", width: 24, height: 24, fill: Theme.colors.primary.main }))))))));
             this.pnlPostComposer.append(elm);
         }
         renderPostComposer() {
@@ -1729,26 +1722,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                             this.$render("i-panel", { id: "bottomElm", width: '100%', minHeight: 20 },
                                 this.$render("i-vstack", { id: "gifLoading", padding: { top: '0.5rem', bottom: '0.5rem' }, visible: false, height: "100%", width: "100%", class: "i-loading-overlay", background: { color: Theme.background.modal } },
                                     this.$render("i-vstack", { class: "i-loading-spinner", horizontalAlignment: "center", verticalAlignment: "center" },
-                                        this.$render("i-icon", { class: "i-loading-spinner_icon", name: "spinner", width: 24, height: 24, fill: Theme.colors.primary.main }))))))),
-                this.$render("i-modal", { id: "mdWidgets", border: { radius: '1rem' }, maxWidth: '600px', maxHeight: '90vh', overflow: { y: 'auto' }, padding: { top: 0, right: 0, left: 0, bottom: 0 }, mediaQueries: [
-                        {
-                            maxWidth: '767px',
-                            properties: {
-                                showBackdrop: true,
-                                popupPlacement: 'top',
-                                position: 'fixed',
-                                zIndex: 999,
-                                maxWidth: '100%',
-                                height: '100%',
-                                width: '100%',
-                                border: { radius: 0 }
-                            }
-                        }
-                    ] },
-                    this.$render("i-vstack", null,
-                        this.$render("i-hstack", { verticalAlignment: "center", horizontalAlignment: "space-between", padding: { right: '1rem', left: '1rem', top: '1rem', bottom: '1rem' } },
-                            this.$render("i-label", { caption: 'SCOM Widgets', font: { color: Theme.colors.primary.main, size: '1rem', bold: true } }),
-                            this.$render("i-icon", { name: "times", cursor: 'pointer', width: 20, height: 20, fill: Theme.colors.secondary.main, onClick: () => this.onCloseModal('mdWidgets') }))))));
+                                        this.$render("i-icon", { class: "i-loading-spinner_icon", name: "spinner", width: 24, height: 24, fill: Theme.colors.primary.main })))))))));
         }
         render() {
             return (this.$render("i-panel", { id: 'pnlPostComposer' },
