@@ -7,6 +7,7 @@ import {
   Input,
   Button,
 } from '@ijstech/components';
+import translations from '../translations.json';
 
 const Theme = Styles.Theme.ThemeVars;
 
@@ -68,6 +69,7 @@ export class ScomPostComposerUpload extends Module {
   }
 
   init() {
+    this.i18n.init({...translations});
     super.init();
     const onConfirm = this.getAttribute('onConfirm', true);
     const url = this.getAttribute('url', true);
@@ -79,7 +81,7 @@ export class ScomPostComposerUpload extends Module {
       <i-vstack gap="1rem" padding={{top: '1rem', bottom: '1rem', left: '1rem', right: '1rem'}}>
         <i-input
           id="inputUrl"
-          placeholder='Enter URL'
+          placeholder='$enter_url'
           width={'100%'}
           height={'2rem'}
           border={{radius: '0.5rem'}}
@@ -96,7 +98,7 @@ export class ScomPostComposerUpload extends Module {
               font={{ color: Theme.colors.primary.contrastText, bold: true }}
               border={{ radius: '0.5rem' }}
               enabled={false}
-              caption="Confirm"
+              caption="$confirm"
               onClick={this.onFormSubmit}
             ></i-button>
           </i-panel>

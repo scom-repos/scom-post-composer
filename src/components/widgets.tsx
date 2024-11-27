@@ -17,6 +17,7 @@ import {
 } from '@ijstech/components';
 import { chartWidgets, extractWidgetUrl, getWidgetEmbedUrl, IWidget, widgets } from '../global';
 import { formStyle } from '../index.css';
+import translations from '../translations.json';
 
 const Theme = Styles.Theme.ThemeVars;
 
@@ -80,6 +81,7 @@ export class ScomPostComposerWidget extends Module {
     }
 
     init() {
+        this.i18n.init({...translations});
         super.init();
         this.onTypeChanged = this.onTypeChanged.bind(this);
         this.onConfirm = this.getAttribute('onConfirm', true) || this.onConfirm;
@@ -132,7 +134,7 @@ export class ScomPostComposerWidget extends Module {
     }
 
     private back() {
-        this.lblTitle.caption = 'Widgets';
+        this.lblTitle.caption = this.i18n.get('$widgets');
         this.iconBack.visible = false;
         this.pnlWidgets.visible = true;
         this.pnlConfig.visible = false;
@@ -144,7 +146,7 @@ export class ScomPostComposerWidget extends Module {
     private renderConfig(url: string) {
         let widgetData = extractWidgetUrl(url);
         const { moduleName, data } = widgetData;
-        this.selectWidget({ title: 'Config', name: moduleName }, { data, url });
+        this.selectWidget({ title: this.i18n.get('$config'), name: moduleName }, { data, url });
         this.iconBack.visible = false;
     }
 
@@ -159,7 +161,7 @@ export class ScomPostComposerWidget extends Module {
             const items = module.map(type => ({ value: type, label: type.split('-')[1] }));
             this.pnlCustomForm.appendChild(
                 <i-stack direction="vertical" width="100%" gap="0.625rem">
-                    <i-label caption="Type"></i-label>
+                    <i-label caption="$type"></i-label>
                     <i-combo-box
                         id="cbType"
                         items={items}
@@ -227,7 +229,7 @@ export class ScomPostComposerWidget extends Module {
                         columnWidth: '100%',
                         columnsPerRow: 1,
                         confirmButtonOptions: {
-                            caption: 'Confirm',
+                            caption: '$confirm',
                             backgroundColor: Theme.colors.primary.main,
                             fontColor: Theme.colors.primary.contrastText,
                             padding: { top: '0.5rem', bottom: '0.5rem', right: '1rem', left: '1rem' },
@@ -404,7 +406,7 @@ export class ScomPostComposerWidget extends Module {
                             cursor="pointer"
                             visible={false}
                         ></i-icon>
-                        <i-label id="lblTitle" caption="Widgets" font={{ size: '1.125rem', color: Theme.colors.primary.main }}></i-label>
+                        <i-label id="lblTitle" caption="$widgets" font={{ size: '1.125rem', color: Theme.colors.primary.main }}></i-label>
                     </i-stack>
                     <i-icon
                         width="1rem"
@@ -431,8 +433,8 @@ export class ScomPostComposerWidget extends Module {
                     ]}
                 >
                     <i-vstack id="pnlWidgetWrapper" gap="0.25rem" horizontalAlignment="center">
-                        <i-label caption="Widget Preview" font={{ color: Theme.colors.primary.main, size: '1rem', bold: true }} />
-                        <i-label caption="This preview will update real-time as the config on the right changes" font={{ size: '0.75rem' }} opacity={0.75} />
+                        <i-label id="lbWTitle" caption="$widget_preview" font={{ color: Theme.colors.primary.main, size: '1rem', bold: true }} />
+                        <i-label id="lbWDesc" caption="$this_preview_will_update_real_time_as_the_config_on_the_right_changes" font={{ size: '0.75rem' }} opacity={0.75} />
                         <i-label id="lbNotePreview" visible={false} font={{ color: Theme.colors.error.main, size: '0.75rem' }} />
                         <i-panel id="widgetWrapper" />
                     </i-vstack>

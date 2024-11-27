@@ -132,87 +132,87 @@ export const widgets: IWidget[] = [
   {
     name: chartWidgets,
     icon: { name: 'chart-line' },
-    title: 'Chart',
-    description: 'Insert a chart widget',
+    title: '$chart',
+    description: '$insert_a_chart_widget',
     disabled: true
   },
   {
     name: '@scom/scom-swap',
     icon: { name: 'exchange-alt' },
-    title: 'Swap',
-    description: 'Insert a swap widget',
+    title: '$swap',
+    description: '$insert_a_swap_widget',
     isDevOnly: true
   },
   {
     name: '@scom/scom-staking',
     icon: { name: 'hand-holding-usd' },
-    title: 'Staking',
-    description: 'Insert a staking widget',
+    title: '$staking',
+    description: '$insert_a_staking_widget',
     disabled: true
   },
   {
     name: '@scom/scom-xchain-widget',
     icon: { name: 'exchange-alt' },
-    title: 'Xchain',
-    description: 'Insert an xchain widget',
+    title: '$xchain',
+    description: '$insert_an_xchain_widget',
     disabled: true
   },
   {
     name: '@scom/scom-voting',
     icon: { name: 'vote-yea' },
-    title: 'Voting',
-    description: 'Insert a voting widget',
+    title: '$voting',
+    description: '$insert_a_voting_widget',
     disabled: true
   },
   {
     name: '@scom/scom-nft-minter',
     icon: { name: 'gavel' },
-    title: 'Create Membership NFT',
-    description: 'Create a new NFT index to Mint a membership NFT for gated communities',
-    note: 'Will only work after a successful transaction',
+    title: '$create_membership_nft',
+    description: '$create_a_new_nft_index_to_mint_a_membership_nft_for_gated_communities',
+    note: '$will_only_work_after_a_successful_transaction',
     configuratorCustomData: 'new1155',
     isDevOnly: true
   },
   {
     name: '@scom/scom-nft-minter',
     icon: { name: 'gavel' },
-    title: 'Existing Membership NFT',
-    description: 'Mint a membership NFT for gated communities',
+    title: '$existing_membership_nft',
+    description: '$mint_a_membership_nft_for_gated_communities',
     configuratorCustomData: 'customNft',
     isDevOnly: true
   },
   {
     name: '@scom/oswap-nft-widget',
     icon: { name: 'campground' },
-    title: 'Oswap Troll NFT',
-    description: 'Mint a membership NFT for OpenSwap community',
+    title: '$oswap_troll_nft',
+    description: '$mint_a_membership_nft_for_openswap_community',
     disabled: true
   },
   {
     name: '@scom/scom-video',
     icon: { name: 'video' },
-    title: 'YouTube Video',
-    description: 'embeded YouTube video',
+    title: '$youtube_video',
+    description: '$embeded_youtube_video',
     configuratorCustomData: "defaultLinkYoutube"
   },
   {
     name: '@scom/scom-video',
     icon: { name: 'video' },
-    title: 'Video file',
-    description: '.mp4 or .mov file',
+    title: '$video_file',
+    description: '$mp4_or_mov_file',
     configuratorCustomData: "defaultLinkMp4"
   },
   {
     name: '@scom/scom-image',
     icon: { name: 'image' },
-    title: 'Image',
-    description: 'Insert an image',
+    title: '$image',
+    description: '$insert_an_image',
     isDevOnly: true
   },
   {
     name: '@scom/scom-twitter-post',
     icon: { image: { url: assets.fullPath('img/twitter.svg'), width: '100%', height: '100%', display: 'inline-block' }},
     title: 'X',
-    description: 'Insert an X post'
+    description: '$insert_an_x_post'
   }
 ]

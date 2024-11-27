@@ -142,92 +142,203 @@ define("@scom/scom-post-composer/global/index.ts", ["require", "exports", "@ijst
         {
             name: exports.chartWidgets,
             icon: { name: 'chart-line' },
-            title: 'Chart',
-            description: 'Insert a chart widget',
+            title: '$chart',
+            description: '$insert_a_chart_widget',
             disabled: true
         },
         {
             name: '@scom/scom-swap',
             icon: { name: 'exchange-alt' },
-            title: 'Swap',
-            description: 'Insert a swap widget',
+            title: '$swap',
+            description: '$insert_a_swap_widget',
             isDevOnly: true
         },
         {
             name: '@scom/scom-staking',
             icon: { name: 'hand-holding-usd' },
-            title: 'Staking',
-            description: 'Insert a staking widget',
+            title: '$staking',
+            description: '$insert_a_staking_widget',
             disabled: true
         },
         {
             name: '@scom/scom-xchain-widget',
             icon: { name: 'exchange-alt' },
-            title: 'Xchain',
-            description: 'Insert an xchain widget',
+            title: '$xchain',
+            description: '$insert_an_xchain_widget',
             disabled: true
         },
         {
             name: '@scom/scom-voting',
             icon: { name: 'vote-yea' },
-            title: 'Voting',
-            description: 'Insert a voting widget',
+            title: '$voting',
+            description: '$insert_a_voting_widget',
             disabled: true
         },
         {
             name: '@scom/scom-nft-minter',
             icon: { name: 'gavel' },
-            title: 'Create Membership NFT',
-            description: 'Create a new NFT index to Mint a membership NFT for gated communities',
-            note: 'Will only work after a successful transaction',
+            title: '$create_membership_nft',
+            description: '$create_a_new_nft_index_to_mint_a_membership_nft_for_gated_communities',
+            note: '$will_only_work_after_a_successful_transaction',
             configuratorCustomData: 'new1155',
             isDevOnly: true
         },
         {
             name: '@scom/scom-nft-minter',
             icon: { name: 'gavel' },
-            title: 'Existing Membership NFT',
-            description: 'Mint a membership NFT for gated communities',
+            title: '$existing_membership_nft',
+            description: '$mint_a_membership_nft_for_gated_communities',
             configuratorCustomData: 'customNft',
             isDevOnly: true
         },
         {
             name: '@scom/oswap-nft-widget',
             icon: { name: 'campground' },
-            title: 'Oswap Troll NFT',
-            description: 'Mint a membership NFT for OpenSwap community',
+            title: '$oswap_troll_nft',
+            description: '$mint_a_membership_nft_for_openswap_community',
             disabled: true
         },
         {
             name: '@scom/scom-video',
             icon: { name: 'video' },
-            title: 'YouTube Video',
-            description: 'embeded YouTube video',
+            title: '$youtube_video',
+            description: '$embeded_youtube_video',
             configuratorCustomData: "defaultLinkYoutube"
         },
         {
             name: '@scom/scom-video',
             icon: { name: 'video' },
-            title: 'Video file',
-            description: '.mp4 or .mov file',
+            title: '$video_file',
+            description: '$mp4_or_mov_file',
             configuratorCustomData: "defaultLinkMp4"
         },
         {
             name: '@scom/scom-image',
             icon: { name: 'image' },
-            title: 'Image',
-            description: 'Insert an image',
+            title: '$image',
+            description: '$insert_an_image',
             isDevOnly: true
         },
         {
             name: '@scom/scom-twitter-post',
             icon: { image: { url: assets_1.default.fullPath('img/twitter.svg'), width: '100%', height: '100%', display: 'inline-block' } },
             title: 'X',
-            description: 'Insert an X post'
+            description: '$insert_an_x_post'
         }
     ];
 });
-define("@scom/scom-post-composer/components/form.tsx", ["require", "exports", "@ijstech/components"], function (require, exports, components_3) {
+define("@scom/scom-post-composer/translations.json.ts", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    ///<amd-module name='@scom/scom-post-composer/translations.json.ts'/> 
+    exports.default = {
+        en: {
+            "replying_to": "Replying to",
+            "post": "Post",
+            "cancel": "Cancel",
+            "auto_play_gifs": "Auto-play GIFs",
+            "confirm": "Confirm",
+            "type": "Type",
+            "widgets": "Widgets",
+            "widget_preview": "Widget Preview",
+            "this_preview_will_update_real_time_as_the_config_on_the_right_changes": "This preview will update real-time as the config on the right changes",
+            "anyone_on_or_off_nostr": "Anyone on or off Nostr",
+            "members_of_the_community": "Members of the community",
+            "members": "Members",
+            "public": "Public",
+            "your_quota_insufficient_for_ipfs_media_upload": "Your quota insufficient for IPFS media upload!",
+            "something_went_wrong_when_uploading_your_media_to_ipfs": "Something went wrong when uploading your media to IPFS!",
+            "excessed_max_post_size": "Excessed max post size!",
+            "failed_to": "Failed to {{action}}",
+            "in_order_to_please_confirm_the_upload_of_your_media_to_ipfs": "In order to {{action}}, please confirm the upload of your media to IPFS?",
+            "are_you_sure": "Are you sure?",
+            "do_you_really_want_to_delete_this_widget": "Do you really want to delete this widget?",
+            "enter_url": "Enter URL",
+            "media": "Media",
+            "emoji": "Emoji",
+            "Search_for_GIFs": "Search for GIFs",
+            "chart": "Chart",
+            "swap": "Swap",
+            "staking": "Staking",
+            "xchain": "Xchain",
+            "voting": "Voting",
+            "create_membership_nft": "Create Membership NFT",
+            "existing_membership_nft": "Existing Membership NFT",
+            "oswap_troll_nft": "Oswap Troll NFT",
+            "will_only_work_after_a_successful_transaction": "Will only work after a successful transaction",
+            "youtube_video": "YouTube Video",
+            "mp4_or_mov_file": ".mp4 or .mov file",
+            "insert_a_chart_widget": "Insert a chart widget",
+            "insert_a_swap_widget": "Insert a swap widget",
+            "insert_a_staking_widget": "Insert a staking widget",
+            "insert_an_xchain_widget": "Insert an xchain widget",
+            "insert_a_voting_widget": "Insert a voting widget",
+            "create_a_new_nft_index_to_mint_a_membership_nft_for_gated_communities": "Create a new NFT index to Mint a membership NFT for gated communities",
+            "mint_a_membership_nft_for_gated_communities": "Mint a membership NFT for gated communities",
+            "mint_a_membership_nft_for_openswap_community": "Mint a membership NFT for OpenSwap community",
+            "embeded_youtube_video": "Embeded YouTube video",
+            "insert_an_x_post": "Insert an X post",
+            "insert_an_image": "Insert an image",
+            "video_file": "Video file",
+            "image": "Image",
+            "reply": "Reply"
+        },
+        "zh-hant": {},
+        "vi": {
+            "replying_to": "Phản hồi đến",
+            "post": "Bài đăng",
+            "cancel": "Hủy",
+            "auto_play_gifs": "Tự động chạy GIF",
+            "confirm": "Xác nhận",
+            "type": "Loại",
+            "media": "Phương tiện",
+            "emoji": "Biểu tượng",
+            "Search_for_GIFs": "Tìm kiếm GIF",
+            "config": "Cấu hình",
+            "widgets": "Tiện ích",
+            "widget_preview": "Xem trước tiện ích",
+            "this_preview_will_update_real_time_as_the_config_on_the_right_changes": "Xem trước sẽ cập nhật đồng bộ theo cấu hình bên phải",
+            "anyone_on_or_off_nostr": "Tất cả đều tắt hoặc mở Nostr",
+            "members_of_the_community": "Thành viên cộng đồng",
+            "members": "Thành viên",
+            "public": "Công khai",
+            "your_quota_insufficient_for_ipfs_media_upload": "Dung lượng của bạn không đủ để tải phương tiện lên IPFS!",
+            "something_went_wrong_when_uploading_your_media_to_ipfs": "Có lỗi khi tải phương tiện lên IPFS!",
+            "excessed_max_post_size": "Vượt quá kích thước tối đa của bài đăng!",
+            "failed_to": "Thất bại khi {{action}}",
+            "in_order_to_please_confirm_the_upload_of_your_media_to_ipfs": "Để {{action}}, xin hãy xác nhận để tải phương tiện lên IPFS?",
+            "are_you_sure": "Bạn có chắc chắn không?",
+            "do_you_really_want_to_delete_this_widget": "Bạn có chắc chắn muốn xóa tiện ích này không?",
+            "enter_url": "Nhập URL",
+            "chart": "Biểu đồ",
+            "swap": "Hoán đổi",
+            "staking": "Staking",
+            "xchain": "Xchain",
+            "voting": "Bình chọn",
+            "create_membership_nft": "Tạo NFT Thành Viên",
+            "existing_membership_nft": "NFT Thành Viên Hiện Có",
+            "oswap_troll_nft": "NFT Troll OSwap",
+            "will_only_work_after_a_successful_transaction": "Sẽ hoạt động sau khi thực hiện giao dịch thành công",
+            "youtube_video": "Youtube video",
+            "mp4_or_mov_file": "Tệp .mp4 hoặc .mov",
+            "insert_a_chart_widget": "Chèn tiện ích biểu đồ",
+            "insert_a_swap_widget": "Chèn tiện ích hoán đổi",
+            "insert_a_staking_widget": "Chèn tiện ích staking",
+            "insert_an_xchain_widget": "Chèn tiện ích xchain",
+            "insert_a_voting_widget": "Chèn tiện ích bình chọn",
+            "create_a_new_nft_index_to_mint_a_membership_nft_for_gated_communities": "Tạo chỉ mục NFT mới để đúc NFT thành viên cho các cộng đồng có kiểm soát",
+            "mint_a_membership_nft_for_gated_communities": "Đúc NFT thành viên cho các cộng đồng có kiểm soát",
+            "mint_a_membership_nft_for_openswap_community": "Đúc NFT Thành Viên cho cộng đồng OpenSwap",
+            "embeded_youtube_video": "Nhúng Youtube video",
+            "insert_an_x_post": "Chèn bài đăng X",
+            "insert_an_image": "Chèn hình ảnh",
+            "video_file": "Tệp video",
+            "image": "Hình ảnh",
+            "reply": "Phản hồi"
+        }
+    };
+});
+define("@scom/scom-post-composer/components/form.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-post-composer/translations.json.ts"], function (require, exports, components_3, translations_json_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomPostComposerUpload = void 0;
@@ -261,6 +372,7 @@ define("@scom/scom-post-composer/components/form.tsx", ["require", "exports", "@
             this.btnSubmit.enabled = !!target.value;
         }
         init() {
+            this.i18n.init({ ...translations_json_1.default });
             super.init();
             const onConfirm = this.getAttribute('onConfirm', true);
             const url = this.getAttribute('url', true);
@@ -269,10 +381,10 @@ define("@scom/scom-post-composer/components/form.tsx", ["require", "exports", "@
         }
         render() {
             return (this.$render("i-vstack", { gap: "1rem", padding: { top: '1rem', bottom: '1rem', left: '1rem', right: '1rem' } },
-                this.$render("i-input", { id: "inputUrl", placeholder: 'Enter URL', width: '100%', height: '2rem', border: { radius: '0.5rem' }, padding: { left: '0.5rem', right: '0.5rem' }, onChanged: this.onInputChanged }),
+                this.$render("i-input", { id: "inputUrl", placeholder: '$enter_url', width: '100%', height: '2rem', border: { radius: '0.5rem' }, padding: { left: '0.5rem', right: '0.5rem' }, onChanged: this.onInputChanged }),
                 this.$render("i-hstack", { horizontalAlignment: 'end' },
                     this.$render("i-panel", null,
-                        this.$render("i-button", { id: "btnSubmit", height: 36, padding: { left: '1rem', right: '1rem' }, background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText, bold: true }, border: { radius: '0.5rem' }, enabled: false, caption: "Confirm", onClick: this.onFormSubmit })))));
+                        this.$render("i-button", { id: "btnSubmit", height: 36, padding: { left: '1rem', right: '1rem' }, background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText, bold: true }, border: { radius: '0.5rem' }, enabled: false, caption: "$confirm", onClick: this.onFormSubmit })))));
         }
     };
     ScomPostComposerUpload = __decorate([
@@ -325,7 +437,7 @@ define("@scom/scom-post-composer/index.css.ts", ["require", "exports", "@ijstech
         }
     });
 });
-define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-post-composer/global/index.ts", "@scom/scom-post-composer/index.css.ts"], function (require, exports, components_5, global_1, index_css_1) {
+define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-post-composer/global/index.ts", "@scom/scom-post-composer/index.css.ts", "@scom/scom-post-composer/translations.json.ts"], function (require, exports, components_5, global_1, index_css_1, translations_json_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomPostComposerWidget = void 0;
@@ -350,6 +462,7 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
             }
         }
         init() {
+            this.i18n.init({ ...translations_json_2.default });
             super.init();
             this.onTypeChanged = this.onTypeChanged.bind(this);
             this.onConfirm = this.getAttribute('onConfirm', true) || this.onConfirm;
@@ -386,7 +499,7 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
             }
         }
         back() {
-            this.lblTitle.caption = 'Widgets';
+            this.lblTitle.caption = this.i18n.get('$widgets');
             this.iconBack.visible = false;
             this.pnlWidgets.visible = true;
             this.pnlConfig.visible = false;
@@ -398,7 +511,7 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
         renderConfig(url) {
             let widgetData = (0, global_1.extractWidgetUrl)(url);
             const { moduleName, data } = widgetData;
-            this.selectWidget({ title: 'Config', name: moduleName }, { data, url });
+            this.selectWidget({ title: this.i18n.get('$config'), name: moduleName }, { data, url });
             this.iconBack.visible = false;
         }
         async renderForm(module, note, widgetType, widgetData) {
@@ -411,7 +524,7 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
                 this.pnlConfig.templateColumns = ['100%'];
                 const items = module.map(type => ({ value: type, label: type.split('-')[1] }));
                 this.pnlCustomForm.appendChild(this.$render("i-stack", { direction: "vertical", width: "100%", gap: "0.625rem" },
-                    this.$render("i-label", { caption: "Type" }),
+                    this.$render("i-label", { caption: "$type" }),
                     this.$render("i-combo-box", { id: "cbType", items: items, width: '100%', height: '2.625rem', onChanged: this.onTypeChanged })));
                 this.pnlCustomForm.visible = true;
             }
@@ -473,7 +586,7 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
                             columnWidth: '100%',
                             columnsPerRow: 1,
                             confirmButtonOptions: {
-                                caption: 'Confirm',
+                                caption: '$confirm',
                                 backgroundColor: Theme.colors.primary.main,
                                 fontColor: Theme.colors.primary.contrastText,
                                 padding: { top: '0.5rem', bottom: '0.5rem', right: '1rem', left: '1rem' },
@@ -637,7 +750,7 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
                 this.$render("i-stack", { direction: "horizontal", alignItems: "center", justifyContent: "space-between", padding: { left: '0.5rem', right: '0.5rem' }, gap: "0.5rem" },
                     this.$render("i-stack", { direction: "horizontal", alignItems: "center", gap: "0.5rem" },
                         this.$render("i-icon", { id: "iconBack", width: "1rem", height: "1rem", name: "arrow-left", fill: Theme.colors.primary.main, onClick: this.back, cursor: "pointer", visible: false }),
-                        this.$render("i-label", { id: "lblTitle", caption: "Widgets", font: { size: '1.125rem', color: Theme.colors.primary.main } })),
+                        this.$render("i-label", { id: "lblTitle", caption: "$widgets", font: { size: '1.125rem', color: Theme.colors.primary.main } })),
                     this.$render("i-icon", { width: "1rem", height: "1rem", name: "times", fill: Theme.colors.primary.main, onClick: this.handleCloseButtonClick, cursor: "pointer" })),
                 this.$render("i-stack", { id: "pnlWidgets", direction: "vertical", gap: "0.5rem" }),
                 this.$render("i-grid-layout", { id: "pnlConfig", visible: false, gap: { column: '0.5rem' }, templateColumns: ['50%', '50%'], mediaQueries: [
@@ -649,8 +762,8 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
                         }
                     ] },
                     this.$render("i-vstack", { id: "pnlWidgetWrapper", gap: "0.25rem", horizontalAlignment: "center" },
-                        this.$render("i-label", { caption: "Widget Preview", font: { color: Theme.colors.primary.main, size: '1rem', bold: true } }),
-                        this.$render("i-label", { caption: "This preview will update real-time as the config on the right changes", font: { size: '0.75rem' }, opacity: 0.75 }),
+                        this.$render("i-label", { id: "lbWTitle", caption: "$widget_preview", font: { color: Theme.colors.primary.main, size: '1rem', bold: true } }),
+                        this.$render("i-label", { id: "lbWDesc", caption: "$this_preview_will_update_real_time_as_the_config_on_the_right_changes", font: { size: '0.75rem' }, opacity: 0.75 }),
                         this.$render("i-label", { id: "lbNotePreview", visible: false, font: { color: Theme.colors.error.main, size: '0.75rem' } }),
                         this.$render("i-panel", { id: "widgetWrapper" })),
                     this.$render("i-panel", null,
@@ -673,7 +786,7 @@ define("@scom/scom-post-composer/components/index.ts", ["require", "exports", "@
     Object.defineProperty(exports, "ScomPostComposerUpload", { enumerable: true, get: function () { return form_1.ScomPostComposerUpload; } });
     Object.defineProperty(exports, "ScomPostComposerWidget", { enumerable: true, get: function () { return widgets_1.ScomPostComposerWidget; } });
 });
-define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components", "@scom/scom-post-composer/global/index.ts", "@scom/scom-post-composer/assets.ts", "@scom/scom-post-composer/components/index.ts", "@scom/scom-post-composer/index.css.ts", "@scom/scom-storage"], function (require, exports, components_6, index_1, assets_2, index_2, index_css_2, scom_storage_1) {
+define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components", "@scom/scom-post-composer/global/index.ts", "@scom/scom-post-composer/assets.ts", "@scom/scom-post-composer/components/index.ts", "@scom/scom-post-composer/index.css.ts", "@scom/scom-storage", "@scom/scom-post-composer/translations.json.ts"], function (require, exports, components_6, index_1, assets_2, index_2, index_css_2, scom_storage_1, translations_json_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomPostComposer = void 0;
@@ -682,15 +795,15 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
     const regexImage = /!\[.*?\]\(data:image\/[^;]+;base64,([^)]+)\)/g;
     const PostAudience = [
         {
-            title: 'Public',
+            title: '$public',
             icon: 'globe-americas',
-            desc: 'Anyone on or off Nostr',
+            desc: '$anyone_on_or_off_nostr',
             value: 'public'
         },
         {
-            title: 'Members',
+            title: '$members',
             icon: 'user-friends',
-            desc: 'Members of the community',
+            desc: '$members_of_the_community',
             value: 'members'
         }
     ];
@@ -776,12 +889,16 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         }
         set placeholder(value) {
             this._data.placeholder = value ?? '';
+            if (this.mdEditor)
+                this.mdEditor.placeholder = this.placeholder;
         }
         get buttonCaption() {
             return this._data.buttonCaption ?? '';
         }
         set buttonCaption(value) {
             this._data.buttonCaption = value ?? '';
+            if (this.btnReply)
+                this.btnReply.caption = this.buttonCaption;
         }
         get isReplyToShown() {
             return this._data.isReplyToShown ?? false;
@@ -923,7 +1040,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 return [];
             }
             if (!this.hasQuota) {
-                this.errorMessage = 'Your quota insufficient for IPFS media upload!';
+                this.errorMessage = '$your_quota_insufficient_for_ipfs_media_upload';
                 return [];
             }
             if (!this.storageEl) {
@@ -954,7 +1071,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             }
             const data = await this.storageEl.uploadFiles(files);
             if (!data.length || data.length < files.length) {
-                this.errorMessage = 'Something went wrong when uploading your media to IPFS!';
+                this.errorMessage = '$something_went_wrong_when_uploading_your_media_to_ipfs';
                 return [];
             }
             imageList = imageList.map(img => {
@@ -1026,13 +1143,13 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 else if (extractedText.length > MAX_SIZE) {
                     const base64List = extractedText.match(regexImage) || [];
                     if (base64List.length) {
-                        this.showAlert('confirm', `Excessed max post size!`, `In order to ${action}, please confirm the upload of your media to IPFS?`, () => {
+                        this.showAlert('confirm', this.i18n.get('$excessed_max_post_size'), this.i18n.get("$in_order_to_please_confirm_the_upload_of_your_media_to_ipfs", { action }), () => {
                             this.needToUploadMedia = true;
                             this.onReply();
                         });
                     }
                     else {
-                        this.showAlert('error', `Failed to ${action}`, 'Excessed max post size!', () => { });
+                        this.showAlert('error', this.i18n.get('$failed_to', { action }), this.i18n.get('$excessed_max_post_size'), () => { });
                     }
                     this.updateSubmittingStatus(false);
                     return;
@@ -1209,9 +1326,9 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         renderActions() {
             const actions = [
                 {
-                    caption: 'Copy note link',
+                    caption: '$copy_note_link',
                     icon: { name: 'copy' },
-                    tooltip: 'The link has been copied successfully',
+                    tooltip: '$the_link_has_been_copied_successfully',
                     onClick: (e) => {
                         if (typeof this.currentPostData !== 'undefined') {
                             components_6.application.copyToClipboard(`${window.location.origin}/#!/e/${this.currentPostData.id}`);
@@ -1220,18 +1337,18 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                     }
                 },
                 {
-                    caption: 'Copy note text',
+                    caption: '$copy_note_text',
                     icon: { name: 'copy' },
-                    tooltip: 'The text has been copied successfully',
+                    tooltip: '$the_text_has_been_copied_successfully',
                     onClick: (e) => {
                         components_6.application.copyToClipboard(this.currentPostData['eventData']?.content);
                         this.mdPostActions.visible = false;
                     }
                 },
                 {
-                    caption: 'Copy note ID',
+                    caption: '$copy_note_id',
                     icon: { name: 'copy' },
-                    tooltip: 'The ID has been copied successfully',
+                    tooltip: '$the_id_has_been_copied_successfully',
                     onClick: (e) => {
                         if (typeof this.currentPostData !== 'undefined') {
                             components_6.application.copyToClipboard(this.currentPostData.id);
@@ -1240,9 +1357,9 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                     }
                 },
                 {
-                    caption: 'Copy raw data',
+                    caption: '$copy_raw_data',
                     icon: { name: 'copy' },
-                    tooltip: 'The raw data has been copied successfully',
+                    tooltip: '$the_raw_data_has_been_copied_successfully',
                     onClick: (e) => {
                         if (typeof this.currentPostData !== 'undefined') {
                             components_6.application.copyToClipboard(JSON.stringify(this.currentPostData['eventData']));
@@ -1255,9 +1372,9 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 //     icon: { name: "broadcast-tower" }
                 // },
                 {
-                    caption: 'Copy user public key',
+                    caption: '$copy_user_public_key',
                     icon: { name: 'copy' },
-                    tooltip: 'The public key has been copied successfully',
+                    tooltip: '$the_public_key_has_been_copied_successfully',
                     onClick: (e) => {
                         if (typeof this.currentPostData !== 'undefined') {
                             components_6.application.copyToClipboard(this.currentPostData.author.npub || '');
@@ -1292,7 +1409,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                         properties: { visible: true }
                     }
                 ] },
-                this.$render("i-button", { caption: 'Cancel', width: "100%", minHeight: 44, padding: { left: 16, right: 16 }, font: { color: Theme.text.primary, weight: 600 }, border: { radius: '30px', width: '1px', style: 'solid', color: Theme.colors.secondary.light }, grid: { horizontalAlignment: 'center' }, background: { color: 'transparent' }, boxShadow: "none", onClick: () => this.onCloseModal('mdPostActions') })));
+                this.$render("i-button", { caption: '$cancel', width: "100%", minHeight: 44, padding: { left: 16, right: 16 }, font: { color: Theme.text.primary, weight: 600 }, border: { radius: '30px', width: '1px', style: 'solid', color: Theme.colors.secondary.light }, grid: { horizontalAlignment: 'center' }, background: { color: 'transparent' }, boxShadow: "none", onClick: () => this.onCloseModal('mdPostActions') })));
         }
         async handleSelectedEmoji(value) {
             this.value = this.updatedValue + value;
@@ -1422,8 +1539,8 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             }
             else {
                 alert.status = 'confirm';
-                alert.title = 'Are you sure?';
-                alert.content = 'Do you really want to delete this widget?';
+                alert.title = '$are_you_sure';
+                alert.content = '$do_you_really_want_to_delete_this_widget';
                 alert.onConfirm = () => {
                     const value = editor.getMarkdownValue();
                     editor.value = value.replace(`$$widget0 ${widget}$$`, '');
@@ -1486,6 +1603,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.onShowModal('mdPostAudience');
         }
         init() {
+            this.i18n.init({ ...translations_json_3.default });
             super.init();
             this.onChanged = this.getAttribute('onChanged', true) || this.onChanged;
             this.onSubmit = this.getAttribute('onSubmit', true) || this.onSubmit;
@@ -1574,10 +1692,10 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                             }
                         }
                     ] },
-                    this.$render("i-button", { caption: "Cancel", onClick: this.handleMobileCloseComposer.bind(this), padding: { left: 5, right: 5, top: 5, bottom: 5 }, font: { size: Theme.typography.fontSize }, background: { color: 'transparent' } }),
-                    this.$render("i-button", { id: "btnReply", caption: "Post", enabled: false, onClick: this.onReply.bind(this), padding: { left: '1rem', right: '1rem' }, height: 36, background: { color: Theme.colors.primary.main }, font: { size: Theme.typography.fontSize, color: Theme.colors.primary.contrastText, bold: true }, border: { radius: '30px' } })),
+                    this.$render("i-button", { caption: "$cancel", onClick: this.handleMobileCloseComposer.bind(this), padding: { left: 5, right: 5, top: 5, bottom: 5 }, font: { size: Theme.typography.fontSize }, background: { color: 'transparent' } }),
+                    this.$render("i-button", { id: "btnReply", caption: "$post", enabled: false, onClick: this.onReply.bind(this), padding: { left: '1rem', right: '1rem' }, height: 36, background: { color: Theme.colors.primary.main }, font: { size: Theme.typography.fontSize, color: Theme.colors.primary.contrastText, bold: true }, border: { radius: '30px' } })),
                 this.$render("i-hstack", { id: "pnlReplyTo", visible: false, gap: "0.5rem", verticalAlignment: "center", padding: { top: '0.25rem', bottom: '0.75rem', left: '3.25rem' } },
-                    this.$render("i-label", { caption: "Replying to", font: { size: '1rem', color: Theme.text.secondary } }),
+                    this.$render("i-label", { caption: "$replying_to", font: { size: '1rem', color: Theme.text.secondary } }),
                     this.$render("i-label", { id: "lbReplyTo", link: { href: '' }, font: { size: '1rem', color: Theme.colors.primary.main } })),
                 this.$render("i-panel", { id: 'pnlFocusedPost', padding: { top: 50 } }),
                 this.$render("i-grid-layout", { id: "gridReply", gap: { column: '0.75rem' }, height: "", templateColumns: ['2.75rem', 'minmax(auto, calc(100% - 3.5rem))'], templateRows: ['auto'], templateAreas: [
@@ -1589,13 +1707,13 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                         this.$render("i-markdown-editor", { id: "mdEditor", width: "100%", viewer: false, hideModeSwitch: true, mode: "wysiwyg", toolbarItems: [], font: { size: '1.25rem', color: Theme.text.primary }, lineHeight: 1.5, padding: { top: 12, bottom: 12, left: 0, right: 0 }, background: { color: 'transparent' }, height: "auto", minHeight: 0, overflow: 'hidden', overflowWrap: "break-word", onChanged: this.onEditorChanged.bind(this), cursor: 'text', border: { style: 'none' }, visible: true })),
                     this.$render("i-hstack", { id: "pnlBorder", horizontalAlignment: "space-between", grid: { area: 'reply' }, padding: { top: '0.625rem', right: '0.5rem' } },
                         this.$render("i-hstack", { id: "pnlIcons", gap: "4px", verticalAlignment: "center", visible: false },
-                            this.$render("i-icon", { id: "iconMediaMobile", name: "image", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Media', placement: 'bottom' }, cursor: "pointer", onClick: this.showStorage }),
+                            this.$render("i-icon", { id: "iconMediaMobile", name: "image", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: '$media', placement: 'bottom' }, cursor: "pointer", onClick: this.showStorage }),
                             this.$render("i-icon", { id: "iconGif", name: "images", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'GIF', placement: 'bottom' }, cursor: "pointer", onClick: this.onShowGifModal }),
                             this.$render("i-panel", null,
-                                this.$render("i-icon", { id: "iconEmoji", name: "smile", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Emoji', placement: 'bottom' }, cursor: "pointer", onClick: () => this.onShowModal('mdEmoji') }),
+                                this.$render("i-icon", { id: "iconEmoji", name: "smile", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: '$emoji', placement: 'bottom' }, cursor: "pointer", onClick: () => this.onShowModal('mdEmoji') }),
                                 this.$render("i-modal", { id: "mdEmoji", maxWidth: '100%', minWidth: 320, popupPlacement: 'bottomLeft', showBackdrop: false, border: { radius: '1rem' }, boxShadow: 'rgba(101, 119, 134, 0.2) 0px 0px 15px, rgba(101, 119, 134, 0.15) 0px 0px 3px 1px', padding: { top: 0, left: 0, right: 0, bottom: 0 }, closeOnScrollChildFixed: true, onOpen: this.onEmojiMdOpen.bind(this), visible: false },
                                     this.$render("i-scom-emoji-picker", { id: "emojiPicker", onEmojiSelected: this.handleSelectedEmoji }))),
-                            this.$render("i-icon", { id: "iconWidget", width: 28, height: 28, name: "shapes", fill: Theme.colors.primary.main, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Widgets', placement: 'bottom' }, cursor: "pointer", onClick: () => this.onShowWidgets() })),
+                            this.$render("i-icon", { id: "iconWidget", width: 28, height: 28, name: "shapes", fill: Theme.colors.primary.main, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: '$widgets', placement: 'bottom' }, cursor: "pointer", onClick: () => this.onShowWidgets() })),
                         this.$render("i-panel", null,
                             this.$render("i-button", { id: "btnPostAudience", height: 32, padding: { left: '1rem', right: '1rem' }, background: { color: Theme.colors.secondary.main }, font: { color: Theme.colors.secondary.contrastText, bold: true }, border: { radius: '0.375rem' }, caption: this.audience.title, icon: { width: 14, height: 14, name: this.audience.icon, fill: Theme.colors.secondary.contrastText }, rightIcon: { width: 14, height: 14, name: 'angle-down', fill: Theme.colors.secondary.contrastText }, visible: this.isPostAudienceShown, onClick: this.showPostAudienceModal.bind(this) }),
                             this.$render("i-modal", { id: "mdPostAudience", maxWidth: '15rem', minWidth: '12.25rem', maxHeight: '27.5rem', popupPlacement: 'bottomRight', showBackdrop: false, border: { radius: '0.5rem' }, boxShadow: "rgba(255, 255, 255, 0.2) 0px 0px 15px, rgba(255, 255, 255, 0.15) 0px 0px 3px 1px", padding: { top: 0, bottom: 0, left: 0, right: 0 }, overflow: { y: 'hidden' }, visible: false }, pnlPostAudiences)))),
@@ -1637,7 +1755,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                                 this.$render("i-icon", { name: "arrow-left", width: 20, height: 20, fill: Theme.colors.secondary.main })),
                             this.$render("i-hstack", { verticalAlignment: "center", padding: { left: '0.75rem', right: '0.75rem' }, border: { radius: '9999px', width: '1px', style: 'solid', color: Theme.divider }, minHeight: 40, width: '100%', background: { color: Theme.input.background }, gap: "4px" },
                                 this.$render("i-icon", { width: 16, height: 16, name: 'search', fill: Theme.text.secondary }),
-                                this.$render("i-input", { id: "inputGif", placeholder: 'Search for GIFs', width: '100%', height: '100%', captionWidth: '0px', border: { style: 'none' }, showClearButton: true, onClearClick: () => this.onToggleMainGif(true), onKeyUp: (target) => this.onGifSearch(target.value) })),
+                                this.$render("i-input", { id: "inputGif", placeholder: '$Search_for_GIFs', width: '100%', height: '100%', captionWidth: '0px', border: { style: 'none' }, showClearButton: true, onClearClick: () => this.onToggleMainGif(true), onKeyUp: (target) => this.onGifSearch(target.value) })),
                             this.$render("i-panel", { id: "pnlGifClose", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, cursor: 'pointer', onClick: this.onCloseGifModal.bind(this) },
                                 this.$render("i-icon", { name: "times", width: 20, height: 20, fill: Theme.colors.secondary.main }))),
                         this.$render("i-panel", { id: "gifCateLoading", height: 600 },
@@ -1647,7 +1765,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                         this.$render("i-card-layout", { id: "gridGifCate", cardMinWidth: '18rem', cardHeight: '9.375rem', visible: false }),
                         this.$render("i-vstack", { id: "pnlGif", visible: false },
                             this.$render("i-hstack", { horizontalAlignment: "space-between", gap: "0.5rem", padding: { left: '0.75rem', right: '0.75rem', top: '0.75rem', bottom: '0.75rem' } },
-                                this.$render("i-label", { caption: "Auto-play GIFs", font: { color: Theme.text.secondary, size: '0.9rem' } }),
+                                this.$render("i-label", { caption: "$auto_play_gifs", font: { color: Theme.text.secondary, size: '0.9rem' } }),
                                 this.$render("i-switch", { id: "autoPlaySwitch", checked: true, uncheckedTrackColor: Theme.divider, checkedTrackColor: Theme.colors.primary.main, onChanged: this.onGifPlayChanged.bind(this) })),
                             this.$render("i-panel", { id: "topElm", width: '100%' }),
                             this.$render("i-card-layout", { id: "gridGif", autoRowSize: "auto", autoColumnSize: "auto", cardHeight: 'auto', columnsPerRow: 4 }),
@@ -1661,7 +1779,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             const pnlPostAudiences = this.renderPostAudiences();
             this.pnlPostComposer.append(this.$render("i-panel", { padding: { bottom: '0.75rem', top: '0.75rem' }, cursor: 'default' },
                 this.$render("i-hstack", { id: "pnlReplyTo", visible: false, gap: "0.5rem", verticalAlignment: "center", padding: { top: '0.25rem', bottom: '0.75rem', left: '3.25rem' } },
-                    this.$render("i-label", { caption: "Replying to", font: { size: '1rem', color: Theme.text.secondary } }),
+                    this.$render("i-label", { caption: "$replying_to", font: { size: '1rem', color: Theme.text.secondary } }),
                     this.$render("i-label", { id: "lbReplyTo", link: { href: '' }, font: { size: '1rem', color: Theme.colors.primary.main } })),
                 this.$render("i-grid-layout", { id: "gridReply", gap: { column: '0.75rem' }, templateColumns: ['2.75rem', 'minmax(auto, calc(100% - 3.5rem))'], templateRows: ['auto'], templateAreas: [
                         ['avatar', 'editor'],
@@ -1672,13 +1790,13 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                         this.$render("i-markdown-editor", { id: "mdEditor", width: "100%", viewer: false, hideModeSwitch: true, mode: "wysiwyg", toolbarItems: [], font: { size: '1.25rem', color: Theme.text.primary }, lineHeight: 1.5, padding: { top: 12, bottom: 12, left: 0, right: 0 }, background: { color: 'transparent' }, height: "auto", minHeight: 0, overflow: 'hidden', overflowWrap: "break-word", onChanged: this.onEditorChanged.bind(this), cursor: 'text', border: { style: 'none' }, visible: true })),
                     this.$render("i-hstack", { id: "pnlBorder", horizontalAlignment: "space-between", grid: { area: 'reply' }, padding: { top: '0.625rem' } },
                         this.$render("i-hstack", { id: "pnlIcons", gap: "4px", verticalAlignment: "center", visible: false },
-                            this.$render("i-icon", { id: "iconMediaMobile", name: "image", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Media', placement: 'bottom' }, cursor: "pointer", onClick: this.showStorage }),
+                            this.$render("i-icon", { id: "iconMediaMobile", name: "image", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: '$media', placement: 'bottom' }, cursor: "pointer", onClick: this.showStorage }),
                             this.$render("i-icon", { id: "iconGif", name: "images", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'GIF', placement: 'bottom' }, cursor: "pointer", onClick: this.onShowGifModal }),
                             this.$render("i-panel", null,
-                                this.$render("i-icon", { id: "iconEmoji", name: "smile", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Emoji', placement: 'bottom' }, cursor: "pointer", onClick: () => this.onShowModal('mdEmoji') }),
+                                this.$render("i-icon", { id: "iconEmoji", name: "smile", width: 28, height: 28, fill: Theme.colors.primary.main, border: { radius: '50%' }, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: '$emoji', placement: 'bottom' }, cursor: "pointer", onClick: () => this.onShowModal('mdEmoji') }),
                                 this.$render("i-modal", { id: "mdEmoji", maxWidth: '100%', minWidth: 320, popupPlacement: 'bottomLeft', showBackdrop: false, border: { radius: '1rem' }, boxShadow: 'rgba(101, 119, 134, 0.2) 0px 0px 15px, rgba(101, 119, 134, 0.15) 0px 0px 3px 1px', padding: { top: 0, left: 0, right: 0, bottom: 0 }, closeOnScrollChildFixed: true, onOpen: this.onEmojiMdOpen.bind(this), visible: false },
                                     this.$render("i-scom-emoji-picker", { id: "emojiPicker", onEmojiSelected: this.handleSelectedEmoji }))),
-                            this.$render("i-icon", { id: "iconWidget", width: 28, height: 28, name: "shapes", fill: Theme.colors.primary.main, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: 'Widgets', placement: 'bottom' }, cursor: "pointer", onClick: () => this.onShowWidgets() })),
+                            this.$render("i-icon", { id: "iconWidget", width: 28, height: 28, name: "shapes", fill: Theme.colors.primary.main, padding: { top: 5, bottom: 5, left: 5, right: 5 }, tooltip: { content: '$widgets', placement: 'bottom' }, cursor: "pointer", onClick: () => this.onShowWidgets() })),
                         this.$render("i-stack", { direction: "horizontal", width: "100%", alignItems: "center", justifyContent: "end", gap: "0.5rem" },
                             this.$render("i-panel", null,
                                 this.$render("i-button", { id: "btnPostAudience", height: 32, padding: { left: '1rem', right: '1rem' }, background: { color: Theme.colors.secondary.main }, font: { color: Theme.colors.secondary.contrastText, bold: true }, border: { radius: '0.375rem' }, caption: this.audience.title, icon: { width: 14, height: 14, name: this.audience.icon, fill: Theme.colors.secondary.contrastText }, rightIcon: { width: 14, height: 14, name: 'angle-down', fill: Theme.colors.secondary.contrastText }, visible: this.isPostAudienceShown, onClick: this.showPostAudienceModal.bind(this) }),
@@ -1705,7 +1823,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                                 this.$render("i-icon", { name: "arrow-left", width: 20, height: 20, fill: Theme.colors.secondary.main })),
                             this.$render("i-hstack", { verticalAlignment: "center", padding: { left: '0.75rem', right: '0.75rem' }, border: { radius: '9999px', width: '1px', style: 'solid', color: Theme.divider }, minHeight: 40, width: '100%', background: { color: Theme.input.background }, gap: "4px" },
                                 this.$render("i-icon", { width: 16, height: 16, name: 'search', fill: Theme.text.secondary }),
-                                this.$render("i-input", { id: "inputGif", placeholder: 'Search for GIFs', width: '100%', height: '100%', captionWidth: '0px', border: { style: 'none' }, showClearButton: true, onClearClick: () => this.onToggleMainGif(true), onKeyUp: (target) => this.onGifSearch(target.value) })),
+                                this.$render("i-input", { id: "inputGif", placeholder: "$Search_for_GIFs", width: '100%', height: '100%', captionWidth: '0px', border: { style: 'none' }, showClearButton: true, onClearClick: () => this.onToggleMainGif(true), onKeyUp: (target) => this.onGifSearch(target.value) })),
                             this.$render("i-panel", { id: "pnlGifClose", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, cursor: 'pointer', onClick: this.onCloseGifModal.bind(this) },
                                 this.$render("i-icon", { name: "times", width: 20, height: 20, fill: Theme.colors.secondary.main }))),
                         this.$render("i-panel", { id: "gifCateLoading", height: 600 },
@@ -1715,7 +1833,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                         this.$render("i-card-layout", { id: "gridGifCate", cardMinWidth: '18rem', cardHeight: '9.375rem', visible: false }),
                         this.$render("i-vstack", { id: "pnlGif", visible: false },
                             this.$render("i-hstack", { horizontalAlignment: "space-between", gap: "0.5rem", padding: { left: '0.75rem', right: '0.75rem', top: '0.75rem', bottom: '0.75rem' } },
-                                this.$render("i-label", { caption: "Auto-play GIFs", font: { color: Theme.text.secondary, size: '0.9rem' } }),
+                                this.$render("i-label", { caption: "$auto_play_gifs", font: { color: Theme.text.secondary, size: '0.9rem' } }),
                                 this.$render("i-switch", { id: "autoPlaySwitch", checked: true, uncheckedTrackColor: Theme.divider, checkedTrackColor: Theme.colors.primary.main, onChanged: this.onGifPlayChanged.bind(this) })),
                             this.$render("i-panel", { id: "topElm", width: '100%' }),
                             this.$render("i-card-layout", { id: "gridGif", autoRowSize: "auto", autoColumnSize: "auto", cardHeight: 'auto', columnsPerRow: 4 }),
@@ -1726,7 +1844,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         }
         render() {
             return (this.$render("i-panel", { id: 'pnlPostComposer' },
-                this.$render("i-alert", { id: "mdAlert", status: "confirm", title: "Are you sure?", content: "Do you really want to delete this widget?", class: index_css_2.alertStyle })));
+                this.$render("i-alert", { id: "mdAlert", status: "confirm", title: "$are_you_sure", content: "$do_you_really_want_to_delete_this_widget", class: index_css_2.alertStyle })));
         }
     };
     ScomPostComposer = __decorate([
