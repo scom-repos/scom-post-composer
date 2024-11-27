@@ -33,6 +33,7 @@ import { ScomPostComposerUpload, ScomPostComposerWidget } from './components/ind
 import { widgetPreviewStyle, modalStyle, alertStyle } from './index.css';
 import { ScomStorage } from '@scom/scom-storage';
 import EmojiPicker from '@scom/scom-emoji-picker';
+import translations from './translations.json';
 
 const Theme = Styles.Theme.ThemeVars;
 
@@ -42,15 +43,15 @@ const regexImage = /!\[.*?\]\(data:image\/[^;]+;base64,([^)]+)\)/g;
 
 const PostAudience: IPostAudience[] = [
     {
-        title: 'Public',
+        title: '$public',
         icon: 'globe-americas',
-        desc: 'Anyone on or off Nostr',
+        desc: '$anyone_on_or_off_nostr',
         value: 'public'
     },
     {
-        title: 'Members',
+        title: '$members',
         icon: 'user-friends',
-        desc: 'Members of the community',
+        desc: '$members_of_the_community',
         value: 'members'
     }
 ]
@@ -257,6 +258,7 @@ export class ScomPostComposer extends Module {
 
     set placeholder(value: string) {
         this._data.placeholder = value ?? '';
+        if (this.mdEditor) this.mdEditor.placeholder = this.placeholder;
     }
 
     get buttonCaption() {
@@ -265,6 +267,7 @@ export class ScomPostComposer extends Module {
 
     set buttonCaption(value: string) {
         this._data.buttonCaption = value ?? '';
+        if (this.btnReply) this.btnReply.caption = this.buttonCaption;
     }
 
     get isReplyToShown(): boolean {
@@ -419,7 +422,7 @@ export class ScomPostComposer extends Module {
             return [];
         }
         if (!this.hasQuota) {
-            this.errorMessage = 'Your quota insufficient for IPFS media upload!';
+            this.errorMessage = '$your_quota_insufficient_for_ipfs_media_upload';
             return [];
         }
         if (!this.storageEl) {
@@ -450,7 +453,7 @@ export class ScomPostComposer extends Module {
         }
         const data = await this.storageEl.uploadFiles(files);
         if (!data.length || data.length < files.length) {
-            this.errorMessage = 'Something went wrong when uploading your media to IPFS!';
+            this.errorMessage = '$something_went_wrong_when_uploading_your_media_to_ipfs';
             return [];
         }
         imageList = imageList.map(img => {
@@ -522,12 +525,12 @@ export class ScomPostComposer extends Module {
             } else if (extractedText.length > MAX_SIZE) {
                 const base64List = extractedText.match(regexImage) || [];
                 if (base64List.length) {
-                    this.showAlert('confirm', `Excessed max post size!`, `In order to ${action}, please confirm the upload of your media to IPFS?`, () => {
+                    this.showAlert('confirm', this.i18n.get('$excessed_max_post_size'), this.i18n.get("$in_order_to_please_confirm_the_upload_of_your_media_to_ipfs", {action}), () => {
                         this.needToUploadMedia = true;
                         this.onReply();
                     });
                 } else {
-                    this.showAlert('error', `Failed to ${action}`, 'Excessed max post size!', () => { });
+                    this.showAlert('error', this.i18n.get('$failed_to', {action}), this.i18n.get('$excessed_max_post_size'), () => { });
                 }
                 this.updateSubmittingStatus(false);
                 return;
@@ -752,9 +755,9 @@ export class ScomPostComposer extends Module {
     private renderActions() {
         const actions: Action[] = [
             {
-                caption: 'Copy note link',
+                caption: '$copy_note_link',
                 icon: { name: 'copy' },
-                tooltip: 'The link has been copied successfully',
+                tooltip: '$the_link_has_been_copied_successfully',
                 onClick: (e) => {
                     if (typeof this.currentPostData !== 'undefined') {
                         application.copyToClipboard(`${window.location.origin}/#!/e/${this.currentPostData.id}`)
@@ -763,18 +766,18 @@ export class ScomPostComposer extends Module {
                 }
             },
             {
-                caption: 'Copy note text',
+                caption: '$copy_note_text',
                 icon: { name: 'copy' },
-                tooltip: 'The text has been copied successfully',
+                tooltip: '$the_text_has_been_copied_successfully',
                 onClick: (e) => {
                     application.copyToClipboard(this.currentPostData['eventData']?.content)
                     this.mdPostActions.visible = false;
                 }
             },
             {
-                caption: 'Copy note ID',
+                caption: '$copy_note_id',
                 icon: { name: 'copy' },
-                tooltip: 'The ID has been copied successfully',
+                tooltip: '$the_id_has_been_copied_successfully',
                 onClick: (e) => {
                     if (typeof this.currentPostData !== 'undefined') {
                         application.copyToClipboard(this.currentPostData.id)
@@ -783,9 +786,9 @@ export class ScomPostComposer extends Module {
                 }
             },
             {
-                caption: 'Copy raw data',
+                caption: '$copy_raw_data',
                 icon: { name: 'copy' },
-                tooltip: 'The raw data has been copied successfully',
+                tooltip: '$the_raw_data_has_been_copied_successfully',
                 onClick: (e) => {
                     if (typeof this.currentPostData !== 'undefined') {
                         application.copyToClipboard(JSON.stringify(this.currentPostData['eventData']))
@@ -799,9 +802,9 @@ export class ScomPostComposer extends Module {
             //     icon: { name: "broadcast-tower" }
             // },
             {
-                caption: 'Copy user public key',
+                caption: '$copy_user_public_key',
                 icon: { name: 'copy' },
-                tooltip: 'The public key has been copied successfully',
+                tooltip: '$the_public_key_has_been_copied_successfully',
                 onClick: (e) => {
                     if (typeof this.currentPostData !== 'undefined') {
                         application.copyToClipboard(this.currentPostData.author.npub || '')
@@ -865,7 +868,7 @@ export class ScomPostComposer extends Module {
                 ]}
             >
                 <i-button
-                    caption='Cancel'
+                    caption='$cancel'
                     width="100%" minHeight={44}
                     padding={{ left: 16, right: 16 }}
                     font={{ color: Theme.text.primary, weight: 600 }}
@@ -1004,8 +1007,8 @@ export class ScomPostComposer extends Module {
             editor.value = value.replace(`$$widget0 ${widget}$$`, '');
         } else {
             alert.status = 'confirm';
-            alert.title = 'Are you sure?';
-            alert.content = 'Do you really want to delete this widget?';
+            alert.title = '$are_you_sure';
+            alert.content = '$do_you_really_want_to_delete_this_widget';
             alert.onConfirm = () => {
                 const value = editor.getMarkdownValue();
                 editor.value = value.replace(`$$widget0 ${widget}$$`, '');
@@ -1074,6 +1077,7 @@ export class ScomPostComposer extends Module {
     }
 
     init() {
+        this.i18n.init({...translations});
         super.init();
         this.onChanged = this.getAttribute('onChanged', true) || this.onChanged;
         this.onSubmit = this.getAttribute('onSubmit', true) || this.onSubmit;
@@ -1207,11 +1211,11 @@ export class ScomPostComposer extends Module {
                     }
                 ]}
             >
-                <i-button caption={"Cancel"} onClick={this.handleMobileCloseComposer.bind(this)}
+                <i-button caption={"$cancel"} onClick={this.handleMobileCloseComposer.bind(this)}
                     padding={{ left: 5, right: 5, top: 5, bottom: 5 }} font={{ size: Theme.typography.fontSize }}
                     background={{ color: 'transparent' }} />
                 <i-button id={"btnReply"}
-                    caption={"Post"}
+                    caption={"$post"}
                     enabled={false}
                     onClick={this.onReply.bind(this)}
                     padding={{ left: '1rem', right: '1rem' }}
@@ -1228,7 +1232,7 @@ export class ScomPostComposer extends Module {
                 padding={{ top: '0.25rem', bottom: '0.75rem', left: '3.25rem' }}
             >
                 <i-label
-                    caption="Replying to"
+                    caption="$replying_to"
                     font={{ size: '1rem', color: Theme.text.secondary }}
                 ></i-label>
                 <i-label
@@ -1311,7 +1315,7 @@ export class ScomPostComposer extends Module {
                             name="image" width={28} height={28} fill={Theme.colors.primary.main}
                             border={{ radius: '50%' }}
                             padding={{ top: 5, bottom: 5, left: 5, right: 5 }}
-                            tooltip={{ content: 'Media', placement: 'bottom' }}
+                            tooltip={{ content: '$media', placement: 'bottom' }}
                             cursor="pointer"
                             onClick={this.showStorage}
                         ></i-icon>
@@ -1330,7 +1334,7 @@ export class ScomPostComposer extends Module {
                                 name="smile" width={28} height={28} fill={Theme.colors.primary.main}
                                 border={{ radius: '50%' }}
                                 padding={{ top: 5, bottom: 5, left: 5, right: 5 }}
-                                tooltip={{ content: 'Emoji', placement: 'bottom' }}
+                                tooltip={{ content: '$emoji', placement: 'bottom' }}
                                 cursor="pointer"
                                 onClick={() => this.onShowModal('mdEmoji')}
                             ></i-icon>
@@ -1357,7 +1361,7 @@ export class ScomPostComposer extends Module {
                             name="shapes"
                             fill={Theme.colors.primary.main}
                             padding={{ top: 5, bottom: 5, left: 5, right: 5 }}
-                            tooltip={{ content: 'Widgets', placement: 'bottom' }}
+                            tooltip={{ content: '$widgets', placement: 'bottom' }}
                             cursor="pointer"
                             onClick={() => this.onShowWidgets()}
                         ></i-icon>
@@ -1483,7 +1487,7 @@ export class ScomPostComposer extends Module {
                             <i-icon width={16} height={16} name='search' fill={Theme.text.secondary} />
                             <i-input
                                 id="inputGif"
-                                placeholder='Search for GIFs'
+                                placeholder='$Search_for_GIFs'
                                 width='100%'
                                 height='100%'
                                 captionWidth={'0px'}
@@ -1535,7 +1539,7 @@ export class ScomPostComposer extends Module {
                             gap="0.5rem"
                             padding={{ left: '0.75rem', right: '0.75rem', top: '0.75rem', bottom: '0.75rem' }}
                         >
-                            <i-label caption="Auto-play GIFs"
+                            <i-label caption="$auto_play_gifs"
                                 font={{ color: Theme.text.secondary, size: '0.9rem' }}></i-label>
                             <i-switch
                                 id="autoPlaySwitch"
@@ -1593,7 +1597,7 @@ export class ScomPostComposer extends Module {
                 padding={{ top: '0.25rem', bottom: '0.75rem', left: '3.25rem' }}
             >
                 <i-label
-                    caption="Replying to"
+                    caption="$replying_to"
                     font={{ size: '1rem', color: Theme.text.secondary }}
                 ></i-label>
                 <i-label
@@ -1670,7 +1674,7 @@ export class ScomPostComposer extends Module {
                             name="image" width={28} height={28} fill={Theme.colors.primary.main}
                             border={{ radius: '50%' }}
                             padding={{ top: 5, bottom: 5, left: 5, right: 5 }}
-                            tooltip={{ content: 'Media', placement: 'bottom' }}
+                            tooltip={{ content: '$media', placement: 'bottom' }}
                             cursor="pointer"
                             onClick={this.showStorage}
                         ></i-icon>
@@ -1689,7 +1693,7 @@ export class ScomPostComposer extends Module {
                                 name="smile" width={28} height={28} fill={Theme.colors.primary.main}
                                 border={{ radius: '50%' }}
                                 padding={{ top: 5, bottom: 5, left: 5, right: 5 }}
-                                tooltip={{ content: 'Emoji', placement: 'bottom' }}
+                                tooltip={{ content: '$emoji', placement: 'bottom' }}
                                 cursor="pointer"
                                 onClick={() => this.onShowModal('mdEmoji')}
                             ></i-icon>
@@ -1716,7 +1720,7 @@ export class ScomPostComposer extends Module {
                             name="shapes"
                             fill={Theme.colors.primary.main}
                             padding={{ top: 5, bottom: 5, left: 5, right: 5 }}
-                            tooltip={{ content: 'Widgets', placement: 'bottom' }}
+                            tooltip={{ content: '$widgets', placement: 'bottom' }}
                             cursor="pointer"
                             onClick={() => this.onShowWidgets()}
                         ></i-icon>
@@ -1825,7 +1829,7 @@ export class ScomPostComposer extends Module {
                             <i-icon width={16} height={16} name='search' fill={Theme.text.secondary} />
                             <i-input
                                 id="inputGif"
-                                placeholder='Search for GIFs'
+                                placeholder="$Search_for_GIFs"
                                 width='100%'
                                 height='100%'
                                 captionWidth={'0px'}
@@ -1877,7 +1881,7 @@ export class ScomPostComposer extends Module {
                             gap="0.5rem"
                             padding={{ left: '0.75rem', right: '0.75rem', top: '0.75rem', bottom: '0.75rem' }}
                         >
-                            <i-label caption="Auto-play GIFs"
+                            <i-label caption="$auto_play_gifs"
                                 font={{ color: Theme.text.secondary, size: '0.9rem' }}></i-label>
                             <i-switch
                                 id="autoPlaySwitch"
@@ -1928,8 +1932,8 @@ export class ScomPostComposer extends Module {
                 <i-alert
                     id="mdAlert"
                     status="confirm"
-                    title="Are you sure?"
-                    content="Do you really want to delete this widget?"
+                    title="$are_you_sure"
+                    content="$do_you_really_want_to_delete_this_widget"
                     class={alertStyle}
                 />
             </i-panel>
