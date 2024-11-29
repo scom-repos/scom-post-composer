@@ -48,7 +48,9 @@ export default {
     "will_only_work_after_a_successful_transaction": "Will only work after a successful transaction",
     "xchain": "Xchain",
     "your_quota_insufficient_for_ipfs_media_upload": "Your quota insufficient for IPFS media upload!",
-    "youtube_video": "YouTube Video"
+    "youtube_video": "YouTube Video",
+    "product": "Product",
+    "embed_community_product": "Embed community product"
   },
   "zh-hant": {
     "anyone_on_or_off_nostr": "任何人在Nostr上或關閉",
@@ -99,7 +101,9 @@ export default {
     "will_only_work_after_a_successful_transaction": "僅在成功交易後才能使用",
     "xchain": "X鏈",
     "your_quota_insufficient_for_ipfs_media_upload": "您的配額不足以上傳IPFS媒體！",
-    "youtube_video": "YouTube視頻"
+    "youtube_video": "YouTube視頻",
+    "product": "產品",
+    "embed_community_product": "嵌入社群產品"
   },
   "vi": {
     "anyone_on_or_off_nostr": "Tất cả đều tắt hoặc mở Nostr",
@@ -151,6 +155,8 @@ export default {
     "will_only_work_after_a_successful_transaction": "Sẽ hoạt động sau khi thực hiện giao dịch thành công",
     "xchain": "Xchain",
     "your_quota_insufficient_for_ipfs_media_upload": "Dung lượng của bạn không đủ để tải phương tiện lên IPFS!",
-    "youtube_video": "Youtube video"
+    "youtube_video": "Youtube video",
+    "product": "Sản phẩm",
+    "embed_community_product": "Nhúng sản phẩm cộng đồng"
   }
 }

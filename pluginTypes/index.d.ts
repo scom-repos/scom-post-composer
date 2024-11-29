@@ -93,6 +93,8 @@ declare module "@scom/scom-post-composer/translations.json.ts" {
             xchain: string;
             your_quota_insufficient_for_ipfs_media_upload: string;
             youtube_video: string;
+            product: string;
+            embed_community_product: string;
         };
         "zh-hant": {
             anyone_on_or_off_nostr: string;
@@ -144,6 +146,8 @@ declare module "@scom/scom-post-composer/translations.json.ts" {
             xchain: string;
             your_quota_insufficient_for_ipfs_media_upload: string;
             youtube_video: string;
+            product: string;
+            embed_community_product: string;
         };
         vi: {
             anyone_on_or_off_nostr: string;
@@ -196,6 +200,8 @@ declare module "@scom/scom-post-composer/translations.json.ts" {
             xchain: string;
             your_quota_insufficient_for_ipfs_media_upload: string;
             youtube_video: string;
+            product: string;
+            embed_community_product: string;
         };
     };
     export default _default_1;
@@ -283,6 +289,7 @@ declare module "@scom/scom-post-composer/components/widgets.tsx" {
         init(): void;
         show(url?: string): void;
         private renderWidgets;
+        private handleWidgetClick;
         private back;
         private renderConfig;
         private renderForm;

@@ -224,6 +224,13 @@ define("@scom/scom-post-composer/global/index.ts", ["require", "exports", "@ijst
             icon: { image: { url: assets_1.default.fullPath('img/twitter.svg'), width: '100%', height: '100%', display: 'inline-block' } },
             title: 'X',
             description: '$insert_an_x_post'
+        },
+        {
+            name: '@scom/scom-product',
+            icon: { name: 'box-open' },
+            title: '$product',
+            description: '$embed_community_product',
+            isDevOnly: true
         }
     ];
 });
@@ -281,7 +288,9 @@ define("@scom/scom-post-composer/translations.json.ts", ["require", "exports"], 
             "will_only_work_after_a_successful_transaction": "Will only work after a successful transaction",
             "xchain": "Xchain",
             "your_quota_insufficient_for_ipfs_media_upload": "Your quota insufficient for IPFS media upload!",
-            "youtube_video": "YouTube Video"
+            "youtube_video": "YouTube Video",
+            "product": "Product",
+            "embed_community_product": "Embed community product"
         },
         "zh-hant": {
             "anyone_on_or_off_nostr": "任何人在Nostr上或關閉",
@@ -332,7 +341,9 @@ define("@scom/scom-post-composer/translations.json.ts", ["require", "exports"], 
             "will_only_work_after_a_successful_transaction": "僅在成功交易後才能使用",
             "xchain": "X鏈",
             "your_quota_insufficient_for_ipfs_media_upload": "您的配額不足以上傳IPFS媒體！",
-            "youtube_video": "YouTube視頻"
+            "youtube_video": "YouTube視頻",
+            "product": "產品",
+            "embed_community_product": "嵌入社群產品"
         },
         "vi": {
             "anyone_on_or_off_nostr": "Tất cả đều tắt hoặc mở Nostr",
@@ -384,7 +395,9 @@ define("@scom/scom-post-composer/translations.json.ts", ["require", "exports"], 
             "will_only_work_after_a_successful_transaction": "Sẽ hoạt động sau khi thực hiện giao dịch thành công",
             "xchain": "Xchain",
             "your_quota_insufficient_for_ipfs_media_upload": "Dung lượng của bạn không đủ để tải phương tiện lên IPFS!",
-            "youtube_video": "Youtube video"
+            "youtube_video": "Youtube video",
+            "product": "Sản phẩm",
+            "embed_community_product": "Nhúng sản phẩm cộng đồng"
         }
     };
 });
@@ -540,13 +553,55 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
                 const icon = new components_5.Icon(undefined, { ...widget.icon, width: '1rem', height: '1rem' });
                 this.pnlWidgets.appendChild(this.$render("i-stack", { direction: "horizontal", width: "100%", padding: { top: '0.75rem', bottom: '0.75rem', left: '1rem', right: '1rem' }, border: { radius: '0.375rem' }, alignItems: "center", justifyContent: "space-between", hover: {
                         backgroundColor: Theme.action.activeBackground
-                    }, cursor: "pointer", onClick: () => this.selectWidget(widget) },
+                    }, cursor: "pointer", onClick: () => this.handleWidgetClick(widget) },
                     this.$render("i-stack", { direction: "horizontal", alignItems: "center", gap: "1rem" },
                         icon,
                         this.$render("i-stack", { direction: "vertical", gap: "0.25rem" },
                             this.$render("i-label", { caption: widget.title, font: { size: '0.875rem', weight: 500 } }),
                             this.$render("i-label", { caption: widget.description, font: { size: '0.75rem', weight: 400 } })))));
             }
+        }
+        handleWidgetClick(widget) {
+            let widgetData;
+            if (widget.name === '@scom/scom-product') {
+                if (location.hash.startsWith('#!/c/')) {
+                    const parts = location.hash.slice(5).split('/');
+                    const communityId = parts[0];
+                    const creatorId = parts[1];
+                    if (communityId && creatorId) {
+                        widgetData = {
+                            data: {
+                                config: {
+                                    communityUri: `${communityId}/${creatorId}`
+                                }
+                            },
+                            url: undefined
+                        };
+                    }
+                }
+                else if (location.hash.startsWith('#!/n/') && components_5.application.store?.ensMap) {
+                    const parts = location.hash.slice(5).split('/');
+                    const name = parts[0];
+                    if (name) {
+                        const value = components_5.application.store.ensMap[name];
+                        if (value) {
+                            const ids = value.split('/');
+                            const isCommunity = ids.length > 1;
+                            if (isCommunity) {
+                                widgetData = {
+                                    data: {
+                                        config: {
+                                            communityUri: `${ids[0]}/${ids[1]}`
+                                        }
+                                    },
+                                    url: undefined
+                                };
+                            }
+                        }
+                    }
+                }
+            }
+            this.selectWidget(widget, widgetData);
         }
         back() {
             this.lblTitle.caption = this.i18n.get('$widgets');

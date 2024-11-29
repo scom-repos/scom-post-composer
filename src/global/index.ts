@@ -214,5 +214,12 @@ export const widgets: IWidget[] = [
     icon: { image: { url: assets.fullPath('img/twitter.svg'), width: '100%', height: '100%', display: 'inline-block' }},
     title: 'X',
     description: '$insert_an_x_post'
+  },
+  {
+    name: '@scom/scom-product',
+    icon: { name: 'box-open' },
+    title: '$product',
+    description: '$embed_community_product',
+    isDevOnly: true
   }
 ]
