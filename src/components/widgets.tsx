@@ -119,7 +119,7 @@ export class ScomPostComposerWidget extends Module {
                         backgroundColor: Theme.action.activeBackground
                     }}
                     cursor="pointer"
-                    onClick={() => this.selectWidget(widget)}
+                    onClick={() => this.handleWidgetClick(widget)}
                 >
                     <i-stack direction="horizontal" alignItems="center" gap="1rem">
                         {icon}
@@ -131,6 +131,48 @@ export class ScomPostComposerWidget extends Module {
                 </i-stack>
             )
         }
+    }
+
+    private handleWidgetClick(widget: IWidget) {
+        let widgetData: { data: any, url: string };
+        if (widget.name === '@scom/scom-product') {
+            if (location.hash.startsWith('#!/c/')) {
+                const parts = location.hash.slice(5).split('/');
+                const communityId = parts[0];
+                const creatorId = parts[1];
+                if (communityId && creatorId) {
+                    widgetData = {
+                        data: {
+                            config: {
+                                communityUri: `${communityId}/${creatorId}`
+                            }
+                        },
+                        url: undefined
+                    }
+                }
+            } else if (location.hash.startsWith('#!/n/') && application.store?.ensMap) {
+                const parts = location.hash.slice(5).split('/');
+                const name = parts[0];
+                if (name) {
+                    const value = application.store.ensMap[name];
+                    if (value) {
+                        const ids = value.split('/');
+                        const isCommunity = ids.length > 1;
+                        if (isCommunity) {
+                            widgetData = {
+                                data: {
+                                    config: {
+                                        communityUri: `${ids[0]}/${ids[1]}`
+                                    }
+                                },
+                                url: undefined
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        this.selectWidget(widget, widgetData);
     }
 
     private back() {
