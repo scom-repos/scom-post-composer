@@ -572,7 +572,8 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
                         widgetData = {
                             data: {
                                 config: {
-                                    communityUri: `${communityId}/${creatorId}`
+                                    creatorId: creatorId,
+                                    communityId: communityId
                                 }
                             },
                             url: undefined
@@ -591,7 +592,8 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
                                 widgetData = {
                                     data: {
                                         config: {
-                                            communityUri: `${ids[0]}/${ids[1]}`
+                                            creatorId: ids[1],
+                                            communityId: ids[0]
                                         }
                                     },
                                     url: undefined
