@@ -51,6 +51,7 @@ declare module "@scom/scom-post-composer/translations.json.ts" {
             create_a_new_nft_index_to_mint_a_membership_nft_for_gated_communities: string;
             create_membership_nft: string;
             do_you_really_want_to_delete_this_widget: string;
+            embed_community_product: string;
             embeded_youtube_video: string;
             emoji: string;
             enter_url: string;
@@ -74,6 +75,7 @@ declare module "@scom/scom-post-composer/translations.json.ts" {
             mp4_or_mov_file: string;
             oswap_troll_nft: string;
             post: string;
+            product: string;
             public: string;
             reply: string;
             replying_to: string;
@@ -91,8 +93,6 @@ declare module "@scom/scom-post-composer/translations.json.ts" {
             xchain: string;
             your_quota_insufficient_for_ipfs_media_upload: string;
             youtube_video: string;
-            product: string;
-            embed_community_product: string;
         };
         "zh-hant": {
             anyone_on_or_off_nostr: string;
@@ -104,6 +104,7 @@ declare module "@scom/scom-post-composer/translations.json.ts" {
             create_a_new_nft_index_to_mint_a_membership_nft_for_gated_communities: string;
             create_membership_nft: string;
             do_you_really_want_to_delete_this_widget: string;
+            embed_community_product: string;
             embeded_youtube_video: string;
             emoji: string;
             enter_url: string;
@@ -127,6 +128,7 @@ declare module "@scom/scom-post-composer/translations.json.ts" {
             mp4_or_mov_file: string;
             oswap_troll_nft: string;
             post: string;
+            product: string;
             public: string;
             reply: string;
             replying_to: string;
@@ -144,8 +146,6 @@ declare module "@scom/scom-post-composer/translations.json.ts" {
             xchain: string;
             your_quota_insufficient_for_ipfs_media_upload: string;
             youtube_video: string;
-            product: string;
-            embed_community_product: string;
         };
         vi: {
             anyone_on_or_off_nostr: string;
@@ -158,6 +158,7 @@ declare module "@scom/scom-post-composer/translations.json.ts" {
             create_a_new_nft_index_to_mint_a_membership_nft_for_gated_communities: string;
             create_membership_nft: string;
             do_you_really_want_to_delete_this_widget: string;
+            embed_community_product: string;
             embeded_youtube_video: string;
             emoji: string;
             enter_url: string;
@@ -181,6 +182,7 @@ declare module "@scom/scom-post-composer/translations.json.ts" {
             mp4_or_mov_file: string;
             oswap_troll_nft: string;
             post: string;
+            product: string;
             public: string;
             reply: string;
             replying_to: string;
@@ -198,8 +200,6 @@ declare module "@scom/scom-post-composer/translations.json.ts" {
             xchain: string;
             your_quota_insufficient_for_ipfs_media_upload: string;
             youtube_video: string;
-            product: string;
-            embed_community_product: string;
         };
     };
     export default _default_1;

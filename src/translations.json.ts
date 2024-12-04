@@ -9,6 +9,7 @@ export default {
     "create_a_new_nft_index_to_mint_a_membership_nft_for_gated_communities": "Create a new NFT index to Mint a membership NFT for gated communities",
     "create_membership_nft": "Create Membership NFT",
     "do_you_really_want_to_delete_this_widget": "Do you really want to delete this widget?",
+    "embed_community_product": "Embed community product",
     "embeded_youtube_video": "Embeded YouTube video",
     "emoji": "Emoji",
     "enter_url": "Enter URL",
@@ -32,6 +33,7 @@ export default {
     "mp4_or_mov_file": ".mp4 or .mov file",
     "oswap_troll_nft": "Oswap Troll NFT",
     "post": "Post",
+    "product": "Product",
     "public": "Public",
     "reply": "Reply",
     "replying_to": "Replying to",
@@ -49,8 +51,6 @@ export default {
     "xchain": "Xchain",
     "your_quota_insufficient_for_ipfs_media_upload": "Your quota insufficient for IPFS media upload!",
     "youtube_video": "YouTube Video",
-    "product": "Product",
-    "embed_community_product": "Embed community product"
   },
   "zh-hant": {
     "anyone_on_or_off_nostr": "任何人在Nostr上或關閉",
@@ -62,6 +62,7 @@ export default {
     "create_a_new_nft_index_to_mint_a_membership_nft_for_gated_communities": "創建一個新的NFT索引以為有門控社區的會員NFT鑄造",
     "create_membership_nft": "創建會員NFT",
     "do_you_really_want_to_delete_this_widget": "您真的要刪除這個小部件嗎？",
+    "embed_community_product": "嵌入社群產品",
     "embeded_youtube_video": "嵌入YouTube視頻",
     "emoji": "表情符號",
     "enter_url": "輸入網址",
@@ -85,6 +86,7 @@ export default {
     "mp4_or_mov_file": ".mp4或.mov文件",
     "oswap_troll_nft": "Oswap Troll NFT",
     "post": "發布",
+    "product": "產品",
     "public": "公開",
     "reply": "回覆",
     "replying_to": "回覆",
@@ -102,8 +104,6 @@ export default {
     "xchain": "X鏈",
     "your_quota_insufficient_for_ipfs_media_upload": "您的配額不足以上傳IPFS媒體！",
     "youtube_video": "YouTube視頻",
-    "product": "產品",
-    "embed_community_product": "嵌入社群產品"
   },
   "vi": {
     "anyone_on_or_off_nostr": "Bất kỳ ai trên hoặc ngoài Nostr",
@@ -116,6 +116,7 @@ export default {
     "create_a_new_nft_index_to_mint_a_membership_nft_for_gated_communities": "Tạo chỉ mục NFT mới để đúc NFT thành viên cho các cộng đồng có kiểm soát",
     "create_membership_nft": "Tạo NFT Thành Viên",
     "do_you_really_want_to_delete_this_widget": "Bạn có chắc chắn muốn xóa tiện ích này không?",
+    "embed_community_product": "Nhúng sản phẩm cộng đồng",
     "embeded_youtube_video": "Nhúng Youtube video",
     "emoji": "Biểu tượng",
     "enter_url": "Nhập URL",
@@ -139,6 +140,7 @@ export default {
     "mp4_or_mov_file": "Tệp .mp4 hoặc .mov",
     "oswap_troll_nft": "NFT Troll OSwap",
     "post": "Đăng",
+    "product": "Sản phẩm",
     "public": "Công khai",
     "reply": "Phản hồi",
     "replying_to": "Phản hồi đến",
@@ -156,7 +158,5 @@ export default {
     "xchain": "Xchain",
     "your_quota_insufficient_for_ipfs_media_upload": "Dung lượng của bạn không đủ để tải phương tiện lên IPFS!",
     "youtube_video": "Youtube video",
-    "product": "Sản phẩm",
-    "embed_community_product": "Nhúng sản phẩm cộng đồng"
   }
 }
