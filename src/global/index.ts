@@ -1,34 +1,6 @@
 import { application, Control, IconName } from "@ijstech/components";
 import assets from '../assets';
 
-export const fetchGifs = async (params: any) => {
-  if (!params.offset) params.offset = 0;
-  if (!params.limit) params.limit = 40;
-  params.api_key = 'K0QfKNGrvsuY9nPKE1vn9lEGapWEY4eR';
-  const queries = params ? new URLSearchParams({
-    ...params
-  }).toString() : '';
-  try {
-    const response = await fetch(`https://api.giphy.com/v1/gifs/search?${queries}`);
-    return await response.json();
-  } catch {
-    return null
-  }
-}
-
-export const fetchReactionGifs = async () => {
-  const params = {
-    api_key: 'K0QfKNGrvsuY9nPKE1vn9lEGapWEY4eR'
-  };
-  const queries = new URLSearchParams({ ...params }).toString();
-  try {
-    const response = await fetch(`https://api.giphy.com/v1/gifs/categories/reactions?${queries}`);
-    return await response.json();
-  } catch {
-    return null
-  }
-}
-
 const WIDGET_URL = 'https://widget.noto.fan';
 export const getWidgetEmbedUrl = (module: string, data: any) => {
   if (module) {

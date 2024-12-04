@@ -12,27 +12,24 @@ import {
     ControlElement,
     Container,
     Modal,
-    CardLayout,
-    Input,
     Icon,
     VStack,
     Control,
-    Switch, application, IPFS, StackLayout, IconName,
+    application,
+    IPFS,
+    StackLayout,
+    IconName,
     Alert,
     moment
 } from '@ijstech/components';
 import { IPost, IPostData } from '@scom/scom-post';
-import {
-    fetchReactionGifs,
-    fetchGifs,
-    extractWidgetUrl,
-    getEmbedElement
-} from './global/index';
+import { extractWidgetUrl, getEmbedElement } from './global/index';
 import assets from './assets';
 import { ScomPostComposerUpload, ScomPostComposerWidget } from './components/index';
 import { widgetPreviewStyle, modalStyle, alertStyle } from './index.css';
 import { ScomStorage } from '@scom/scom-storage';
 import EmojiPicker from '@scom/scom-emoji-picker';
+import { ScomGifPicker } from '@scom/scom-gif-picker';
 import translations from './translations.json';
 
 const Theme = Styles.Theme.ThemeVars;
@@ -114,7 +111,6 @@ declare global {
 export class ScomPostComposer extends Module {
     private pnlPostComposer: Panel;
     private mdEmoji: Modal;
-    private mdGif: Modal;
     private mdPostAudience: Modal;
     private lbReplyTo: Label;
     private btnReply: Button;
@@ -124,16 +120,6 @@ export class ScomPostComposer extends Module {
     private imgReplier: Image;
     private pnlBorder: Panel;
     private pnlIcons: HStack;
-    private gifCateLoading: Panel;
-    private gridGif: CardLayout;
-    private gridGifCate: CardLayout;
-    private pnlGif: Panel;
-    private pnlGifBack: Panel;
-    private pnlGifClose: Panel;
-    private inputGif: Input;
-    private bottomElm: Panel;
-    private gifLoading: VStack;
-    private autoPlaySwitch: Switch;
     private pnlFocusedPost: Panel;
     private mdEditor: MarkdownEditor;
     private uploadForm: ScomPostComposerUpload;
@@ -147,28 +133,10 @@ export class ScomPostComposer extends Module {
     private widgetModule: ScomPostComposerWidget;
     private mdAlert: Alert;
     private emojiPicker: EmojiPicker;
+    private gifPicker: ScomGifPicker;
 
     private _focusedPost: IPost;
     private _data: IReplyInput;
-    private currentGifPage: number = 0;
-    private totalGifPage: number = 1;
-    private renderedMap: { [key: number]: boolean } = {};
-    private bottomObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
-            if (!entry.isIntersecting) return;
-            if (this.currentGifPage < this.totalGifPage) {
-                ++this.currentGifPage;
-                this.renderGifs(this.inputGif.value || '', this.autoPlaySwitch.checked);
-            }
-            // else {
-            //   this.clearObservers();
-            // }
-        });
-    }, {
-        root: null,
-        rootMargin: "20px",
-        threshold: 0.9
-    });
     private newReply: IPostData[] = [];
     private mobile: boolean;
     private _avatar: string;
@@ -184,6 +152,7 @@ export class ScomPostComposer extends Module {
     private errorMessage: string;
     private needToUploadMedia: boolean;
     private _env: string;
+    private refreshTimer: any;
 
     public onChanged: onChangedCallback;
     public onSubmit: onSubmitCallback;
@@ -192,9 +161,9 @@ export class ScomPostComposer extends Module {
     constructor(parent?: Container, options?: any) {
         super(parent, options);
         this.onUpload = this.onUpload.bind(this);
-        this.onGifPlayChanged = this.onGifPlayChanged.bind(this);
         this.showStorage = this.showStorage.bind(this);
         this.onShowGifModal = this.onShowGifModal.bind(this);
+        this.onGifSelected = this.onGifSelected.bind(this);
         this.onShowWidgets = this.onShowWidgets.bind(this);
         this.onShowDeleteWidget = this.onShowDeleteWidget.bind(this);
         this.handleSelectedEmoji = this.handleSelectedEmoji.bind(this);
@@ -361,20 +330,12 @@ export class ScomPostComposer extends Module {
                 color: Theme.divider,
             }
         };
-        this.currentGifPage = 1;
-        this.totalGifPage = 1;
     }
 
     private resetEditor() {
         if (this.mdEditor) {
             this.mdEditor.value = '';
         }
-    }
-
-    private clearObservers() {
-        this.bottomElm.visible = false;
-        this.bottomObserver.unobserve(this.bottomElm);
-        this.renderedMap = {};
     }
 
     private updateGrid() {
@@ -596,160 +557,48 @@ export class ScomPostComposer extends Module {
     }
 
     private async onShowGifModal() {
-        if (!this.gifCateInitState) {
-            this.gifCateInitState = 1;
-            this.renderGifCate();
+        if (!this.gifPicker) {
+            this.gifPicker = new ScomGifPicker(undefined, {
+                onGifSelected: this.onGifSelected
+            });
         }
-        this.onShowModal('mdGif');
-    }
-
-    private onGifMdOpen() {
-        this.autoPlaySwitch.checked = true;
-        this.onToggleMainGif(true);
-    }
-
-    private onGifMdClose() {
-        this.clearObservers();
-    }
-
-    private async renderGifCate() {
-        this.gridGifCate.clearInnerHTML();
-        this.gifCateLoading.visible = true;
-        const { data = [] } = await fetchReactionGifs();
-        const limitedList = [...data].slice(0, 8);
-        this.gifCateLoading.visible = false;
-        this.gridGifCate.visible = true;
-        for (let cate of limitedList) {
-            this.gridGifCate.appendChild(
-                <i-panel
-                    overflow={'hidden'}
-                    onClick={() => this.onGifSearch(cate.name)}
-                >
-                    <i-image
-                        url={cate.gif.images['480w_still'].url}
-                        width={'100%'} display='block'
-                    ></i-image>
-                    <i-label
-                        caption={cate.name}
-                        font={{ size: '1.25rem', weight: 700 }}
-                        position="absolute" bottom="0px"
-                        display="block" width={'100%'}
-                        padding={{ left: '0.5rem', top: '0.5rem', right: '0.5rem', bottom: '0.5rem' }}
-                    ></i-label>
-                </i-panel>
-            )
-        }
+        const modal = this.gifPicker.openModal({
+            border: { radius: '1rem' },
+            maxWidth: '600px',
+            maxHeight: '90vh',
+            overflow: { y: 'auto' },
+            padding: { top: 0, right: 0, left: 0, bottom: 0 },
+            mediaQueries: [
+                {
+                    maxWidth: '767px',
+                    properties: {
+                        showBackdrop: true,
+                        popupPlacement: 'top',
+                        zIndex: 999,
+                        maxHeight: '100dvh',
+                        maxWidth: '100%',
+                        height: '100%',
+                        width: '100%',
+                        border: { radius: 0 }
+                    }
+                }
+            ],
+            onClose: () => {
+                this.gifPicker.clear();
+                if (this.refreshTimer) clearTimeout(this.refreshTimer);
+            }
+        });
+        this.gifPicker.show();
+        this.refreshTimer = setTimeout(() => {
+            modal.refresh();
+        }, 1000);
     }
 
     private onGifSelected(gif: any) {
-        this.onCloseModal('mdGif');
+        this.gifPicker.closeModal();
         const imgMd = `\n![${gif.title || ""}](${gif.images.fixed_height.url})\n`;
         this.value = this.updatedValue + imgMd;
         if (!this.btnReply.enabled) this.btnReply.enabled = true;
-
-        // let index = this.newReply.length;
-        // const mediaWrap = <i-panel margin={{bottom: '0.5rem'}} overflow={'hidden'} opacity={0.7}>
-        //   <i-image width={'100%'} height={'auto'} display="block" url={gif.images.original_still.url}></i-image>
-        //   <i-icon
-        //     name="times" width={'1.25rem'} height={'1.25rem'} fill={Theme.text.primary}
-        //     border={{radius: '50%'}}
-        //     padding={{top: 5, bottom: 5, left: 5, right: 5}}
-        //     background={{color: 'rgba(15, 20, 25, 0.75)'}}
-        //     position='absolute' right="10px" top="10px" zIndex={2}
-        //     cursor="pointer"
-        //     onClick={() => {
-        //       mediaWrap.remove();
-        //       this.newReply.splice(index, 1);
-        //     }}
-        //   ></i-icon>
-        // </i-panel>;
-        // mediaWrap.parent = this.pnlMedias;
-        // this.pnlMedias.appendChild(mediaWrap);
-        // const getPostData = (render: boolean) => {
-        //   return {
-        //     module: '@scom/scom-image',
-        //     data: {
-        //       "properties": {
-        //         url: render ? gif.images.original_still.url : gif.images.original.url
-        //       },
-        //       "tag": {
-        //         "width": "100%",
-        //         "height": "auto",
-        //         "pt": 0,
-        //         "pb": 0,
-        //         "pl": 0,
-        //         "pr": 0
-        //       }
-        //     }
-        //   }
-        // }
-        // this.newReply.push(getPostData(false));
-    }
-
-    private onGifSearch(q: string) {
-        this.onToggleMainGif(false);
-        this.inputGif.value = q;
-        this.renderGifs(q, this.autoPlaySwitch.checked);
-    }
-
-    private onToggleMainGif(value: boolean) {
-        this.gridGifCate.visible = value;
-        this.pnlGif.visible = !value;
-        this.currentGifPage = 1;
-        this.totalGifPage = 1;
-        if (value) {
-            this.bottomObserver.unobserve(this.bottomElm);
-            this.pnlGifBack.visible = false;
-            this.pnlGifClose.visible = true;
-        } else {
-            this.bottomObserver.observe(this.bottomElm);
-            this.pnlGifBack.visible = true;
-            this.pnlGifClose.visible = false;
-        }
-        this.gridGif.clearInnerHTML();
-        this.renderedMap = {};
-        this.mdGif.refresh();
-    }
-
-    private async renderGifs(q: string, autoplay: boolean) {
-        if (this.renderedMap[this.currentGifPage]) return;
-        this.gifLoading.visible = true;
-        this.renderedMap[this.currentGifPage] = true;
-        const params = { q, offset: this.currentGifPage - 1 };
-        const { data = [], pagination: { total_count, count } } = await fetchGifs(params);
-        this.totalGifPage = Math.ceil(total_count / count);
-        this.bottomElm.visible = this.totalGifPage > 1;
-        for (let gif of data) {
-            this.gridGif.appendChild(
-                <i-panel
-                    onClick={() => this.onGifSelected(gif)}
-                    width="100%"
-                    overflow={'hidden'}
-                >
-                    <i-image
-                        url={autoplay ? gif.images.fixed_height.url : gif.images.fixed_height_still.url}
-                        width={'100%'} height='100%' objectFit='cover' display='block'
-                    ></i-image>
-                </i-panel>
-            )
-        }
-        this.gifLoading.visible = false;
-        this.mdGif.refresh();
-    }
-
-    private onGifPlayChanged(target: Switch) {
-        this.renderGifs(this.inputGif.value, target.checked);
-    }
-
-    private onBack() {
-        this.pnlGif.visible = false;
-        this.gridGifCate.visible = true;
-        this.pnlGifBack.visible = false;
-        this.pnlGifClose.visible = true;
-    }
-
-    private onCloseGifModal() {
-        this.onCloseModal('mdGif');
     }
 
     private renderActions() {
@@ -1428,159 +1277,6 @@ export class ScomPostComposer extends Module {
             >
                 <i-vstack id="pnlActions" minWidth={0} maxHeight={'27.5rem'} overflow={{ y: 'auto' }} />
             </i-modal>
-
-            <i-modal
-                id="mdGif"
-                border={{ radius: '1rem' }}
-                maxWidth={'600px'}
-                maxHeight={'90vh'}
-                overflow={{ y: 'auto' }}
-                padding={{ top: 0, right: 0, left: 0, bottom: 0 }}
-                mediaQueries={[
-                    {
-                        maxWidth: '767px',
-                        properties: {
-                            showBackdrop: true,
-                            popupPlacement: 'top',
-                            zIndex: 999,
-                            maxHeight: '100dvh',
-                            maxWidth: '100%',
-                            height: '100%',
-                            width: '100%',
-                            border: { radius: 0 }
-                        }
-                    }
-                ]}
-                onOpen={this.onGifMdOpen.bind(this)}
-                onClose={this.onGifMdClose.bind(this)}
-            >
-                <i-vstack>
-                    <i-hstack
-                        verticalAlignment="center"
-                        height={53}
-                        margin={{ top: 8, bottom: 8 }}
-                        padding={{ right: '0.5rem', left: '0.5rem' }}
-                        position="sticky"
-                        zIndex={2} top={'0px'}
-                        background={{ color: Theme.background.modal }}
-                    >
-                        <i-panel
-                            id="pnlGifBack"
-                            padding={{ top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }}
-                            cursor='pointer'
-                            onClick={this.onBack.bind(this)}
-                            visible={false}
-                        >
-                            <i-icon
-                                name="arrow-left"
-                                width={20} height={20} fill={Theme.colors.secondary.main}
-                            ></i-icon>
-                        </i-panel>
-                        <i-hstack
-                            verticalAlignment="center"
-                            padding={{ left: '0.75rem', right: '0.75rem' }}
-                            border={{ radius: '9999px', width: '1px', style: 'solid', color: Theme.divider }}
-                            minHeight={40} width={'100%'}
-                            background={{ color: Theme.input.background }}
-                            gap="4px"
-                        >
-                            <i-icon width={16} height={16} name='search' fill={Theme.text.secondary} />
-                            <i-input
-                                id="inputGif"
-                                placeholder='$Search_for_GIFs'
-                                width='100%'
-                                height='100%'
-                                captionWidth={'0px'}
-                                border={{ style: 'none' }}
-                                showClearButton={true}
-                                onClearClick={() => this.onToggleMainGif(true)}
-                                onKeyUp={(target: Input) => this.onGifSearch(target.value)}
-                            ></i-input>
-                        </i-hstack>
-                        <i-panel
-                            id="pnlGifClose"
-                            padding={{ top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }}
-                            cursor='pointer'
-                            onClick={this.onCloseGifModal.bind(this)}
-                        >
-                            <i-icon
-                                name="times"
-                                width={20} height={20} fill={Theme.colors.secondary.main}
-                            ></i-icon>
-                        </i-panel>
-                    </i-hstack>
-                    <i-panel id="gifCateLoading" height={600}>
-                        <i-stack
-                            direction="vertical"
-                            height="100%" width="100%"
-                            class="i-loading-overlay"
-                            background={{ color: Theme.background.modal }}
-                        >
-                            <i-stack direction="vertical" class="i-loading-spinner" alignItems="center" justifyContent="center">
-                                <i-icon
-                                    class="i-loading-spinner_icon"
-                                    name="spinner"
-                                    width={24}
-                                    height={24}
-                                    fill={Theme.colors.primary.main}
-                                />
-                            </i-stack>
-                        </i-stack>
-                    </i-panel>
-                    <i-card-layout
-                        id="gridGifCate"
-                        cardMinWidth={'18rem'}
-                        cardHeight={'9.375rem'}
-                        visible={false}
-                    ></i-card-layout>
-                    <i-vstack id="pnlGif" visible={false}>
-                        <i-hstack
-                            horizontalAlignment="space-between"
-                            gap="0.5rem"
-                            padding={{ left: '0.75rem', right: '0.75rem', top: '0.75rem', bottom: '0.75rem' }}
-                        >
-                            <i-label caption="$auto_play_gifs"
-                                font={{ color: Theme.text.secondary, size: '0.9rem' }}></i-label>
-                            <i-switch
-                                id="autoPlaySwitch"
-                                checked={true}
-                                uncheckedTrackColor={Theme.divider}
-                                checkedTrackColor={Theme.colors.primary.main}
-                                onChanged={this.onGifPlayChanged.bind(this)}
-                            ></i-switch>
-                        </i-hstack>
-                        <i-panel id="topElm" width={'100%'}></i-panel>
-                        <i-card-layout
-                            id="gridGif"
-                            autoRowSize="auto"
-                            autoColumnSize="auto"
-                            cardHeight={'auto'}
-                            columnsPerRow={4}
-                        ></i-card-layout>
-                        <i-panel id="bottomElm" width={'100%'} minHeight={20}>
-                            <i-vstack
-                                id="gifLoading"
-                                padding={{ top: '0.5rem', bottom: '0.5rem' }}
-                                visible={false}
-                                height="100%" width="100%"
-                                class="i-loading-overlay"
-                                background={{ color: Theme.background.modal }}
-                            >
-                                <i-vstack class="i-loading-spinner" horizontalAlignment="center"
-                                    verticalAlignment="center">
-                                    <i-icon
-                                        class="i-loading-spinner_icon"
-                                        name="spinner"
-                                        width={24}
-                                        height={24}
-                                        fill={Theme.colors.primary.main}
-                                    />
-                                </i-vstack>
-                            </i-vstack>
-                        </i-panel>
-                    </i-vstack>
-                </i-vstack>
-            </i-modal>
         </i-panel>;
 
         this.pnlPostComposer.append(elm);
@@ -1764,165 +1460,12 @@ export class ScomPostComposer extends Module {
                             font={{ color: Theme.colors.primary.contrastText, bold: true }}
                             border={{ radius: '30px' }}
                             enabled={false}
-                            caption="Post"
+                            caption="$post"
                             onClick={this.onReply.bind(this)}
                         ></i-button>
                     </i-stack>
                 </i-hstack>
             </i-grid-layout>
-
-            <i-modal
-                id="mdGif"
-                border={{ radius: '1rem' }}
-                maxWidth={'600px'}
-                maxHeight={'90vh'}
-                overflow={{ y: 'auto' }}
-                padding={{ top: 0, right: 0, left: 0, bottom: 0 }}
-                mediaQueries={[
-                    {
-                        maxWidth: '767px',
-                        properties: {
-                            showBackdrop: true,
-                            popupPlacement: 'top',
-                            position: 'fixed',
-                            zIndex: 999,
-                            maxWidth: '100%',
-                            height: '100%',
-                            width: '100%',
-                            border: { radius: 0 }
-                        }
-                    }
-                ]}
-                onOpen={this.onGifMdOpen.bind(this)}
-                onClose={this.onGifMdClose.bind(this)}
-            >
-                <i-vstack>
-                    <i-hstack
-                        verticalAlignment="center"
-                        height={53}
-                        margin={{ top: 8, bottom: 8 }}
-                        padding={{ right: '0.5rem', left: '0.5rem' }}
-                        position="sticky"
-                        zIndex={2} top={'0px'}
-                        background={{ color: Theme.background.modal }}
-                    >
-                        <i-panel
-                            id="pnlGifBack"
-                            padding={{ top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }}
-                            cursor='pointer'
-                            onClick={this.onBack.bind(this)}
-                            visible={false}
-                        >
-                            <i-icon
-                                name="arrow-left"
-                                width={20} height={20} fill={Theme.colors.secondary.main}
-                            ></i-icon>
-                        </i-panel>
-                        <i-hstack
-                            verticalAlignment="center"
-                            padding={{ left: '0.75rem', right: '0.75rem' }}
-                            border={{ radius: '9999px', width: '1px', style: 'solid', color: Theme.divider }}
-                            minHeight={40} width={'100%'}
-                            background={{ color: Theme.input.background }}
-                            gap="4px"
-                        >
-                            <i-icon width={16} height={16} name='search' fill={Theme.text.secondary} />
-                            <i-input
-                                id="inputGif"
-                                placeholder="$Search_for_GIFs"
-                                width='100%'
-                                height='100%'
-                                captionWidth={'0px'}
-                                border={{ style: 'none' }}
-                                showClearButton={true}
-                                onClearClick={() => this.onToggleMainGif(true)}
-                                onKeyUp={(target: Input) => this.onGifSearch(target.value)}
-                            ></i-input>
-                        </i-hstack>
-                        <i-panel
-                            id="pnlGifClose"
-                            padding={{ top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }}
-                            cursor='pointer'
-                            onClick={this.onCloseGifModal.bind(this)}
-                        >
-                            <i-icon
-                                name="times"
-                                width={20} height={20} fill={Theme.colors.secondary.main}
-                            ></i-icon>
-                        </i-panel>
-                    </i-hstack>
-                    <i-panel id="gifCateLoading" height={600}>
-                        <i-stack
-                            direction="vertical"
-                            height="100%" width="100%"
-                            class="i-loading-overlay"
-                            background={{ color: Theme.background.modal }}
-                        >
-                            <i-stack direction="vertical" class="i-loading-spinner" alignItems="center" justifyContent="center">
-                                <i-icon
-                                    class="i-loading-spinner_icon"
-                                    name="spinner"
-                                    width={24}
-                                    height={24}
-                                    fill={Theme.colors.primary.main}
-                                />
-                            </i-stack>
-                        </i-stack>
-                    </i-panel>
-                    <i-card-layout
-                        id="gridGifCate"
-                        cardMinWidth={'18rem'}
-                        cardHeight={'9.375rem'}
-                        visible={false}
-                    ></i-card-layout>
-                    <i-vstack id="pnlGif" visible={false}>
-                        <i-hstack
-                            horizontalAlignment="space-between"
-                            gap="0.5rem"
-                            padding={{ left: '0.75rem', right: '0.75rem', top: '0.75rem', bottom: '0.75rem' }}
-                        >
-                            <i-label caption="$auto_play_gifs"
-                                font={{ color: Theme.text.secondary, size: '0.9rem' }}></i-label>
-                            <i-switch
-                                id="autoPlaySwitch"
-                                checked={true}
-                                uncheckedTrackColor={Theme.divider}
-                                checkedTrackColor={Theme.colors.primary.main}
-                                onChanged={this.onGifPlayChanged.bind(this)}
-                            ></i-switch>
-                        </i-hstack>
-                        <i-panel id="topElm" width={'100%'}></i-panel>
-                        <i-card-layout
-                            id="gridGif"
-                            autoRowSize="auto"
-                            autoColumnSize="auto"
-                            cardHeight={'auto'}
-                            columnsPerRow={4}
-                        ></i-card-layout>
-                        <i-panel id="bottomElm" width={'100%'} minHeight={20}>
-                            <i-vstack
-                                id="gifLoading"
-                                padding={{ top: '0.5rem', bottom: '0.5rem' }}
-                                visible={false}
-                                height="100%" width="100%"
-                                class="i-loading-overlay"
-                                background={{ color: Theme.background.modal }}
-                            >
-                                <i-vstack class="i-loading-spinner" horizontalAlignment="center"
-                                    verticalAlignment="center">
-                                    <i-icon
-                                        class="i-loading-spinner_icon"
-                                        name="spinner"
-                                        width={24}
-                                        height={24}
-                                        fill={Theme.colors.primary.main}
-                                    />
-                                </i-vstack>
-                            </i-vstack>
-                        </i-panel>
-                    </i-vstack>
-                </i-vstack>
-            </i-modal>
         </i-panel>)
     }
 

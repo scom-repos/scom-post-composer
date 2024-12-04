@@ -19,39 +19,7 @@ define("@scom/scom-post-composer/assets.ts", ["require", "exports", "@ijstech/co
 define("@scom/scom-post-composer/global/index.ts", ["require", "exports", "@ijstech/components", "@scom/scom-post-composer/assets.ts"], function (require, exports, components_2, assets_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.widgets = exports.chartWidgets = exports.getEmbedElement = exports.extractWidgetUrl = exports.getWidgetEmbedUrl = exports.fetchReactionGifs = exports.fetchGifs = void 0;
-    const fetchGifs = async (params) => {
-        if (!params.offset)
-            params.offset = 0;
-        if (!params.limit)
-            params.limit = 40;
-        params.api_key = 'K0QfKNGrvsuY9nPKE1vn9lEGapWEY4eR';
-        const queries = params ? new URLSearchParams({
-            ...params
-        }).toString() : '';
-        try {
-            const response = await fetch(`https://api.giphy.com/v1/gifs/search?${queries}`);
-            return await response.json();
-        }
-        catch {
-            return null;
-        }
-    };
-    exports.fetchGifs = fetchGifs;
-    const fetchReactionGifs = async () => {
-        const params = {
-            api_key: 'K0QfKNGrvsuY9nPKE1vn9lEGapWEY4eR'
-        };
-        const queries = new URLSearchParams({ ...params }).toString();
-        try {
-            const response = await fetch(`https://api.giphy.com/v1/gifs/categories/reactions?${queries}`);
-            return await response.json();
-        }
-        catch {
-            return null;
-        }
-    };
-    exports.fetchReactionGifs = fetchReactionGifs;
+    exports.widgets = exports.chartWidgets = exports.getEmbedElement = exports.extractWidgetUrl = exports.getWidgetEmbedUrl = void 0;
     const WIDGET_URL = 'https://widget.noto.fan';
     const getWidgetEmbedUrl = (module, data) => {
         if (module) {
@@ -346,7 +314,7 @@ define("@scom/scom-post-composer/translations.json.ts", ["require", "exports"], 
             "embed_community_product": "嵌入社群產品"
         },
         "vi": {
-            "anyone_on_or_off_nostr": "Tất cả đều tắt hoặc mở Nostr",
+            "anyone_on_or_off_nostr": "Bất kỳ ai trên hoặc ngoài Nostr",
             "are_you_sure": "Bạn có chắc chắn không?",
             "auto_play_gifs": "Tự động chạy GIF",
             "cancel": "Hủy",
@@ -378,7 +346,7 @@ define("@scom/scom-post-composer/translations.json.ts", ["require", "exports"], 
             "mint_a_membership_nft_for_openswap_community": "Đúc NFT Thành Viên cho cộng đồng OpenSwap",
             "mp4_or_mov_file": "Tệp .mp4 hoặc .mov",
             "oswap_troll_nft": "NFT Troll OSwap",
-            "post": "Bài đăng",
+            "post": "Đăng",
             "public": "Công khai",
             "reply": "Phản hồi",
             "replying_to": "Phản hồi đến",
@@ -893,7 +861,7 @@ define("@scom/scom-post-composer/components/index.ts", ["require", "exports", "@
     Object.defineProperty(exports, "ScomPostComposerUpload", { enumerable: true, get: function () { return form_1.ScomPostComposerUpload; } });
     Object.defineProperty(exports, "ScomPostComposerWidget", { enumerable: true, get: function () { return widgets_1.ScomPostComposerWidget; } });
 });
-define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components", "@scom/scom-post-composer/global/index.ts", "@scom/scom-post-composer/assets.ts", "@scom/scom-post-composer/components/index.ts", "@scom/scom-post-composer/index.css.ts", "@scom/scom-storage", "@scom/scom-post-composer/translations.json.ts"], function (require, exports, components_6, index_1, assets_2, index_2, index_css_2, scom_storage_1, translations_json_3) {
+define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components", "@scom/scom-post-composer/global/index.ts", "@scom/scom-post-composer/assets.ts", "@scom/scom-post-composer/components/index.ts", "@scom/scom-post-composer/index.css.ts", "@scom/scom-storage", "@scom/scom-gif-picker", "@scom/scom-post-composer/translations.json.ts"], function (require, exports, components_6, index_1, assets_2, index_2, index_css_2, scom_storage_1, scom_gif_picker_1, translations_json_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomPostComposer = void 0;
@@ -917,35 +885,15 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
     let ScomPostComposer = class ScomPostComposer extends components_6.Module {
         constructor(parent, options) {
             super(parent, options);
-            this.currentGifPage = 0;
-            this.totalGifPage = 1;
-            this.renderedMap = {};
-            this.bottomObserver = new IntersectionObserver((entries, observer) => {
-                entries.forEach(entry => {
-                    if (!entry.isIntersecting)
-                        return;
-                    if (this.currentGifPage < this.totalGifPage) {
-                        ++this.currentGifPage;
-                        this.renderGifs(this.inputGif.value || '', this.autoPlaySwitch.checked);
-                    }
-                    // else {
-                    //   this.clearObservers();
-                    // }
-                });
-            }, {
-                root: null,
-                rootMargin: "20px",
-                threshold: 0.9
-            });
             this.newReply = [];
             this.gifCateInitState = 0;
             this._isPostAudienceShown = false;
             this.audience = PostAudience[1];
             this._hasQuota = false;
             this.onUpload = this.onUpload.bind(this);
-            this.onGifPlayChanged = this.onGifPlayChanged.bind(this);
             this.showStorage = this.showStorage.bind(this);
             this.onShowGifModal = this.onShowGifModal.bind(this);
+            this.onGifSelected = this.onGifSelected.bind(this);
             this.onShowWidgets = this.onShowWidgets.bind(this);
             this.onShowDeleteWidget = this.onShowDeleteWidget.bind(this);
             this.handleSelectedEmoji = this.handleSelectedEmoji.bind(this);
@@ -1088,18 +1036,11 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                     color: Theme.divider,
                 }
             };
-            this.currentGifPage = 1;
-            this.totalGifPage = 1;
         }
         resetEditor() {
             if (this.mdEditor) {
                 this.mdEditor.value = '';
             }
-        }
-        clearObservers() {
-            this.bottomElm.visible = false;
-            this.bottomObserver.unobserve(this.bottomElm);
-            this.renderedMap = {};
         }
         updateGrid() {
             this.gridReply.templateColumns = ['2.75rem', 'minmax(auto, calc(100% - 3.5rem))'];
@@ -1308,127 +1249,49 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this[name].visible = true;
         }
         async onShowGifModal() {
-            if (!this.gifCateInitState) {
-                this.gifCateInitState = 1;
-                this.renderGifCate();
+            if (!this.gifPicker) {
+                this.gifPicker = new scom_gif_picker_1.ScomGifPicker(undefined, {
+                    onGifSelected: this.onGifSelected
+                });
             }
-            this.onShowModal('mdGif');
-        }
-        onGifMdOpen() {
-            this.autoPlaySwitch.checked = true;
-            this.onToggleMainGif(true);
-        }
-        onGifMdClose() {
-            this.clearObservers();
-        }
-        async renderGifCate() {
-            this.gridGifCate.clearInnerHTML();
-            this.gifCateLoading.visible = true;
-            const { data = [] } = await (0, index_1.fetchReactionGifs)();
-            const limitedList = [...data].slice(0, 8);
-            this.gifCateLoading.visible = false;
-            this.gridGifCate.visible = true;
-            for (let cate of limitedList) {
-                this.gridGifCate.appendChild(this.$render("i-panel", { overflow: 'hidden', onClick: () => this.onGifSearch(cate.name) },
-                    this.$render("i-image", { url: cate.gif.images['480w_still'].url, width: '100%', display: 'block' }),
-                    this.$render("i-label", { caption: cate.name, font: { size: '1.25rem', weight: 700 }, position: "absolute", bottom: "0px", display: "block", width: '100%', padding: { left: '0.5rem', top: '0.5rem', right: '0.5rem', bottom: '0.5rem' } })));
-            }
+            const modal = this.gifPicker.openModal({
+                border: { radius: '1rem' },
+                maxWidth: '600px',
+                maxHeight: '90vh',
+                overflow: { y: 'auto' },
+                padding: { top: 0, right: 0, left: 0, bottom: 0 },
+                mediaQueries: [
+                    {
+                        maxWidth: '767px',
+                        properties: {
+                            showBackdrop: true,
+                            popupPlacement: 'top',
+                            zIndex: 999,
+                            maxHeight: '100dvh',
+                            maxWidth: '100%',
+                            height: '100%',
+                            width: '100%',
+                            border: { radius: 0 }
+                        }
+                    }
+                ],
+                onClose: () => {
+                    this.gifPicker.clear();
+                    if (this.refreshTimer)
+                        clearTimeout(this.refreshTimer);
+                }
+            });
+            this.gifPicker.show();
+            this.refreshTimer = setTimeout(() => {
+                modal.refresh();
+            }, 1000);
         }
         onGifSelected(gif) {
-            this.onCloseModal('mdGif');
+            this.gifPicker.closeModal();
             const imgMd = `\n![${gif.title || ""}](${gif.images.fixed_height.url})\n`;
             this.value = this.updatedValue + imgMd;
             if (!this.btnReply.enabled)
                 this.btnReply.enabled = true;
-            // let index = this.newReply.length;
-            // const mediaWrap = <i-panel margin={{bottom: '0.5rem'}} overflow={'hidden'} opacity={0.7}>
-            //   <i-image width={'100%'} height={'auto'} display="block" url={gif.images.original_still.url}></i-image>
-            //   <i-icon
-            //     name="times" width={'1.25rem'} height={'1.25rem'} fill={Theme.text.primary}
-            //     border={{radius: '50%'}}
-            //     padding={{top: 5, bottom: 5, left: 5, right: 5}}
-            //     background={{color: 'rgba(15, 20, 25, 0.75)'}}
-            //     position='absolute' right="10px" top="10px" zIndex={2}
-            //     cursor="pointer"
-            //     onClick={() => {
-            //       mediaWrap.remove();
-            //       this.newReply.splice(index, 1);
-            //     }}
-            //   ></i-icon>
-            // </i-panel>;
-            // mediaWrap.parent = this.pnlMedias;
-            // this.pnlMedias.appendChild(mediaWrap);
-            // const getPostData = (render: boolean) => {
-            //   return {
-            //     module: '@scom/scom-image',
-            //     data: {
-            //       "properties": {
-            //         url: render ? gif.images.original_still.url : gif.images.original.url
-            //       },
-            //       "tag": {
-            //         "width": "100%",
-            //         "height": "auto",
-            //         "pt": 0,
-            //         "pb": 0,
-            //         "pl": 0,
-            //         "pr": 0
-            //       }
-            //     }
-            //   }
-            // }
-            // this.newReply.push(getPostData(false));
-        }
-        onGifSearch(q) {
-            this.onToggleMainGif(false);
-            this.inputGif.value = q;
-            this.renderGifs(q, this.autoPlaySwitch.checked);
-        }
-        onToggleMainGif(value) {
-            this.gridGifCate.visible = value;
-            this.pnlGif.visible = !value;
-            this.currentGifPage = 1;
-            this.totalGifPage = 1;
-            if (value) {
-                this.bottomObserver.unobserve(this.bottomElm);
-                this.pnlGifBack.visible = false;
-                this.pnlGifClose.visible = true;
-            }
-            else {
-                this.bottomObserver.observe(this.bottomElm);
-                this.pnlGifBack.visible = true;
-                this.pnlGifClose.visible = false;
-            }
-            this.gridGif.clearInnerHTML();
-            this.renderedMap = {};
-            this.mdGif.refresh();
-        }
-        async renderGifs(q, autoplay) {
-            if (this.renderedMap[this.currentGifPage])
-                return;
-            this.gifLoading.visible = true;
-            this.renderedMap[this.currentGifPage] = true;
-            const params = { q, offset: this.currentGifPage - 1 };
-            const { data = [], pagination: { total_count, count } } = await (0, index_1.fetchGifs)(params);
-            this.totalGifPage = Math.ceil(total_count / count);
-            this.bottomElm.visible = this.totalGifPage > 1;
-            for (let gif of data) {
-                this.gridGif.appendChild(this.$render("i-panel", { onClick: () => this.onGifSelected(gif), width: "100%", overflow: 'hidden' },
-                    this.$render("i-image", { url: autoplay ? gif.images.fixed_height.url : gif.images.fixed_height_still.url, width: '100%', height: '100%', objectFit: 'cover', display: 'block' })));
-            }
-            this.gifLoading.visible = false;
-            this.mdGif.refresh();
-        }
-        onGifPlayChanged(target) {
-            this.renderGifs(this.inputGif.value, target.checked);
-        }
-        onBack() {
-            this.pnlGif.visible = false;
-            this.gridGifCate.visible = true;
-            this.pnlGifBack.visible = false;
-            this.pnlGifClose.visible = true;
-        }
-        onCloseGifModal() {
-            this.onCloseModal('mdGif');
         }
         renderActions() {
             const actions = [
@@ -1840,46 +1703,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                             }
                         }
                     ], onClose: () => this.removeShow('mdPostActions') },
-                    this.$render("i-vstack", { id: "pnlActions", minWidth: 0, maxHeight: '27.5rem', overflow: { y: 'auto' } })),
-                this.$render("i-modal", { id: "mdGif", border: { radius: '1rem' }, maxWidth: '600px', maxHeight: '90vh', overflow: { y: 'auto' }, padding: { top: 0, right: 0, left: 0, bottom: 0 }, mediaQueries: [
-                        {
-                            maxWidth: '767px',
-                            properties: {
-                                showBackdrop: true,
-                                popupPlacement: 'top',
-                                zIndex: 999,
-                                maxHeight: '100dvh',
-                                maxWidth: '100%',
-                                height: '100%',
-                                width: '100%',
-                                border: { radius: 0 }
-                            }
-                        }
-                    ], onOpen: this.onGifMdOpen.bind(this), onClose: this.onGifMdClose.bind(this) },
-                    this.$render("i-vstack", null,
-                        this.$render("i-hstack", { verticalAlignment: "center", height: 53, margin: { top: 8, bottom: 8 }, padding: { right: '0.5rem', left: '0.5rem' }, position: "sticky", zIndex: 2, top: '0px', background: { color: Theme.background.modal } },
-                            this.$render("i-panel", { id: "pnlGifBack", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, cursor: 'pointer', onClick: this.onBack.bind(this), visible: false },
-                                this.$render("i-icon", { name: "arrow-left", width: 20, height: 20, fill: Theme.colors.secondary.main })),
-                            this.$render("i-hstack", { verticalAlignment: "center", padding: { left: '0.75rem', right: '0.75rem' }, border: { radius: '9999px', width: '1px', style: 'solid', color: Theme.divider }, minHeight: 40, width: '100%', background: { color: Theme.input.background }, gap: "4px" },
-                                this.$render("i-icon", { width: 16, height: 16, name: 'search', fill: Theme.text.secondary }),
-                                this.$render("i-input", { id: "inputGif", placeholder: '$Search_for_GIFs', width: '100%', height: '100%', captionWidth: '0px', border: { style: 'none' }, showClearButton: true, onClearClick: () => this.onToggleMainGif(true), onKeyUp: (target) => this.onGifSearch(target.value) })),
-                            this.$render("i-panel", { id: "pnlGifClose", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, cursor: 'pointer', onClick: this.onCloseGifModal.bind(this) },
-                                this.$render("i-icon", { name: "times", width: 20, height: 20, fill: Theme.colors.secondary.main }))),
-                        this.$render("i-panel", { id: "gifCateLoading", height: 600 },
-                            this.$render("i-stack", { direction: "vertical", height: "100%", width: "100%", class: "i-loading-overlay", background: { color: Theme.background.modal } },
-                                this.$render("i-stack", { direction: "vertical", class: "i-loading-spinner", alignItems: "center", justifyContent: "center" },
-                                    this.$render("i-icon", { class: "i-loading-spinner_icon", name: "spinner", width: 24, height: 24, fill: Theme.colors.primary.main })))),
-                        this.$render("i-card-layout", { id: "gridGifCate", cardMinWidth: '18rem', cardHeight: '9.375rem', visible: false }),
-                        this.$render("i-vstack", { id: "pnlGif", visible: false },
-                            this.$render("i-hstack", { horizontalAlignment: "space-between", gap: "0.5rem", padding: { left: '0.75rem', right: '0.75rem', top: '0.75rem', bottom: '0.75rem' } },
-                                this.$render("i-label", { caption: "$auto_play_gifs", font: { color: Theme.text.secondary, size: '0.9rem' } }),
-                                this.$render("i-switch", { id: "autoPlaySwitch", checked: true, uncheckedTrackColor: Theme.divider, checkedTrackColor: Theme.colors.primary.main, onChanged: this.onGifPlayChanged.bind(this) })),
-                            this.$render("i-panel", { id: "topElm", width: '100%' }),
-                            this.$render("i-card-layout", { id: "gridGif", autoRowSize: "auto", autoColumnSize: "auto", cardHeight: 'auto', columnsPerRow: 4 }),
-                            this.$render("i-panel", { id: "bottomElm", width: '100%', minHeight: 20 },
-                                this.$render("i-vstack", { id: "gifLoading", padding: { top: '0.5rem', bottom: '0.5rem' }, visible: false, height: "100%", width: "100%", class: "i-loading-overlay", background: { color: Theme.background.modal } },
-                                    this.$render("i-vstack", { class: "i-loading-spinner", horizontalAlignment: "center", verticalAlignment: "center" },
-                                        this.$render("i-icon", { class: "i-loading-spinner_icon", name: "spinner", width: 24, height: 24, fill: Theme.colors.primary.main }))))))));
+                    this.$render("i-vstack", { id: "pnlActions", minWidth: 0, maxHeight: '27.5rem', overflow: { y: 'auto' } })));
             this.pnlPostComposer.append(elm);
         }
         renderPostComposer() {
@@ -1908,46 +1732,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                             this.$render("i-panel", null,
                                 this.$render("i-button", { id: "btnPostAudience", height: 32, padding: { left: '1rem', right: '1rem' }, background: { color: Theme.colors.secondary.main }, font: { color: Theme.colors.secondary.contrastText, bold: true }, border: { radius: '0.375rem' }, caption: this.audience.title, icon: { width: 14, height: 14, name: this.audience.icon, fill: Theme.colors.secondary.contrastText }, rightIcon: { width: 14, height: 14, name: 'angle-down', fill: Theme.colors.secondary.contrastText }, visible: this.isPostAudienceShown, onClick: this.showPostAudienceModal.bind(this) }),
                                 this.$render("i-modal", { id: "mdPostAudience", maxWidth: '15rem', minWidth: '12.25rem', maxHeight: '27.5rem', popupPlacement: 'bottomRight', showBackdrop: false, border: { radius: '0.5rem' }, boxShadow: "rgba(255, 255, 255, 0.2) 0px 0px 15px, rgba(255, 255, 255, 0.15) 0px 0px 3px 1px", padding: { top: 0, bottom: 0, left: 0, right: 0 }, overflow: { y: 'hidden' }, visible: false }, pnlPostAudiences)),
-                            this.$render("i-button", { id: "btnReply", height: 36, padding: { left: '1rem', right: '1rem' }, background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText, bold: true }, border: { radius: '30px' }, enabled: false, caption: "Post", onClick: this.onReply.bind(this) })))),
-                this.$render("i-modal", { id: "mdGif", border: { radius: '1rem' }, maxWidth: '600px', maxHeight: '90vh', overflow: { y: 'auto' }, padding: { top: 0, right: 0, left: 0, bottom: 0 }, mediaQueries: [
-                        {
-                            maxWidth: '767px',
-                            properties: {
-                                showBackdrop: true,
-                                popupPlacement: 'top',
-                                position: 'fixed',
-                                zIndex: 999,
-                                maxWidth: '100%',
-                                height: '100%',
-                                width: '100%',
-                                border: { radius: 0 }
-                            }
-                        }
-                    ], onOpen: this.onGifMdOpen.bind(this), onClose: this.onGifMdClose.bind(this) },
-                    this.$render("i-vstack", null,
-                        this.$render("i-hstack", { verticalAlignment: "center", height: 53, margin: { top: 8, bottom: 8 }, padding: { right: '0.5rem', left: '0.5rem' }, position: "sticky", zIndex: 2, top: '0px', background: { color: Theme.background.modal } },
-                            this.$render("i-panel", { id: "pnlGifBack", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, cursor: 'pointer', onClick: this.onBack.bind(this), visible: false },
-                                this.$render("i-icon", { name: "arrow-left", width: 20, height: 20, fill: Theme.colors.secondary.main })),
-                            this.$render("i-hstack", { verticalAlignment: "center", padding: { left: '0.75rem', right: '0.75rem' }, border: { radius: '9999px', width: '1px', style: 'solid', color: Theme.divider }, minHeight: 40, width: '100%', background: { color: Theme.input.background }, gap: "4px" },
-                                this.$render("i-icon", { width: 16, height: 16, name: 'search', fill: Theme.text.secondary }),
-                                this.$render("i-input", { id: "inputGif", placeholder: "$Search_for_GIFs", width: '100%', height: '100%', captionWidth: '0px', border: { style: 'none' }, showClearButton: true, onClearClick: () => this.onToggleMainGif(true), onKeyUp: (target) => this.onGifSearch(target.value) })),
-                            this.$render("i-panel", { id: "pnlGifClose", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, cursor: 'pointer', onClick: this.onCloseGifModal.bind(this) },
-                                this.$render("i-icon", { name: "times", width: 20, height: 20, fill: Theme.colors.secondary.main }))),
-                        this.$render("i-panel", { id: "gifCateLoading", height: 600 },
-                            this.$render("i-stack", { direction: "vertical", height: "100%", width: "100%", class: "i-loading-overlay", background: { color: Theme.background.modal } },
-                                this.$render("i-stack", { direction: "vertical", class: "i-loading-spinner", alignItems: "center", justifyContent: "center" },
-                                    this.$render("i-icon", { class: "i-loading-spinner_icon", name: "spinner", width: 24, height: 24, fill: Theme.colors.primary.main })))),
-                        this.$render("i-card-layout", { id: "gridGifCate", cardMinWidth: '18rem', cardHeight: '9.375rem', visible: false }),
-                        this.$render("i-vstack", { id: "pnlGif", visible: false },
-                            this.$render("i-hstack", { horizontalAlignment: "space-between", gap: "0.5rem", padding: { left: '0.75rem', right: '0.75rem', top: '0.75rem', bottom: '0.75rem' } },
-                                this.$render("i-label", { caption: "$auto_play_gifs", font: { color: Theme.text.secondary, size: '0.9rem' } }),
-                                this.$render("i-switch", { id: "autoPlaySwitch", checked: true, uncheckedTrackColor: Theme.divider, checkedTrackColor: Theme.colors.primary.main, onChanged: this.onGifPlayChanged.bind(this) })),
-                            this.$render("i-panel", { id: "topElm", width: '100%' }),
-                            this.$render("i-card-layout", { id: "gridGif", autoRowSize: "auto", autoColumnSize: "auto", cardHeight: 'auto', columnsPerRow: 4 }),
-                            this.$render("i-panel", { id: "bottomElm", width: '100%', minHeight: 20 },
-                                this.$render("i-vstack", { id: "gifLoading", padding: { top: '0.5rem', bottom: '0.5rem' }, visible: false, height: "100%", width: "100%", class: "i-loading-overlay", background: { color: Theme.background.modal } },
-                                    this.$render("i-vstack", { class: "i-loading-spinner", horizontalAlignment: "center", verticalAlignment: "center" },
-                                        this.$render("i-icon", { class: "i-loading-spinner_icon", name: "spinner", width: 24, height: 24, fill: Theme.colors.primary.main })))))))));
+                            this.$render("i-button", { id: "btnReply", height: 36, padding: { left: '1rem', right: '1rem' }, background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText, bold: true }, border: { radius: '30px' }, enabled: false, caption: "$post", onClick: this.onReply.bind(this) }))))));
         }
         render() {
             return (this.$render("i-panel", { id: 'pnlPostComposer' },

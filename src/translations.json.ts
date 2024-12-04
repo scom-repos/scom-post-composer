@@ -106,7 +106,7 @@ export default {
     "embed_community_product": "嵌入社群產品"
   },
   "vi": {
-    "anyone_on_or_off_nostr": "Tất cả đều tắt hoặc mở Nostr",
+    "anyone_on_or_off_nostr": "Bất kỳ ai trên hoặc ngoài Nostr",
     "are_you_sure": "Bạn có chắc chắn không?",
     "auto_play_gifs": "Tự động chạy GIF",
     "cancel": "Hủy",
@@ -138,7 +138,7 @@ export default {
     "mint_a_membership_nft_for_openswap_community": "Đúc NFT Thành Viên cho cộng đồng OpenSwap",
     "mp4_or_mov_file": "Tệp .mp4 hoặc .mov",
     "oswap_troll_nft": "NFT Troll OSwap",
-    "post": "Bài đăng",
+    "post": "Đăng",
     "public": "Công khai",
     "reply": "Phản hồi",
     "replying_to": "Phản hồi đến",

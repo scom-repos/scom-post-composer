@@ -9,8 +9,6 @@ declare module "@scom/scom-post-composer/assets.ts" {
 /// <amd-module name="@scom/scom-post-composer/global/index.ts" />
 declare module "@scom/scom-post-composer/global/index.ts" {
     import { Control, IconName } from "@ijstech/components";
-    export const fetchGifs: (params: any) => Promise<any>;
-    export const fetchReactionGifs: () => Promise<any>;
     export const getWidgetEmbedUrl: (module: string, data: any) => string;
     export const extractWidgetUrl: (url: string) => {
         moduleName: string;
@@ -350,7 +348,6 @@ declare module "@scom/scom-post-composer" {
     export class ScomPostComposer extends Module {
         private pnlPostComposer;
         private mdEmoji;
-        private mdGif;
         private mdPostAudience;
         private lbReplyTo;
         private btnReply;
@@ -360,16 +357,6 @@ declare module "@scom/scom-post-composer" {
         private imgReplier;
         private pnlBorder;
         private pnlIcons;
-        private gifCateLoading;
-        private gridGif;
-        private gridGifCate;
-        private pnlGif;
-        private pnlGifBack;
-        private pnlGifClose;
-        private inputGif;
-        private bottomElm;
-        private gifLoading;
-        private autoPlaySwitch;
         private pnlFocusedPost;
         private mdEditor;
         private uploadForm;
@@ -383,12 +370,9 @@ declare module "@scom/scom-post-composer" {
         private widgetModule;
         private mdAlert;
         private emojiPicker;
+        private gifPicker;
         private _focusedPost;
         private _data;
-        private currentGifPage;
-        private totalGifPage;
-        private renderedMap;
-        private bottomObserver;
         private newReply;
         private mobile;
         private _avatar;
@@ -404,6 +388,7 @@ declare module "@scom/scom-post-composer" {
         private errorMessage;
         private needToUploadMedia;
         private _env;
+        private refreshTimer;
         onChanged: onChangedCallback;
         onSubmit: onSubmitCallback;
         onCancel: () => void;
@@ -442,7 +427,6 @@ declare module "@scom/scom-post-composer" {
         setData(value: IReplyInput): void;
         clear(): void;
         private resetEditor;
-        private clearObservers;
         private updateGrid;
         private onEditorChanged;
         private extractImageMimeType;
@@ -457,16 +441,7 @@ declare module "@scom/scom-post-composer" {
         private onCloseModal;
         private onShowModal;
         private onShowGifModal;
-        private onGifMdOpen;
-        private onGifMdClose;
-        private renderGifCate;
         private onGifSelected;
-        private onGifSearch;
-        private onToggleMainGif;
-        private renderGifs;
-        private onGifPlayChanged;
-        private onBack;
-        private onCloseGifModal;
         private renderActions;
         private handleSelectedEmoji;
         private onEmojiMdOpen;
