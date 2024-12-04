@@ -1,11 +1,11 @@
-import { Module, customModule, Container, VStack } from '@ijstech/components';
+import { Module, customModule, Container, application } from '@ijstech/components';
 import { ScomPostComposer } from '@scom/scom-post-composer';
 @customModule
 export default class Module1 extends Module {
-    private mainStack: VStack;
 
     constructor(parent?: Container, options?: any) {
         super(parent, options);
+        application.store.giphy = options.giphy;
     }
 
     async init() {

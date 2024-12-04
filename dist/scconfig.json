@@ -6,6 +6,7 @@
         "@ijstech/components",
         "@scom/scom-post",
         "@scom/scom-storage",
-        "@scom/scom-emoji-picker"
+        "@scom/scom-emoji-picker",
+        "@scom/scom-gif-picker"
     ]
 }
