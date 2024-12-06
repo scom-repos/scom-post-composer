@@ -152,7 +152,6 @@ export class ScomPostComposer extends Module {
     private errorMessage: string;
     private needToUploadMedia: boolean;
     private _env: string;
-    private refreshTimer: any;
 
     public onChanged: onChangedCallback;
     public onSubmit: onSubmitCallback;
@@ -479,7 +478,7 @@ export class ScomPostComposer extends Module {
                 this.needToUploadMedia = false;
                 extractedText = await this.replaceBase64WithLinks(extractedText);
                 if (this.errorMessage) {
-                    this.showAlert('error', `Failed to ${action}`, this.errorMessage, () => { });
+                    this.showAlert('error', this.i18n.get('$failed_to', {action}), this.errorMessage, () => { });
                     this.updateSubmittingStatus(false);
                     return;
                 }
@@ -514,7 +513,7 @@ export class ScomPostComposer extends Module {
             });
         }
         this.uploadForm.openModal({
-            title: 'Insert Image',
+            title: '$insert_image',
             width: 400,
         })
     }
@@ -559,15 +558,17 @@ export class ScomPostComposer extends Module {
     private async onShowGifModal() {
         if (!this.gifPicker) {
             this.gifPicker = new ScomGifPicker(undefined, {
-                onGifSelected: this.onGifSelected
+                onGifSelected: this.onGifSelected,
+                onClose: () => this.gifPicker.closeModal()
             });
         }
-        const modal = this.gifPicker.openModal({
+        this.gifPicker.openModal({
             border: { radius: '1rem' },
             maxWidth: '600px',
-            maxHeight: '90vh',
+            height: '90vh',
             overflow: { y: 'auto' },
             padding: { top: 0, right: 0, left: 0, bottom: 0 },
+            closeIcon: null,
             mediaQueries: [
                 {
                     maxWidth: '767px',
@@ -585,13 +586,9 @@ export class ScomPostComposer extends Module {
             ],
             onClose: () => {
                 this.gifPicker.clear();
-                if (this.refreshTimer) clearTimeout(this.refreshTimer);
             }
         });
         this.gifPicker.show();
-        this.refreshTimer = setTimeout(() => {
-            modal.refresh();
-        }, 1000);
     }
 
     private onGifSelected(gif: any) {
