@@ -7,7 +7,7 @@ import {
   Input,
   Button,
 } from '@ijstech/components';
-import translations from '../translations.json';
+import {mainJson as translations} from '../languages/index';
 
 const Theme = Styles.Theme.ThemeVars;
 
