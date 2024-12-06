@@ -93,6 +93,7 @@ declare module "@scom/scom-post-composer/translations.json.ts" {
             xchain: string;
             your_quota_insufficient_for_ipfs_media_upload: string;
             youtube_video: string;
+            insert_image: string;
         };
         "zh-hant": {
             anyone_on_or_off_nostr: string;
@@ -146,6 +147,7 @@ declare module "@scom/scom-post-composer/translations.json.ts" {
             xchain: string;
             your_quota_insufficient_for_ipfs_media_upload: string;
             youtube_video: string;
+            insert_image: string;
         };
         vi: {
             anyone_on_or_off_nostr: string;
@@ -200,6 +202,7 @@ declare module "@scom/scom-post-composer/translations.json.ts" {
             xchain: string;
             your_quota_insufficient_for_ipfs_media_upload: string;
             youtube_video: string;
+            insert_image: string;
         };
     };
     export default _default_1;
@@ -388,7 +391,6 @@ declare module "@scom/scom-post-composer" {
         private errorMessage;
         private needToUploadMedia;
         private _env;
-        private refreshTimer;
         onChanged: onChangedCallback;
         onSubmit: onSubmitCallback;
         onCancel: () => void;

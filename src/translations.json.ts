@@ -51,6 +51,7 @@ export default {
     "xchain": "Xchain",
     "your_quota_insufficient_for_ipfs_media_upload": "Your quota insufficient for IPFS media upload!",
     "youtube_video": "YouTube Video",
+    "insert_image": "Insert Image",
   },
   "zh-hant": {
     "anyone_on_or_off_nostr": "任何人在Nostr上或關閉",
@@ -104,6 +105,7 @@ export default {
     "xchain": "X鏈",
     "your_quota_insufficient_for_ipfs_media_upload": "您的配額不足以上傳IPFS媒體！",
     "youtube_video": "YouTube視頻",
+    "insert_image": "插入圖片",
   },
   "vi": {
     "anyone_on_or_off_nostr": "Bất kỳ ai trên hoặc ngoài Nostr",
@@ -158,5 +160,6 @@ export default {
     "xchain": "Xchain",
     "your_quota_insufficient_for_ipfs_media_upload": "Dung lượng của bạn không đủ để tải phương tiện lên IPFS!",
     "youtube_video": "Youtube video",
+    "insert_image": "Chèn hình ảnh",
   }
 }

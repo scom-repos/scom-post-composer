@@ -259,6 +259,7 @@ define("@scom/scom-post-composer/translations.json.ts", ["require", "exports"], 
             "xchain": "Xchain",
             "your_quota_insufficient_for_ipfs_media_upload": "Your quota insufficient for IPFS media upload!",
             "youtube_video": "YouTube Video",
+            "insert_image": "Insert Image",
         },
         "zh-hant": {
             "anyone_on_or_off_nostr": "任何人在Nostr上或關閉",
@@ -312,6 +313,7 @@ define("@scom/scom-post-composer/translations.json.ts", ["require", "exports"], 
             "xchain": "X鏈",
             "your_quota_insufficient_for_ipfs_media_upload": "您的配額不足以上傳IPFS媒體！",
             "youtube_video": "YouTube視頻",
+            "insert_image": "插入圖片",
         },
         "vi": {
             "anyone_on_or_off_nostr": "Bất kỳ ai trên hoặc ngoài Nostr",
@@ -366,6 +368,7 @@ define("@scom/scom-post-composer/translations.json.ts", ["require", "exports"], 
             "xchain": "Xchain",
             "your_quota_insufficient_for_ipfs_media_upload": "Dung lượng của bạn không đủ để tải phương tiện lên IPFS!",
             "youtube_video": "Youtube video",
+            "insert_image": "Chèn hình ảnh",
         }
     };
 });
@@ -1183,7 +1186,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                     this.needToUploadMedia = false;
                     extractedText = await this.replaceBase64WithLinks(extractedText);
                     if (this.errorMessage) {
-                        this.showAlert('error', `Failed to ${action}`, this.errorMessage, () => { });
+                        this.showAlert('error', this.i18n.get('$failed_to', { action }), this.errorMessage, () => { });
                         this.updateSubmittingStatus(false);
                         return;
                     }
@@ -1219,7 +1222,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 });
             }
             this.uploadForm.openModal({
-                title: 'Insert Image',
+                title: '$insert_image',
                 width: 400,
             });
         }
@@ -1251,15 +1254,17 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         async onShowGifModal() {
             if (!this.gifPicker) {
                 this.gifPicker = new scom_gif_picker_1.ScomGifPicker(undefined, {
-                    onGifSelected: this.onGifSelected
+                    onGifSelected: this.onGifSelected,
+                    onClose: () => this.gifPicker.closeModal()
                 });
             }
-            const modal = this.gifPicker.openModal({
+            this.gifPicker.openModal({
                 border: { radius: '1rem' },
                 maxWidth: '600px',
-                maxHeight: '90vh',
+                height: '90vh',
                 overflow: { y: 'auto' },
                 padding: { top: 0, right: 0, left: 0, bottom: 0 },
+                closeIcon: null,
                 mediaQueries: [
                     {
                         maxWidth: '767px',
@@ -1277,14 +1282,9 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 ],
                 onClose: () => {
                     this.gifPicker.clear();
-                    if (this.refreshTimer)
-                        clearTimeout(this.refreshTimer);
                 }
             });
             this.gifPicker.show();
-            this.refreshTimer = setTimeout(() => {
-                modal.refresh();
-            }, 1000);
         }
         onGifSelected(gif) {
             this.gifPicker.closeModal();
