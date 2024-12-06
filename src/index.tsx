@@ -478,7 +478,7 @@ export class ScomPostComposer extends Module {
                 this.needToUploadMedia = false;
                 extractedText = await this.replaceBase64WithLinks(extractedText);
                 if (this.errorMessage) {
-                    this.showAlert('error', `Failed to ${action}`, this.errorMessage, () => { });
+                    this.showAlert('error', this.i18n.get('$failed_to', {action}), this.errorMessage, () => { });
                     this.updateSubmittingStatus(false);
                     return;
                 }
