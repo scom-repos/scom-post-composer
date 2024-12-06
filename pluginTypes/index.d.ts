@@ -388,7 +388,6 @@ declare module "@scom/scom-post-composer" {
         private errorMessage;
         private needToUploadMedia;
         private _env;
-        private refreshTimer;
         onChanged: onChangedCallback;
         onSubmit: onSubmitCallback;
         onCancel: () => void;

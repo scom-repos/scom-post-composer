@@ -1254,12 +1254,13 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                     onGifSelected: this.onGifSelected
                 });
             }
-            const modal = this.gifPicker.openModal({
+            this.gifPicker.openModal({
                 border: { radius: '1rem' },
                 maxWidth: '600px',
-                maxHeight: '90vh',
+                height: '90vh',
                 overflow: { y: 'auto' },
                 padding: { top: 0, right: 0, left: 0, bottom: 0 },
+                closeIcon: null,
                 mediaQueries: [
                     {
                         maxWidth: '767px',
@@ -1277,14 +1278,9 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 ],
                 onClose: () => {
                     this.gifPicker.clear();
-                    if (this.refreshTimer)
-                        clearTimeout(this.refreshTimer);
                 }
             });
             this.gifPicker.show();
-            this.refreshTimer = setTimeout(() => {
-                modal.refresh();
-            }, 1000);
         }
         onGifSelected(gif) {
             this.gifPicker.closeModal();
