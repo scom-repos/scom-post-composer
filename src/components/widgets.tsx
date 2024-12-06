@@ -17,7 +17,7 @@ import {
 } from '@ijstech/components';
 import { chartWidgets, extractWidgetUrl, getWidgetEmbedUrl, IWidget, widgets } from '../global';
 import { formStyle } from '../index.css';
-import translations from '../translations.json';
+import {widgetsJson, mainJson} from '../languages/index';
 
 const Theme = Styles.Theme.ThemeVars;
 
@@ -81,7 +81,11 @@ export class ScomPostComposerWidget extends Module {
     }
 
     init() {
-        this.i18n.init({...translations});
+        const i18nData: any = {};
+        for (let key in mainJson) {
+            i18nData[key] = {...(mainJson[key] || {}), ...(widgetsJson[key] || {})};
+        }
+        this.i18n.init(i18nData);
         super.init();
         this.onTypeChanged = this.onTypeChanged.bind(this);
         this.onConfirm = this.getAttribute('onConfirm', true) || this.onConfirm;

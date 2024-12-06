@@ -30,7 +30,7 @@ import { widgetPreviewStyle, modalStyle, alertStyle } from './index.css';
 import { ScomStorage } from '@scom/scom-storage';
 import EmojiPicker from '@scom/scom-emoji-picker';
 import { ScomGifPicker } from '@scom/scom-gif-picker';
-import translations from './translations.json';
+import {mainJson as translations} from './languages/index';
 
 const Theme = Styles.Theme.ThemeVars;
 

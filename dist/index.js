@@ -202,10 +202,10 @@ define("@scom/scom-post-composer/global/index.ts", ["require", "exports", "@ijst
         }
     ];
 });
-define("@scom/scom-post-composer/translations.json.ts", ["require", "exports"], function (require, exports) {
+define("@scom/scom-post-composer/languages/main.json.ts", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    ///<amd-module name='@scom/scom-post-composer/translations.json.ts'/> 
+    ///<amd-module name='@scom/scom-post-composer/languages/main.json.ts'/> 
     exports.default = {
         en: {
             "anyone_on_or_off_nostr": "Anyone on or off Nostr",
@@ -372,7 +372,108 @@ define("@scom/scom-post-composer/translations.json.ts", ["require", "exports"], 
         }
     };
 });
-define("@scom/scom-post-composer/components/form.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-post-composer/translations.json.ts"], function (require, exports, components_3, translations_json_1) {
+define("@scom/scom-post-composer/languages/widgets.json.ts", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    ///<amd-module name='@scom/scom-post-composer/languages/widgets.json.ts'/> 
+    exports.default = {
+        "en": {
+            "general": "General",
+            "theme": "Theme",
+            "category": "Category",
+            "branding": "Branding",
+            "networks": "Networks",
+            "providers": "Providers",
+            "key": "Key",
+            "chain_id": "Chain ID",
+            "tokens": "Tokens",
+            "address": "Address",
+            "logo": "Logo",
+            "title": "Title",
+            "browse": "Browse",
+            "dark": "Dark",
+            "light": "Light",
+            "chain": "Chain",
+            "currency_address": "Currency Address",
+            "payment_model": "Payment Model",
+            "max_subscription_allowed": "Max Subscription Allowed",
+            "uri": "URI",
+            "the_index_of_your_nft_inside_the_erc1155_contract": "The index of your NFT inside the ERC1155 contract",
+            "token_to_pay_for_the_subscription": "Token to pay for the subscription",
+            "token_address_to_pay_for_the_subscription": "Token address to pay for the subscription",
+            "amount_of_token_to_pay_for_the_subscription": "Amount of token to pay for the subscription",
+            "max_quantity_of_this_subscription_existing": "Max quantity of this subscription existing",
+            "minimum_subscription_period_(in_days)": "Minimum Subscription Period (in Days)",
+            "subscription_price_per_period": "Subscription Price Per Period",
+            "an_image_to_represent_the_token": "An image to represent the token",
+            "usually_a_link_of_an_image_to_represent_the_nft": "Usually a link of an image to represent the NFT",
+            "image_link": "Image Link",
+            "nft_type": "NFT Type",
+            "index": "Index",
+            "custom_nft_address": "Custom NFT Address",
+            "update_price_to": "Update price to",
+            "update_uri_to": "Update URI to",
+            "url": "URL",
+            "community": "Community",
+            "stall": "Stall",
+            "product": "Product",
+            "subscription": "Subscription",
+            "one-time_purchase": "One-Time Purchase",
+        },
+        "zh-hant": {},
+        "vi": {
+            "general": "Chung",
+            "theme": "Chủ đề",
+            "category": "Danh mục",
+            "branding": "Xây dựng thương hiệu",
+            "networks": "Mạng",
+            "providers": "Nhà cung cấp",
+            "key": "Khóa",
+            "chain_id": "ID chuỗi",
+            "tokens": "Tokens",
+            "address": "Địa chỉ",
+            "logo": "Logo",
+            "title": "Tiêu đề",
+            "browse": "Duyệt tệp",
+            "dark": "Tối",
+            "light": "Sáng",
+            "chain": "Chuỗi",
+            "currency_address": "Địa chỉ tiền tệ",
+            "payment_model": "Mô hình thanh toán",
+            "max_subscription_allowed": "Số lượng đăng ký tối đa",
+            "uri": "URI",
+            "the_index_of_your_nft_inside_the_erc1155_contract": "Chỉ số của NFT của bạn trong hợp đồng ERC1155",
+            "token_to_pay_for_the_subscription": "Token để thanh toán cho đăng ký",
+            "token_address_to_pay_for_the_subscription": "Địa chỉ token để thanh toán cho đăng ký",
+            "amount_of_token_to_pay_for_the_subscription": "Số lượng token để thanh toán cho đăng ký",
+            "max_quantity_of_this_subscription_existing": "Số lượng tối đa của đăng ký này tồn tại",
+            "minimum_subscription_period_(in_days)": "Thời gian đăng ký tối thiểu (tính bằng ngày)",
+            "subscription_price_per_period": "Giá đăng ký theo kỳ",
+            "an_image_to_represent_the_token": "Một hình ảnh đại diện cho token",
+            "usually_a_link_of_an_image_to_represent_the_nft": "Thường là một liên kết hình ảnh đại diện cho NFT",
+            "image_link": "URL hình ảnh",
+            "nft_type": "Loại NFT",
+            "index": "Chỉ số",
+            "custom_nft_address": "Địa chỉ NFT tùy chỉnh",
+            "update_price_to": "Cập nhật giá cho",
+            "update_uri_to": "Cập nhật URI đến",
+            "url": "URL",
+            "community": "Cộng đồng",
+            "stall": "Gian hàng",
+            "product": "Sản phẩm",
+            "subscription": "Đăng ký",
+            "one-time_purchase": "Mua một lần"
+        }
+    };
+});
+define("@scom/scom-post-composer/languages/index.ts", ["require", "exports", "@scom/scom-post-composer/languages/main.json.ts", "@scom/scom-post-composer/languages/widgets.json.ts"], function (require, exports, main_json_1, widgets_json_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.widgetsJson = exports.mainJson = void 0;
+    exports.mainJson = main_json_1.default;
+    exports.widgetsJson = widgets_json_1.default;
+});
+define("@scom/scom-post-composer/components/form.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-post-composer/languages/index.ts"], function (require, exports, components_3, index_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomPostComposerUpload = void 0;
@@ -406,7 +507,7 @@ define("@scom/scom-post-composer/components/form.tsx", ["require", "exports", "@
             this.btnSubmit.enabled = !!target.value;
         }
         init() {
-            this.i18n.init({ ...translations_json_1.default });
+            this.i18n.init({ ...index_1.mainJson });
             super.init();
             const onConfirm = this.getAttribute('onConfirm', true);
             const url = this.getAttribute('url', true);
@@ -471,7 +572,7 @@ define("@scom/scom-post-composer/index.css.ts", ["require", "exports", "@ijstech
         }
     });
 });
-define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-post-composer/global/index.ts", "@scom/scom-post-composer/index.css.ts", "@scom/scom-post-composer/translations.json.ts"], function (require, exports, components_5, global_1, index_css_1, translations_json_2) {
+define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-post-composer/global/index.ts", "@scom/scom-post-composer/index.css.ts", "@scom/scom-post-composer/languages/index.ts"], function (require, exports, components_5, global_1, index_css_1, index_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomPostComposerWidget = void 0;
@@ -496,7 +597,11 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
             }
         }
         init() {
-            this.i18n.init({ ...translations_json_2.default });
+            const i18nData = {};
+            for (let key in index_2.mainJson) {
+                i18nData[key] = { ...(index_2.mainJson[key] || {}), ...(index_2.widgetsJson[key] || {}) };
+            }
+            this.i18n.init(i18nData);
             super.init();
             this.onTypeChanged = this.onTypeChanged.bind(this);
             this.onConfirm = this.getAttribute('onConfirm', true) || this.onConfirm;
@@ -864,7 +969,7 @@ define("@scom/scom-post-composer/components/index.ts", ["require", "exports", "@
     Object.defineProperty(exports, "ScomPostComposerUpload", { enumerable: true, get: function () { return form_1.ScomPostComposerUpload; } });
     Object.defineProperty(exports, "ScomPostComposerWidget", { enumerable: true, get: function () { return widgets_1.ScomPostComposerWidget; } });
 });
-define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components", "@scom/scom-post-composer/global/index.ts", "@scom/scom-post-composer/assets.ts", "@scom/scom-post-composer/components/index.ts", "@scom/scom-post-composer/index.css.ts", "@scom/scom-storage", "@scom/scom-gif-picker", "@scom/scom-post-composer/translations.json.ts"], function (require, exports, components_6, index_1, assets_2, index_2, index_css_2, scom_storage_1, scom_gif_picker_1, translations_json_3) {
+define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components", "@scom/scom-post-composer/global/index.ts", "@scom/scom-post-composer/assets.ts", "@scom/scom-post-composer/components/index.ts", "@scom/scom-post-composer/index.css.ts", "@scom/scom-storage", "@scom/scom-gif-picker", "@scom/scom-post-composer/languages/index.ts"], function (require, exports, components_6, index_3, assets_2, index_4, index_css_2, scom_storage_1, scom_gif_picker_1, index_5) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomPostComposer = void 0;
@@ -1217,7 +1322,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         async onUpload() {
             // const result = application.uploadFile(this.extensions);
             if (!this.uploadForm) {
-                this.uploadForm = await index_2.ScomPostComposerUpload.create({
+                this.uploadForm = await index_4.ScomPostComposerUpload.create({
                     onConfirm: this.onSetImage.bind(this)
                 });
             }
@@ -1435,7 +1540,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
         }
         async onShowWidgets(widget) {
             if (!this.widgetModule) {
-                this.widgetModule = await index_2.ScomPostComposerWidget.create({
+                this.widgetModule = await index_4.ScomPostComposerWidget.create({
                     env: this._env,
                     onConfirm: (url) => {
                         if (url)
@@ -1519,7 +1624,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             }
         }
         renderWidget(url) {
-            let widgetData = (0, index_1.extractWidgetUrl)(url);
+            let widgetData = (0, index_3.extractWidgetUrl)(url);
             const pnl = new components_6.Panel(undefined, { width: '100%' });
             pnl.classList.add(index_css_2.widgetPreviewStyle);
             const hStack = new components_6.HStack(pnl, {
@@ -1548,7 +1653,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
                 tooltip: { content: 'Delete' }
             });
             iconDelete.onClick = () => { this.onShowDeleteWidget(url, iconDelete); };
-            (0, index_1.getEmbedElement)({
+            (0, index_3.getEmbedElement)({
                 module: widgetData.moduleName,
                 data: {
                     properties: {
@@ -1573,7 +1678,7 @@ define("@scom/scom-post-composer", ["require", "exports", "@ijstech/components",
             this.onShowModal('mdPostAudience');
         }
         init() {
-            this.i18n.init({ ...translations_json_3.default });
+            this.i18n.init({ ...index_5.mainJson });
             super.init();
             this.onChanged = this.getAttribute('onChanged', true) || this.onChanged;
             this.onSubmit = this.getAttribute('onSubmit', true) || this.onSubmit;

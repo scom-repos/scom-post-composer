@@ -38,8 +38,8 @@ declare module "@scom/scom-post-composer/global/index.ts" {
     export const chartWidgets: string[];
     export const widgets: IWidget[];
 }
-/// <amd-module name="@scom/scom-post-composer/translations.json.ts" />
-declare module "@scom/scom-post-composer/translations.json.ts" {
+/// <amd-module name="@scom/scom-post-composer/languages/main.json.ts" />
+declare module "@scom/scom-post-composer/languages/main.json.ts" {
     const _default_1: {
         en: {
             anyone_on_or_off_nostr: string;
@@ -206,6 +206,105 @@ declare module "@scom/scom-post-composer/translations.json.ts" {
         };
     };
     export default _default_1;
+}
+/// <amd-module name="@scom/scom-post-composer/languages/widgets.json.ts" />
+declare module "@scom/scom-post-composer/languages/widgets.json.ts" {
+    const _default_2: {
+        en: {
+            general: string;
+            theme: string;
+            category: string;
+            branding: string;
+            networks: string;
+            providers: string;
+            key: string;
+            chain_id: string;
+            tokens: string;
+            address: string;
+            logo: string;
+            title: string;
+            browse: string;
+            dark: string;
+            light: string;
+            chain: string;
+            currency_address: string;
+            payment_model: string;
+            max_subscription_allowed: string;
+            uri: string;
+            the_index_of_your_nft_inside_the_erc1155_contract: string;
+            token_to_pay_for_the_subscription: string;
+            token_address_to_pay_for_the_subscription: string;
+            amount_of_token_to_pay_for_the_subscription: string;
+            max_quantity_of_this_subscription_existing: string;
+            "minimum_subscription_period_(in_days)": string;
+            subscription_price_per_period: string;
+            an_image_to_represent_the_token: string;
+            usually_a_link_of_an_image_to_represent_the_nft: string;
+            image_link: string;
+            nft_type: string;
+            index: string;
+            custom_nft_address: string;
+            update_price_to: string;
+            update_uri_to: string;
+            url: string;
+            community: string;
+            stall: string;
+            product: string;
+            subscription: string;
+            "one-time_purchase": string;
+        };
+        "zh-hant": {};
+        vi: {
+            general: string;
+            theme: string;
+            category: string;
+            branding: string;
+            networks: string;
+            providers: string;
+            key: string;
+            chain_id: string;
+            tokens: string;
+            address: string;
+            logo: string;
+            title: string;
+            browse: string;
+            dark: string;
+            light: string;
+            chain: string;
+            currency_address: string;
+            payment_model: string;
+            max_subscription_allowed: string;
+            uri: string;
+            the_index_of_your_nft_inside_the_erc1155_contract: string;
+            token_to_pay_for_the_subscription: string;
+            token_address_to_pay_for_the_subscription: string;
+            amount_of_token_to_pay_for_the_subscription: string;
+            max_quantity_of_this_subscription_existing: string;
+            "minimum_subscription_period_(in_days)": string;
+            subscription_price_per_period: string;
+            an_image_to_represent_the_token: string;
+            usually_a_link_of_an_image_to_represent_the_nft: string;
+            image_link: string;
+            nft_type: string;
+            index: string;
+            custom_nft_address: string;
+            update_price_to: string;
+            update_uri_to: string;
+            url: string;
+            community: string;
+            stall: string;
+            product: string;
+            subscription: string;
+            "one-time_purchase": string;
+        };
+    };
+    export default _default_2;
+}
+/// <amd-module name="@scom/scom-post-composer/languages/index.ts" />
+declare module "@scom/scom-post-composer/languages/index.ts" {
+    import mainJson from "@scom/scom-post-composer/languages/main.json.ts";
+    import widgetsJson from "@scom/scom-post-composer/languages/widgets.json.ts";
+    export { mainJson, widgetsJson, };
 }
 /// <amd-module name="@scom/scom-post-composer/components/form.tsx" />
 declare module "@scom/scom-post-composer/components/form.tsx" {
