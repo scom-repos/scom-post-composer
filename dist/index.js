@@ -133,14 +133,14 @@ define("@scom/scom-post-composer/global/index.ts", ["require", "exports", "@ijst
             icon: { name: 'exchange-alt' },
             title: '$xchain',
             description: '$insert_an_xchain_widget',
-            disabled: true
+            // disabled: true
         },
         {
             name: '@scom/scom-voting',
             icon: { name: 'vote-yea' },
             title: '$voting',
             description: '$insert_a_voting_widget',
-            disabled: true
+            // disabled: true
         },
         {
             name: '@scom/scom-nft-minter',
@@ -164,7 +164,7 @@ define("@scom/scom-post-composer/global/index.ts", ["require", "exports", "@ijst
             icon: { name: 'campground' },
             title: '$oswap_troll_nft',
             description: '$mint_a_membership_nft_for_openswap_community',
-            disabled: true
+            // disabled: true
         },
         {
             name: '@scom/scom-video',
@@ -419,6 +419,20 @@ define("@scom/scom-post-composer/languages/widgets.json.ts", ["require", "export
             "product": "Product",
             "subscription": "Subscription",
             "one-time_purchase": "One-Time Purchase",
+            "examples:<br>youtube_full_link:_https://www.youtube.com/watch?v=dqw4w9wgxcq,<br>youtube_video_id:_dqw4w9wgxcq<br>mp4_file:_https://static.flot.ai/file/karavideo/happy-cat.mp4": "Examples:<br>YouTube full link: https://www.youtube.com/watch?v=dqw4w9wgxcq:<br>YouTube video ID: dqw4w9wgxcq:<br>MP4 file: https://static.flot.ai/file/karavideo/happy-cat.mp4",
+            "buttons": "Buttons",
+            "label": "Label",
+            "value": "Value",
+            "background_image": "Background Image",
+            "font_color": "Font Color",
+            "background_color": "Background Color",
+            "input_background_color": "Input background color",
+            "input_font_color": "Input font color",
+            "max_button_background": "Max button background",
+            "max_button_hover_background": "Max button hover background",
+            "primary_button_background": "Primary button background",
+            "primary_button_hover_background": "Primary button hover background",
+            "primary_button_disabled_background": "Primary button disabled background",
         },
         "zh-hant": {},
         "vi": {
@@ -462,7 +476,21 @@ define("@scom/scom-post-composer/languages/widgets.json.ts", ["require", "export
             "stall": "Gian hàng",
             "product": "Sản phẩm",
             "subscription": "Đăng ký",
-            "one-time_purchase": "Mua một lần"
+            "one-time_purchase": "Mua một lần",
+            "examples:<br>youtube_full_link:_https://www.youtube.com/watch?v=dqw4w9wgxcq,<br>youtube_video_id:_dqw4w9wgxcq<br>mp4_file:_https://static.flot.ai/file/karavideo/happy-cat.mp4": "Ví dụ:<br>Đường dẫn YouTube: https://www.youtube.com/watch?v=dqw4w9wgxcq:<br>ID YouTube: dqw4w9wgxcq:<br>Tệp MP4: https://static.flot.ai/file/karavideo/happy-cat.mp4",
+            "buttons": "Nút",
+            "label": "Nhãn",
+            "value": "Giá trị",
+            "background_image": "Hình nền",
+            "font_color": "Màu chữ",
+            "background_color": "Màu nền",
+            "input_background_color": "Màu nền đầu vào",
+            "input_font_color": "Màu chữ đầu vào",
+            "max_button_background": "Màu nền nút Tối đa",
+            "max_button_hover_background": "Màu nền nút Tối đa khi di chuột",
+            "primary_button_background": "Màu nền chính",
+            "primary_button_hover_background": "Màu nền chính khi di chuột",
+            "primary_button_disabled_background": "Màu nền chính khi không hoạt động",
         }
     };
 });

@@ -127,14 +127,14 @@ export const widgets: IWidget[] = [
     icon: { name: 'exchange-alt' },
     title: '$xchain',
     description: '$insert_an_xchain_widget',
-    disabled: true
+    // disabled: true
   },
   {
     name: '@scom/scom-voting',
     icon: { name: 'vote-yea' },
     title: '$voting',
     description: '$insert_a_voting_widget',
-    disabled: true
+    // disabled: true
   },
   {
     name: '@scom/scom-nft-minter',
@@ -158,7 +158,7 @@ export const widgets: IWidget[] = [
     icon: { name: 'campground' },
     title: '$oswap_troll_nft',
     description: '$mint_a_membership_nft_for_openswap_community',
-    disabled: true
+    // disabled: true
   },
   {
     name: '@scom/scom-video',
