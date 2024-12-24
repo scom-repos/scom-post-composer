@@ -68,6 +68,9 @@ export const getEmbedElement = async (postData: any, parent: Control) => {
   if (builderTarget?.setTag && Object.keys(tag).length) {
     await builderTarget.setTag(tag);
   }
+  if (module === '@scom/scom-product') {
+    elm.onProductAdded = (stallId: string) => application.EventBus.dispatch('PRODUCT_ADDED', stallId);
+  }
   return elm;
 }
 

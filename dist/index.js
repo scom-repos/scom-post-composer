@@ -92,6 +92,9 @@ define("@scom/scom-post-composer/global/index.ts", ["require", "exports", "@ijst
         if (builderTarget?.setTag && Object.keys(tag).length) {
             await builderTarget.setTag(tag);
         }
+        if (module === '@scom/scom-product') {
+            elm.onProductAdded = (stallId) => components_2.application.EventBus.dispatch('PRODUCT_ADDED', stallId);
+        }
         return elm;
     };
     exports.getEmbedElement = getEmbedElement;
@@ -823,6 +826,7 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
             this.pnlWidgetWrapper.visible = true;
             this.widgetWrapper.clearInnerHTML();
             this.widgetWrapper.appendChild(elm);
+            elm.isPreview = true;
             if (elm?.getConfigurators) {
                 const isChart = global_1.chartWidgets.includes(module);
                 const action = this.getActions(elm, isChart, configuratorCustomData);
