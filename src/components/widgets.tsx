@@ -249,6 +249,7 @@ export class ScomPostComposerWidget extends Module {
         this.pnlWidgetWrapper.visible = true;
         this.widgetWrapper.clearInnerHTML();
         this.widgetWrapper.appendChild(elm);
+        elm.isPreview = true;
         if (elm?.getConfigurators) {
             const isChart = chartWidgets.includes(module);
             const action = this.getActions(elm, isChart, configuratorCustomData);
