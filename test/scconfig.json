@@ -32,7 +32,8 @@
     "@scom/scom-voting",
     "@scom/scom-twitter-post",
     "@scom/scom-storage",
-    "@scom/oswap-nft-widget"
+    "@scom/oswap-nft-widget",
+    "@scom/scom-xchain-swap"
   ],
   "menus": [
     {

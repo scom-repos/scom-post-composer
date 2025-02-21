@@ -52,6 +52,8 @@ export default {
     "your_quota_insufficient_for_ipfs_media_upload": "Your quota insufficient for IPFS media upload!",
     "youtube_video": "YouTube Video",
     "insert_image": "Insert Image",
+    "xchain_swap": "Xchain Swap",
+    "insert_an_xchain_swap_widget": "Insert an Xchain Swap widget",
   },
   "zh-hant": {
     "anyone_on_or_off_nostr": "任何人在Nostr上或關閉",
@@ -106,6 +108,8 @@ export default {
     "your_quota_insufficient_for_ipfs_media_upload": "您的配額不足以上傳IPFS媒體！",
     "youtube_video": "YouTube視頻",
     "insert_image": "插入圖片",
+    "xchain_swap": "Xchain 交換",
+    "insert_an_xchain_swap_widget": "插入 Xchain 交換小工具",
   },
   "vi": {
     "anyone_on_or_off_nostr": "Bất kỳ ai trên hoặc ngoài Nostr",
@@ -137,7 +141,7 @@ export default {
     "media": "Phương tiện",
     "members_of_the_community": "Thành viên cộng đồng",
     "members": "Thành viên",
-    "mint_a_membership_nft_for_gated_communities": "Đúc NFT thành viên cho các cộng đồng có kiểm soát",    
+    "mint_a_membership_nft_for_gated_communities": "Đúc NFT thành viên cho các cộng đồng có kiểm soát",
     "mint_a_membership_nft_for_openswap_community": "Đúc NFT Thành Viên cho cộng đồng OpenSwap",
     "mp4_or_mov_file": "Tệp .mp4 hoặc .mov",
     "oswap_troll_nft": "NFT Troll OSwap",
@@ -161,5 +165,7 @@ export default {
     "your_quota_insufficient_for_ipfs_media_upload": "Dung lượng của bạn không đủ để tải phương tiện lên IPFS!",
     "youtube_video": "Youtube video",
     "insert_image": "Chèn hình ảnh",
+    "xchain_swap": "Hoán đổi Xchain",
+    "insert_an_xchain_swap_widget": "Chèn tiện ích hoán đổi Xchain",
   }
 }

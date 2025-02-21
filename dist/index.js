@@ -202,6 +202,13 @@ define("@scom/scom-post-composer/global/index.ts", ["require", "exports", "@ijst
             title: '$product',
             description: '$embed_community_product',
             isDevOnly: true
+        },
+        {
+            name: '@scom/scom-xchain-swap',
+            icon: { name: 'exchange-alt' },
+            title: '$xchain_swap',
+            description: '$insert_an_xchain_swap_widget',
+            isDevOnly: true
         }
     ];
 });
@@ -263,6 +270,8 @@ define("@scom/scom-post-composer/languages/main.json.ts", ["require", "exports"]
             "your_quota_insufficient_for_ipfs_media_upload": "Your quota insufficient for IPFS media upload!",
             "youtube_video": "YouTube Video",
             "insert_image": "Insert Image",
+            "xchain_swap": "Xchain Swap",
+            "insert_an_xchain_swap_widget": "Insert an Xchain Swap widget",
         },
         "zh-hant": {
             "anyone_on_or_off_nostr": "任何人在Nostr上或關閉",
@@ -317,6 +326,8 @@ define("@scom/scom-post-composer/languages/main.json.ts", ["require", "exports"]
             "your_quota_insufficient_for_ipfs_media_upload": "您的配額不足以上傳IPFS媒體！",
             "youtube_video": "YouTube視頻",
             "insert_image": "插入圖片",
+            "xchain_swap": "Xchain 交換",
+            "insert_an_xchain_swap_widget": "插入 Xchain 交換小工具",
         },
         "vi": {
             "anyone_on_or_off_nostr": "Bất kỳ ai trên hoặc ngoài Nostr",
@@ -372,6 +383,8 @@ define("@scom/scom-post-composer/languages/main.json.ts", ["require", "exports"]
             "your_quota_insufficient_for_ipfs_media_upload": "Dung lượng của bạn không đủ để tải phương tiện lên IPFS!",
             "youtube_video": "Youtube video",
             "insert_image": "Chèn hình ảnh",
+            "xchain_swap": "Hoán đổi Xchain",
+            "insert_an_xchain_swap_widget": "Chèn tiện ích hoán đổi Xchain",
         }
     };
 });
@@ -436,6 +449,9 @@ define("@scom/scom-post-composer/languages/widgets.json.ts", ["require", "export
             "url": "URL",
             "usually_a_link_of_an_image_to_represent_the_nft": "Usually a link of an image to represent the NFT",
             "value": "Value",
+            "current_url_hash": "Current URL Hash",
+            "record_url": "Bridge Record URL",
+            "enable_url_params": "Enable URL Params?",
         },
         "zh-hant": {
             "address": "地址",
@@ -493,6 +509,9 @@ define("@scom/scom-post-composer/languages/widgets.json.ts", ["require", "export
             "url": "URL",
             "usually_a_link_of_an_image_to_represent_the_nft": "通常代表NFT的圖片鏈接",
             "value": "值",
+            "current_url_hash": "當前 URL 哈希",
+            "record_url": "橋樑記錄 URL",
+            "enable_url_params": "啟用 URL 參數？",
         },
         "vi": {
             "address": "Địa chỉ",
@@ -550,6 +569,9 @@ define("@scom/scom-post-composer/languages/widgets.json.ts", ["require", "export
             "url": "URL",
             "usually_a_link_of_an_image_to_represent_the_nft": "Thường là một liên kết hình ảnh đại diện cho NFT",
             "value": "Giá trị",
+            "current_url_hash": "Mã URL Hiện Tại",
+            "record_url": "URL Bản Ghi Cầu Nối",
+            "enable_url_params": "Kích Hoạt Tham Số URL?",
         }
     };
 });

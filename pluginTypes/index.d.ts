@@ -94,6 +94,8 @@ declare module "@scom/scom-post-composer/languages/main.json.ts" {
             your_quota_insufficient_for_ipfs_media_upload: string;
             youtube_video: string;
             insert_image: string;
+            xchain_swap: string;
+            insert_an_xchain_swap_widget: string;
         };
         "zh-hant": {
             anyone_on_or_off_nostr: string;
@@ -148,6 +150,8 @@ declare module "@scom/scom-post-composer/languages/main.json.ts" {
             your_quota_insufficient_for_ipfs_media_upload: string;
             youtube_video: string;
             insert_image: string;
+            xchain_swap: string;
+            insert_an_xchain_swap_widget: string;
         };
         vi: {
             anyone_on_or_off_nostr: string;
@@ -203,6 +207,8 @@ declare module "@scom/scom-post-composer/languages/main.json.ts" {
             your_quota_insufficient_for_ipfs_media_upload: string;
             youtube_video: string;
             insert_image: string;
+            xchain_swap: string;
+            insert_an_xchain_swap_widget: string;
         };
     };
     export default _default_1;
@@ -266,6 +272,9 @@ declare module "@scom/scom-post-composer/languages/widgets.json.ts" {
             url: string;
             usually_a_link_of_an_image_to_represent_the_nft: string;
             value: string;
+            current_url_hash: string;
+            record_url: string;
+            enable_url_params: string;
         };
         "zh-hant": {
             address: string;
@@ -323,6 +332,9 @@ declare module "@scom/scom-post-composer/languages/widgets.json.ts" {
             url: string;
             usually_a_link_of_an_image_to_represent_the_nft: string;
             value: string;
+            current_url_hash: string;
+            record_url: string;
+            enable_url_params: string;
         };
         vi: {
             address: string;
@@ -380,6 +392,9 @@ declare module "@scom/scom-post-composer/languages/widgets.json.ts" {
             url: string;
             usually_a_link_of_an_image_to_represent_the_nft: string;
             value: string;
+            current_url_hash: string;
+            record_url: string;
+            enable_url_params: string;
         };
     };
     export default _default_2;
