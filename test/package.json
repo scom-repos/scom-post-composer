@@ -54,6 +54,7 @@
         "@scom/scom-image": "https://github.com/scom-repos/scom-image",
         "@scom/scom-video": "https://github.com/scom-repos/scom-video",
         "@scom/scom-nft-minter": "https://github.com/scom-repos/scom-nft-minter",
+        "@scom/scom-xchain-swap": "https://github.com/scom-repos/scom-xchain-swap",
         "@scom/scom-post-composer": "file:./ref"
     },
     "scripts": {

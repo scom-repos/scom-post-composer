@@ -196,5 +196,12 @@ export const widgets: IWidget[] = [
     title: '$product',
     description: '$embed_community_product',
     isDevOnly: true
+  },
+  {
+    name: '@scom/scom-xchain-swap',
+    icon: { name: 'exchange-alt' },
+    title: '$xchain_swap',
+    description: '$insert_an_xchain_swap_widget',
+    isDevOnly: true
   }
 ]

@@ -55,6 +55,9 @@ export default {
     "url": "URL",
     "usually_a_link_of_an_image_to_represent_the_nft": "Usually a link of an image to represent the NFT",
     "value": "Value",
+    "current_url_hash": "Current URL Hash",
+    "record_url": "Bridge Record URL",
+    "enable_url_params": "Enable URL Params?",
   },
   "zh-hant": {
     "address": "地址",
@@ -112,6 +115,9 @@ export default {
     "url": "URL",
     "usually_a_link_of_an_image_to_represent_the_nft": "通常代表NFT的圖片鏈接",
     "value": "值",
+    "current_url_hash": "當前 URL 哈希",
+    "record_url": "橋樑記錄 URL",
+    "enable_url_params": "啟用 URL 參數？",
   },
   "vi": {
     "address": "Địa chỉ",
@@ -169,5 +175,8 @@ export default {
     "url": "URL",
     "usually_a_link_of_an_image_to_represent_the_nft": "Thường là một liên kết hình ảnh đại diện cho NFT",
     "value": "Giá trị",
+    "current_url_hash": "Mã URL Hiện Tại",
+    "record_url": "URL Bản Ghi Cầu Nối",
+    "enable_url_params": "Kích Hoạt Tham Số URL?",
   }
 }
