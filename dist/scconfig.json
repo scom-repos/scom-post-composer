@@ -1,7 +1,7 @@
 {
     "name": "@scom/scom-post-composer",
     "type": "widget",
-    "version": "0.1.21",
+    "version": "0.1.22",
     "dependencies": [
         "@ijstech/components",
         "@scom/scom-post",
