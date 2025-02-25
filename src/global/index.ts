@@ -191,6 +191,13 @@ export const widgets: IWidget[] = [
     description: '$insert_an_x_post'
   },
   {
+    name: '@scom/scom-slot',
+    icon: { name: 'gamepad'},
+    title: '$slot_machine',
+    description: '$insert_a_slot_machine',
+    isDevOnly: true
+  },
+  {
     name: '@scom/scom-product',
     icon: { name: 'box-open' },
     title: '$product',

@@ -80,6 +80,8 @@ declare module "@scom/scom-post-composer/languages/main.json.ts" {
             reply: string;
             replying_to: string;
             Search_for_GIFs: string;
+            slot_machine: string;
+            insert_a_slot_machine: string;
             something_went_wrong_when_uploading_your_media_to_ipfs: string;
             staking: string;
             swap: string;
