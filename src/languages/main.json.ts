@@ -38,6 +38,8 @@ export default {
     "reply": "Reply",
     "replying_to": "Replying to",
     "Search_for_GIFs": "Search for GIFs",
+    "slot_machine": "Slot machine",
+    "insert_a_slot_machine": "Insert a slot machine",
     "something_went_wrong_when_uploading_your_media_to_ipfs": "Something went wrong when uploading your media to IPFS!",
     "staking": "Staking",
     "swap": "Swap",

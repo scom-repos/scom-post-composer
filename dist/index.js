@@ -197,6 +197,13 @@ define("@scom/scom-post-composer/global/index.ts", ["require", "exports", "@ijst
             description: '$insert_an_x_post'
         },
         {
+            name: '@scom/scom-slot',
+            icon: { name: 'gamepad' },
+            title: '$slot_machine',
+            description: '$insert_a_slot_machine',
+            isDevOnly: true
+        },
+        {
             name: '@scom/scom-product',
             icon: { name: 'box-open' },
             title: '$product',
@@ -249,6 +256,8 @@ define("@scom/scom-post-composer/languages/main.json.ts", ["require", "exports"]
             "reply": "Reply",
             "replying_to": "Replying to",
             "Search_for_GIFs": "Search for GIFs",
+            "slot_machine": "Slot machine",
+            "insert_a_slot_machine": "Insert a slot machine",
             "something_went_wrong_when_uploading_your_media_to_ipfs": "Something went wrong when uploading your media to IPFS!",
             "staking": "Staking",
             "swap": "Swap",
