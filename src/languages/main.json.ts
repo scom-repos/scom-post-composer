@@ -56,6 +56,8 @@ export default {
     "insert_image": "Insert Image",
     "xchain_swap": "Xchain Swap",
     "insert_an_xchain_swap_widget": "Insert an Xchain Swap widget",
+    "xchain_bridge_record": "Xchain Bridge Record",
+    "insert_an_xchain_bridge_record_widget": "Insert an Xchain Bridge Record widget",
   },
   "zh-hant": {
     "anyone_on_or_off_nostr": "任何人在Nostr上或關閉",
@@ -112,6 +114,8 @@ export default {
     "insert_image": "插入圖片",
     "xchain_swap": "Xchain 交換",
     "insert_an_xchain_swap_widget": "插入 Xchain 交換小工具",
+    "xchain_bridge_record": "Xchain 桥接记录",
+    "insert_an_xchain_bridge_record_widget": "插入 Xchain 桥接记录小工具",
   },
   "vi": {
     "anyone_on_or_off_nostr": "Bất kỳ ai trên hoặc ngoài Nostr",
@@ -169,5 +173,7 @@ export default {
     "insert_image": "Chèn hình ảnh",
     "xchain_swap": "Hoán đổi Xchain",
     "insert_an_xchain_swap_widget": "Chèn tiện ích hoán đổi Xchain",
+    "xchain_bridge_record": "Bản ghi cầu nối Xchain",
+    "insert_an_xchain_bridge_record_widget": "Chèn một tiện ích Bản ghi cầu nối Xchain",
   }
 }

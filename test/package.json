@@ -48,13 +48,13 @@
         "@scom/scom-voting": "^0.1.1",
         "@scom/scom-twitter-post": "^0.1.1",
         "@scom/scom-swap": "^0.1.25",
-        "@scom/scom-xchain-widget": "^0.1.1",
         "@scom/scom-staking": "^0.1.18",
         "@scom/oswap-nft-widget": "https://github.com/scom-repos/oswap-nft-widget",
         "@scom/scom-image": "https://github.com/scom-repos/scom-image",
         "@scom/scom-video": "https://github.com/scom-repos/scom-video",
         "@scom/scom-nft-minter": "https://github.com/scom-repos/scom-nft-minter",
         "@scom/scom-xchain-swap": "https://github.com/scom-repos/scom-xchain-swap",
+        "@scom/scom-xchain-bridge-record": "https://github.com/scom-repos/scom-xchain-bridge-record",
         "@scom/scom-post-composer": "file:./ref"
     },
     "scripts": {

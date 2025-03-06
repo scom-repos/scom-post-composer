@@ -27,13 +27,13 @@
     "@scom/scom-image",
     "@scom/scom-video",
     "@scom/scom-swap",
-    "@scom/scom-xchain-widget",
     "@scom/scom-nft-minter",
     "@scom/scom-voting",
     "@scom/scom-twitter-post",
     "@scom/scom-storage",
     "@scom/oswap-nft-widget",
-    "@scom/scom-xchain-swap"
+    "@scom/scom-xchain-swap",
+    "@scom/scom-xchain-bridge-record"
   ],
   "menus": [
     {
