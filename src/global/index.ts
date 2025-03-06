@@ -126,13 +126,6 @@ export const widgets: IWidget[] = [
     disabled: true
   },
   {
-    name: '@scom/scom-xchain-widget',
-    icon: { name: 'exchange-alt' },
-    title: '$xchain',
-    description: '$insert_an_xchain_widget',
-    disabled: true
-  },
-  {
     name: '@scom/scom-voting',
     icon: { name: 'vote-yea' },
     title: '$voting',
@@ -203,5 +196,12 @@ export const widgets: IWidget[] = [
     title: '$xchain_swap',
     description: '$insert_an_xchain_swap_widget',
     isDevOnly: true
-  }
+  },
+  {
+    name: '@scom/scom-xchain-bridge-record',
+    icon: { name: 'cube' },
+    title: '$xchain_bridge_record',
+    description: '$insert_an_xchain_bridge_record_widget',
+    isDevOnly: true
+  },
 ]

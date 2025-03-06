@@ -17,7 +17,7 @@ import {
 } from '@ijstech/components';
 import { chartWidgets, extractWidgetUrl, getWidgetEmbedUrl, IWidget, widgets } from '../global';
 import { formStyle } from '../index.css';
-import {widgetsJson, mainJson} from '../languages/index';
+import { widgetsJson, mainJson } from '../languages/index';
 
 const Theme = Styles.Theme.ThemeVars;
 
@@ -69,6 +69,17 @@ export class ScomPostComposerWidget extends Module {
         if (this.onCloseButtonClick) this.onCloseButtonClick();
     }
 
+    private mergeI18nData(i18nData: Record<string, any>[]) {
+        const mergedI18nData: Record<string, any> = {};
+        for (let i = 0; i < i18nData.length; i++) {
+            const i18nItem = i18nData[i];
+            for (const key in i18nItem) {
+                mergedI18nData[key] = { ...(mergedI18nData[key] || {}), ...(i18nItem[key] || {}) };
+            }
+        }
+        return mergedI18nData;
+    }
+
     get env() {
         return this._env;
     }
@@ -81,11 +92,7 @@ export class ScomPostComposerWidget extends Module {
     }
 
     init() {
-        const i18nData: any = {};
-        for (let key in mainJson) {
-            i18nData[key] = {...(mainJson[key] || {}), ...(widgetsJson[key] || {})};
-        }
-        this.i18n.init(i18nData);
+        this.i18n.init({ ...this.mergeI18nData([mainJson, widgetsJson]) });
         super.init();
         this.onTypeChanged = this.onTypeChanged.bind(this);
         this.onConfirm = this.getAttribute('onConfirm', true) || this.onConfirm;
@@ -246,6 +253,10 @@ export class ScomPostComposerWidget extends Module {
         this.lbNotePreview.visible = !!note;
         this.lbNotePreview.caption = note || '';
         const elm: any = await application.createElement(module);
+        if (elm?.getConfigJson) {
+            const configJson = elm.getConfigJson();
+            this.i18n.init({ ...this.mergeI18nData([mainJson, widgetsJson, configJson]) });
+        }
         this.pnlWidgetWrapper.visible = true;
         this.widgetWrapper.clearInnerHTML();
         this.widgetWrapper.appendChild(elm);

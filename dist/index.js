@@ -132,13 +132,6 @@ define("@scom/scom-post-composer/global/index.ts", ["require", "exports", "@ijst
             disabled: true
         },
         {
-            name: '@scom/scom-xchain-widget',
-            icon: { name: 'exchange-alt' },
-            title: '$xchain',
-            description: '$insert_an_xchain_widget',
-            disabled: true
-        },
-        {
             name: '@scom/scom-voting',
             icon: { name: 'vote-yea' },
             title: '$voting',
@@ -209,7 +202,14 @@ define("@scom/scom-post-composer/global/index.ts", ["require", "exports", "@ijst
             title: '$xchain_swap',
             description: '$insert_an_xchain_swap_widget',
             isDevOnly: true
-        }
+        },
+        {
+            name: '@scom/scom-xchain-bridge-record',
+            icon: { name: 'cube' },
+            title: '$xchain_bridge_record',
+            description: '$insert_an_xchain_bridge_record_widget',
+            isDevOnly: true
+        },
     ];
 });
 define("@scom/scom-post-composer/languages/main.json.ts", ["require", "exports"], function (require, exports) {
@@ -272,6 +272,8 @@ define("@scom/scom-post-composer/languages/main.json.ts", ["require", "exports"]
             "insert_image": "Insert Image",
             "xchain_swap": "Xchain Swap",
             "insert_an_xchain_swap_widget": "Insert an Xchain Swap widget",
+            "xchain_bridge_record": "Xchain Bridge Record",
+            "insert_an_xchain_bridge_record_widget": "Insert an Xchain Bridge Record widget",
         },
         "zh-hant": {
             "anyone_on_or_off_nostr": "任何人在Nostr上或關閉",
@@ -696,6 +698,16 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
             if (this.onCloseButtonClick)
                 this.onCloseButtonClick();
         }
+        mergeI18nData(i18nData) {
+            const mergedI18nData = {};
+            for (let i = 0; i < i18nData.length; i++) {
+                const i18nItem = i18nData[i];
+                for (const key in i18nItem) {
+                    mergedI18nData[key] = { ...(mergedI18nData[key] || {}), ...(i18nItem[key] || {}) };
+                }
+            }
+            return mergedI18nData;
+        }
         get env() {
             return this._env;
         }
@@ -706,11 +718,7 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
             }
         }
         init() {
-            const i18nData = {};
-            for (let key in index_2.mainJson) {
-                i18nData[key] = { ...(index_2.mainJson[key] || {}), ...(index_2.widgetsJson[key] || {}) };
-            }
-            this.i18n.init(i18nData);
+            this.i18n.init({ ...this.mergeI18nData([index_2.mainJson, index_2.widgetsJson]) });
             super.init();
             this.onTypeChanged = this.onTypeChanged.bind(this);
             this.onConfirm = this.getAttribute('onConfirm', true) || this.onConfirm;
@@ -845,6 +853,10 @@ define("@scom/scom-post-composer/components/widgets.tsx", ["require", "exports",
             this.lbNotePreview.visible = !!note;
             this.lbNotePreview.caption = note || '';
             const elm = await components_5.application.createElement(module);
+            if (elm?.getConfigJson) {
+                const configJson = elm.getConfigJson();
+                this.i18n.init({ ...this.mergeI18nData([index_2.mainJson, index_2.widgetsJson, configJson]) });
+            }
             this.pnlWidgetWrapper.visible = true;
             this.widgetWrapper.clearInnerHTML();
             this.widgetWrapper.appendChild(elm);

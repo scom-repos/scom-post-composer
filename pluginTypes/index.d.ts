@@ -96,6 +96,8 @@ declare module "@scom/scom-post-composer/languages/main.json.ts" {
             insert_image: string;
             xchain_swap: string;
             insert_an_xchain_swap_widget: string;
+            xchain_bridge_record: string;
+            insert_an_xchain_bridge_record_widget: string;
         };
         "zh-hant": {
             anyone_on_or_off_nostr: string;
@@ -483,6 +485,7 @@ declare module "@scom/scom-post-composer/components/widgets.tsx" {
         onRefresh: (maxWidth: string) => void;
         static create(options?: ScomPostComposerWidgetsElement, parent?: Container): Promise<ScomPostComposerWidget>;
         private handleCloseButtonClick;
+        private mergeI18nData;
         get env(): string;
         set env(value: string);
         init(): void;
